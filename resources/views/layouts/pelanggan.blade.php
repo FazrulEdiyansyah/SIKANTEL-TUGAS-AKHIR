@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIKANTEL - Pelanggan')</title>
 
+    <!-- Midtrans Snap -->
+    <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+
     <!-- Font Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,13 +34,13 @@
 
         <!-- Center: Nav Links -->
         <nav class="hidden lg:flex items-center space-x-12 h-full">
-            <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-sm font-bold text-telkom-red border-b-2 border-telkom-red transition-colors">
+            <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.dashboard') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Beranda
             </a>
-            <a href="#" class="h-full flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+            <a href="#" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.kantin.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Kantin
             </a>
-            <a href="#" class="h-full flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+            <a href="{{ route('pelanggan.orders.index') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.orders.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Pesanan Saya
             </a>
         </nav>
@@ -95,6 +98,26 @@
             <p class="text-[13px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
         </div>
     </footer>
+
+    <!-- Global Toast Notification (CSS Only) -->
+    @if(session('success_cart'))
+        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
+            <div class="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
+                <i class="ph-fill ph-check-circle text-xl mr-2"></i>
+                {{ session('success_cart') }}
+            </div>
+        </div>
+        <style>
+            @keyframes fadeInDown {
+                0% { opacity: 0; transform: translate(-50%, -20px); }
+                10%, 90% { opacity: 1; transform: translate(-50%, 0); }
+                100% { opacity: 0; transform: translate(-50%, -20px); }
+            }
+            .animate-fade-in-down {
+                animation: fadeInDown 3s ease-in-out forwards;
+            }
+        </style>
+    @endif
 
 </body>
 </html>

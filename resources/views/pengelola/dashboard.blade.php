@@ -22,7 +22,7 @@
             </div>
             <div>
                 <p class="text-sm font-semibold text-gray-500 mb-1">Total Kantin</p>
-                <h3 class="text-3xl font-bold text-gray-900 mb-1">0</h3>
+                <h3 class="text-3xl font-bold text-gray-900 mb-1">{{ $totalKantin }}</h3>
                 <p class="text-[13px] font-medium text-gray-400">Kantin Aktif</p>
             </div>
         </div>
@@ -34,7 +34,7 @@
             </div>
             <div>
                 <p class="text-sm font-semibold text-gray-500 mb-1">Total Tenant Aktif</p>
-                <h3 class="text-3xl font-bold text-gray-900 mb-1">0</h3>
+                <h3 class="text-3xl font-bold text-gray-900 mb-1">{{ $totalTenant }}</h3>
                 <p class="text-[13px] font-medium text-gray-400">Tenant Aktif</p>
             </div>
         </div>
@@ -46,7 +46,7 @@
             </div>
             <div>
                 <p class="text-sm font-semibold text-gray-500 mb-1">Total Penjualan Bulan Ini</p>
-                <h3 class="text-3xl font-bold text-gray-400 mb-1">Rp0</h3>
+                <h3 class="text-3xl font-bold text-gray-900 mb-1">Rp{{ number_format($penjualanBulanIni, 0, ',', '.') }}</h3>
                 <p class="text-[13px] font-medium text-gray-400">Dari semua kantin</p>
             </div>
         </div>
@@ -55,7 +55,7 @@
     <!-- Charts & Lists Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         
-        <!-- Grafik Penjualan (Placeholder) -->
+        <!-- Grafik Penjualan -->
         <div class="lg:col-span-2 bg-white rounded-[20px] p-6 shadow-sm border border-gray-100">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 space-y-4 sm:space-y-0">
                 <h2 class="text-[17px] font-bold text-gray-900">Grafik Penjualan</h2>
@@ -74,26 +74,9 @@
                 </div>
             </div>
             
-            <!-- Area Chart Placeholder (CSS Visual) -->
-            <div class="relative h-64 w-full flex items-end">
-                <!-- Y-Axis Grid Lines -->
-                <div class="absolute inset-0 flex flex-col justify-between text-[12px] text-gray-400 font-medium pb-8 pr-12">
-                    <div class="flex items-center justify-between w-full border-b border-gray-100 border-dashed pb-1"><span>8 jt</span></div>
-                    <div class="flex items-center justify-between w-full border-b border-gray-100 border-dashed pb-1"><span>6 jt</span></div>
-                    <div class="flex items-center justify-between w-full border-b border-gray-100 border-dashed pb-1"><span>4 jt</span></div>
-                    <div class="flex items-center justify-between w-full border-b border-gray-100 border-dashed pb-1"><span>2 jt</span></div>
-                    <div class="flex items-center justify-between w-full border-b border-gray-100 border-dashed pb-1"><span>0 jt</span></div>
-                </div>
-                
-                <!-- X-Axis Labels -->
-                <div class="absolute bottom-0 left-10 right-0 flex justify-between text-[12px] text-gray-400 font-medium pt-3">
-                    <span>1 Jun</span><span>4 Jun</span><span>6 Jun</span><span>9 Jun</span><span>11 Jun</span><span>14 Jun</span><span>18 Jun</span><span>21 Jun</span><span>26 Jun</span><span>30 Jun</span>
-                </div>
-
-                <!-- Fake Line Chart SVG Placeholder (Empty State) -->
-                <div class="absolute inset-0 w-full h-full pt-8 pb-10 pl-10 flex items-center justify-center">
-                    <p class="text-sm font-medium text-gray-400 bg-white px-4 py-1 rounded-md">Belum ada data penjualan</p>
-                </div>
+            <!-- Area Chart -->
+            <div class="relative h-64 w-full">
+                <canvas id="pengelolaSalesChart"></canvas>
             </div>
         </div>
 
@@ -102,13 +85,30 @@
             <h2 class="text-[17px] font-bold text-gray-900 mb-6">Kantin Paling Ramai</h2>
             
             <div class="space-y-5 flex-1 flex flex-col items-center justify-center text-center pb-8">
-                <i class="ph ph-storefront text-4xl text-gray-200 mb-3"></i>
-                <p class="text-sm font-medium text-gray-400">Belum ada data kantin</p>
+                @if($kantinTeramai)
+                    <div class="w-20 h-20 rounded-2xl bg-gray-100 border-2 border-white shadow-md overflow-hidden mx-auto mb-2">
+                        @if($kantinTeramai->foto)
+                            <img src="{{ asset('storage/' . $kantinTeramai->foto) }}" class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center bg-red-50 text-telkom-red">
+                                <i class="ph-bold ph-storefront text-3xl"></i>
+                            </div>
+                        @endif
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">{{ $kantinTeramai->nama_kantin }}</h3>
+                        <p class="text-sm font-medium text-gray-500 mb-2">{{ $kantinTeramai->lokasi }}</p>
+                        <span class="inline-flex px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold">{{ $kantinTeramai->orders_count }} Transaksi Berhasil</span>
+                    </div>
+                @else
+                    <i class="ph ph-storefront text-4xl text-gray-200 mb-3"></i>
+                    <p class="text-sm font-medium text-gray-400">Belum ada data kantin</p>
+                @endif
             </div>
 
-            <button class="w-full mt-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-telkom-red hover:bg-red-50 transition-colors">
+            <a href="{{ route('pengelola.kantin.index') }}" class="w-full mt-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold text-telkom-red hover:bg-red-50 transition-colors text-center block">
                 Lihat Semua Kantin
-            </button>
+            </a>
         </div>
     </div>
 
@@ -135,15 +135,45 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    <!-- Empty State -->
-                    <tr>
-                        <td colspan="5" class="py-12 text-center">
-                            <div class="flex flex-col items-center justify-center">
-                                <i class="ph ph-users text-4xl text-gray-200 mb-3"></i>
-                                <p class="text-sm font-medium text-gray-400">Belum ada data tenant</p>
-                            </div>
-                        </td>
-                    </tr>
+                    @forelse($topTenants as $index => $tenantInfo)
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="py-4 px-4">
+                                <div class="w-8 h-8 rounded-full bg-{{ $index == 0 ? 'yellow' : ($index == 1 ? 'gray' : ($index == 2 ? 'orange' : 'red')) }}-50 text-{{ $index == 0 ? 'yellow' : ($index == 1 ? 'gray' : ($index == 2 ? 'orange' : 'red')) }}-600 flex items-center justify-center font-black text-sm">
+                                    #{{ $index + 1 }}
+                                </div>
+                            </td>
+                            <td class="py-4 px-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden shrink-0">
+                                        @if($tenantInfo->foto)
+                                            <img src="{{ asset('storage/' . $tenantInfo->foto) }}" class="w-full h-full object-cover">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center text-gray-400"><i class="ph-fill ph-storefront"></i></div>
+                                        @endif
+                                    </div>
+                                    <p class="text-sm font-bold text-gray-900">{{ $tenantInfo->nama_tenant }}</p>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-sm font-medium text-gray-600">
+                                {{ $tenantInfo->kantin->nama_kantin ?? '-' }}
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <span class="text-sm font-bold text-gray-900">{{ $tenantInfo->orders_count }}</span> <span class="text-xs text-gray-500">pesanan</span>
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <span class="text-[15px] font-black text-telkom-red">Rp{{ number_format($tenantInfo->orders_sum_total_price, 0, ',', '.') }}</span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-12 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i class="ph ph-users text-4xl text-gray-200 mb-3"></i>
+                                    <p class="text-sm font-medium text-gray-400">Belum ada data tenant</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
             
@@ -154,4 +184,87 @@
             </div>
         </div>
     </div>
+    
+    <!-- Tambahkan Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ctx = document.getElementById('pengelolaSalesChart');
+            if (!ctx) return;
+            
+            const context = ctx.getContext('2d');
+            
+            // Gradient fill
+            let gradient = context.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(237, 28, 36, 0.2)');   
+            gradient.addColorStop(1, 'rgba(237, 28, 36, 0)');
+
+            const dataLabels = {!! json_encode($labels ?? []) !!};
+            const dataValues = {!! json_encode($data ?? []) !!};
+
+            new Chart(context, {
+                type: 'line',
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: 'Pendapatan Keseluruhan (Rp)',
+                        data: dataValues,
+                        borderColor: '#ed1c24',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#ed1c24',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#1f2937',
+                            padding: 12,
+                            titleFont: { size: 13, family: "'Poppins', sans-serif" },
+                            bodyFont: { size: 14, weight: 'bold', family: "'Poppins', sans-serif" },
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += 'Rp ' + new Intl.NumberFormat('id-ID').format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: { font: { family: "'Poppins', sans-serif", size: 11 }, color: '#9ca3af' }
+                        },
+                        y: {
+                            grid: { color: '#f3f4f6', drawBorder: false },
+                            ticks: {
+                                font: { family: "'Poppins', sans-serif", size: 11 },
+                                color: '#9ca3af',
+                                callback: function(value) {
+                                    if (value === 0) return '0';
+                                    return 'Rp ' + new Intl.NumberFormat('id-ID').format(value);
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection

@@ -13,6 +13,12 @@ class Menu extends Model
         'harga',
         'foto',
         'status',
+        'is_customizable',
+        'customizations',
+    ];
+
+    protected $casts = [
+        'customizations' => 'array',
     ];
     public function tenant()
     {

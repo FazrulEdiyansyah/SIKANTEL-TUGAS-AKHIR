@@ -3,6 +3,7 @@
 @section('title', $tenant->nama_tenant . ' - SIKANTEL')
 
 @section('content')
+<div x-data="tenantMenu()">
 
     <!-- Breadcrumb -->
     <div class="max-w-[1400px] mx-auto mt-6 px-6 lg:px-16 mb-4">
@@ -109,7 +110,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @forelse($menus as $menu)
                 <!-- Menu Card -->
-                <div class="bg-white rounded-[24px] shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-col transition-all group">
+                <div class="bg-white rounded-[24px] shadow-sm hover:shadow-md overflow-hidden flex flex-col transition-all group" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'border-y border-r border-gray-100 border-l-[6px] border-l-[#E31E24]' : 'border border-gray-100'">
                     <!-- Image -->
                     <div class="w-full h-48 bg-gray-100 relative overflow-hidden shrink-0">
                         @if($menu->foto)
@@ -134,41 +135,161 @@
                         @endif
                         
                         <!-- Action Area -->
-                        <div class="flex items-center justify-between gap-3 mt-auto">
-                            <!-- Quantity Control -->
-                            <div class="flex items-center justify-between bg-gray-50 rounded-xl px-2 py-1 flex-1 border border-gray-100">
-                                @if($menu->status === 'tersedia' && $tenant->is_open)
-                                    <button class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors">
-                                        <i class="ph ph-minus text-sm"></i>
-                                    </button>
-                                    <span class="text-sm font-bold text-gray-900 mx-2">1</span>
-                                    <button class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors">
-                                        <i class="ph ph-plus text-sm"></i>
-                                    </button>
-                                @else
-                                    <button disabled class="w-7 h-7 flex items-center justify-center text-gray-300 rounded-lg cursor-not-allowed">
-                                        <i class="ph ph-minus text-sm"></i>
-                                    </button>
-                                    <span class="text-sm font-bold text-gray-300 mx-2">0</span>
-                                    <button disabled class="w-7 h-7 flex items-center justify-center text-gray-300 rounded-lg cursor-not-allowed">
-                                        <i class="ph ph-plus text-sm"></i>
-                                    </button>
-                                @endif
-                            </div>
-
-                            <!-- Add Button -->
+                        <div class="mt-auto pt-4 border-t border-gray-100 flex items-center" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'justify-between' : 'justify-center'">
                             @if($menu->status === 'tersedia' && $tenant->is_open)
-                                <button class="bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm shrink-0">
-                                    Tambah
-                                </button>
+                                
+                                <!-- In Cart State -->
+                                <template x-if="(cart.menuQty[{{ $menu->id }}] || 0) > 0">
+                                    <div class="w-full flex items-center justify-between">
+                                        <button type="button" @click="activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden';" class="text-telkom-red font-bold flex items-center text-[13px] px-2 py-1 hover:bg-red-50 rounded-lg transition-colors">
+                                            <i class="ph-fill ph-note-pencil mr-1 text-lg"></i> Catatan
+                                        </button>
+                                        <div class="flex items-center space-x-3">
+                                            <button type="button" @click.prevent="decreaseCart({{ $menu->id }})" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                <i class="ph-bold ph-minus"></i>
+                                            </button>
+                                            
+                                            <span class="font-medium text-gray-900" x-text="cart.menuQty[{{ $menu->id }}]"></span>
+                                            
+                                            @if($menu->is_customizable && !empty($menu->customizations))
+                                                <button type="button" @click="activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden';" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                    <i class="ph-bold ph-plus"></i>
+                                                </button>
+                                            @else
+                                                <button type="button" @click.prevent="addToCart({{ $menu->id }}, {{ $menu->harga }})" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                    <i class="ph-bold ph-plus"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Not In Cart State -->
+                                <template x-if="(cart.menuQty[{{ $menu->id }}] || 0) === 0">
+                                    <div class="w-full">
+                                        @if($menu->is_customizable && !empty($menu->customizations))
+                                            <button type="button" @click="activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden';" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                                                Tambah
+                                            </button>
+                                        @else
+                                            <button type="button" @click.prevent="addToCart({{ $menu->id }}, {{ $menu->harga }})" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                                                Tambah
+                                            </button>
+                                        @endif
+                                    </div>
+                                </template>
+
                             @else
-                                <button disabled class="bg-gray-100 text-gray-400 font-bold text-[13px] px-5 py-2.5 rounded-xl cursor-not-allowed shrink-0 border border-gray-200">
+                                <button disabled class="w-full bg-gray-100 text-gray-400 font-bold text-[13px] px-5 py-2.5 rounded-xl cursor-not-allowed border border-gray-200">
                                     Habis
                                 </button>
                             @endif
                         </div>
                     </div>
                 </div>
+
+                <!-- Alpine.js Modal Implementation -->
+                @if($menu->status === 'tersedia' && $tenant->is_open)
+                    <template x-teleport="body">
+                        <div x-show="activeModal === {{ $menu->id }}" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+                            <!-- Backdrop (No blur to fix lag) -->
+                            <div x-show="activeModal === {{ $menu->id }}" 
+                                 x-transition.opacity.duration.300ms
+                                 class="absolute inset-0 bg-black/60 cursor-pointer" 
+                                 @click="activeModal = null; document.body.style.overflow = '';"></div>
+                            
+                            <!-- Modal Content -->
+                            <div x-show="activeModal === {{ $menu->id }}" 
+                                 x-transition:enter="transition ease-out duration-300" 
+                                 x-transition:enter-start="opacity-0 translate-y-8 scale-95" 
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-200"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-8 scale-95"
+                                 class="relative bg-white rounded-3xl shadow-2xl w-full sm:w-[420px] max-w-full overflow-hidden flex flex-col max-h-[85vh]">
+                                
+                                <!-- Close Button -->
+                                <button type="button" @click="activeModal = null; document.body.style.overflow = '';" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors z-10">
+                                    <i class="ph-bold ph-x text-sm"></i>
+                                </button>
+                                
+                                <!-- Form with Alpine Scope for dynamic price -->
+                                <form action="{{ route('pelanggan.cart.add') }}" method="POST" class="flex flex-col flex-1 overflow-hidden" @submit.prevent="submitModalForm($event, {{ $menu->id }}, {{ $menu->harga }})" x-data="{ modalQty: 1, basePrice: {{ $menu->harga }} }">
+                                    @csrf
+                                    <input type="hidden" name="menu_id" value="{{ $menu->id }}">
+                                    
+                                    <div class="p-6 pt-10 space-y-6 overflow-y-auto custom-scrollbar">
+                                        <div class="flex flex-col">
+                                            <h3 class="text-xl font-bold text-gray-900 mb-1">{{ $menu->nama_menu }}</h3>
+                                            @if($menu->deskripsi)
+                                                <p class="text-sm text-gray-500 mb-3">{{ $menu->deskripsi }}</p>
+                                            @endif
+                                            <span class="text-lg font-bold text-gray-900">{{ number_format($menu->harga, 0, ',', '.') }}</span>
+                                        </div>
+                                    
+                                        <div class="border-t border-gray-100 pt-6">
+                                            <div class="flex items-center gap-2 mb-3">
+                                                <h4 class="font-bold text-gray-900">Catatan</h4>
+                                            </div>
+                                            <p class="text-sm text-gray-500 mb-2">Opsional</p>
+                                            <textarea name="catatan" rows="3" maxlength="200" placeholder="Contoh: banyakin porsinya, ya" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-telkom-red focus:bg-white transition-all resize-none"></textarea>
+                                        </div>
+                                    
+                                        @if(!empty($menu->customizations))
+                                            @foreach($menu->customizations as $sIndex => $section)
+                                                <div class="border-t border-gray-100 pt-6">
+                                                    <div class="flex items-center justify-between mb-4">
+                                                        <div>
+                                                            <h4 class="font-bold text-gray-900">{{ $section['name'] }}</h4>
+                                                            @if($section['is_required'])
+                                                                <p class="text-xs text-telkom-red font-semibold">Wajib <span class="text-gray-400 font-normal">Pilih 1</span></p>
+                                                            @else
+                                                                <p class="text-xs text-gray-400 font-semibold">Opsional</p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <div class="space-y-3">
+                                                        @foreach($section['options'] as $oIndex => $option)
+                                                            <label class="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-red-50 hover:border-telkom-red transition-colors group">
+                                                                <div>
+                                                                    <span class="text-sm font-semibold text-gray-700 group-hover:text-telkom-red">{{ $option['name'] }}</span>
+                                                                    @if(isset($option['price_adjustment']) && $option['price_adjustment'] > 0)
+                                                                        <span class="ml-2 text-xs text-gray-500 font-medium">+Rp {{ number_format($option['price_adjustment'], 0, ',', '.') }}</span>
+                                                                    @endif
+                                                                </div>
+                                                                <input type="radio" name="custom_options[{{$sIndex}}]" value="{{ $oIndex }}" {{ $section['is_required'] ? 'required' : '' }} class="w-5 h-5 text-telkom-red focus:ring-telkom-red border-gray-300">
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+                                    
+                                    <!-- Footer Actions -->
+                                    <div class="p-6 border-t border-gray-100 bg-white shrink-0">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <span class="font-medium text-gray-900 text-base">Mau berapa?</span>
+                                            <div class="flex items-center space-x-4">
+                                                <button type="button" @click="if(modalQty > 1) modalQty--" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                    <i class="ph-bold ph-minus"></i>
+                                                </button>
+                                                <input type="hidden" name="quantity" x-model="modalQty">
+                                                <span class="font-medium text-lg text-gray-900" x-text="modalQty"></span>
+                                                <button type="button" @click="modalQty++" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                    <i class="ph-bold ph-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="w-full py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg text-[15px]">
+                                            Perbaharui keranjang - <span x-text="formatPrice(basePrice * modalQty)"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                        </div>
+                    </div>
+                </template>
+                @endif
             @empty
                 <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 border-dashed">
                     <i class="ph ph-hamburger text-5xl text-gray-300 mb-4 inline-block"></i>
@@ -179,4 +300,155 @@
         </div>
     </div>
 
+    <!-- Floating Cart Banner -->
+    @php
+        $cartItems = session('cart') ?: [];
+        $totalQty = 0;
+        $totalPrice = 0;
+        $itemNames = [];
+        $menuQtyData = [];
+        foreach($cartItems as $item) {
+            $totalQty += $item['quantity'];
+            $totalPrice += ($item['quantity'] * $item['harga']);
+            $itemNames[] = $item['nama_menu'];
+            
+            if(!isset($menuQtyData[$item['menu_id']])) $menuQtyData[$item['menu_id']] = 0;
+            $menuQtyData[$item['menu_id']] += $item['quantity'];
+        }
+        $itemNamesStr = implode(', ', array_unique($itemNames));
+    @endphp
+
+    <template x-if="cart.totalQty > 0">
+        <div class="fixed bottom-0 inset-x-0 p-4 z-40 flex justify-center pointer-events-none">
+            <div x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="translate-y-full opacity-0"
+                 x-transition:enter-end="translate-y-0 opacity-100"
+                 x-transition:leave="transition ease-in duration-300 transform"
+                 x-transition:leave-start="translate-y-0 opacity-100"
+                 x-transition:leave-end="translate-y-full opacity-0"
+                 class="bg-[#E31E24] w-full max-w-3xl rounded-2xl shadow-2xl p-4 flex items-center justify-between text-white pointer-events-auto">
+                <div class="flex-1 flex flex-col">
+                    <span class="font-bold text-sm mb-0.5"><span x-text="cart.totalQty"></span> item</span>
+                    <span class="text-xs text-white/80 font-medium truncate pr-4" x-text="cart.itemNames"></span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span class="font-bold text-lg">Rp <span x-text="formatPrice(cart.totalPrice)"></span></span>
+                    <a href="{{ route('pelanggan.checkout') }}" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
+                        Keranjang
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('tenantMenu', () => ({
+                activeModal: null,
+                cart: {
+                    totalQty: {{ $totalQty }},
+                    totalPrice: {{ $totalPrice }},
+                    itemNames: `{!! addslashes($itemNamesStr) !!}`,
+                    menuQty: {!! json_encode($menuQtyData) !!}
+                },
+                formatPrice(price) {
+                    return new Intl.NumberFormat('id-ID').format(price);
+                },
+                async addToCart(menuId, price) {
+                    // Optimistic UI Update for instant feedback
+                    this.cart.totalQty++;
+                    this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + 1;
+                    if(price) this.cart.totalPrice += price;
+                    
+                    try {
+                        const response = await fetch('{{ route("pelanggan.cart.add") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                menu_id: menuId,
+                                quantity: 1
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            this.cart.totalQty = data.totalQty;
+                            this.cart.totalPrice = data.totalPrice;
+                            this.cart.menuQty = data.menuQty;
+                            this.cart.itemNames = data.itemNames;
+                        }
+                    } catch (error) {
+                        console.error('Error adding to cart:', error);
+                    }
+                },
+                async decreaseCart(menuId) {
+                    // Optimistic UI Update for instant feedback
+                    if (this.cart.menuQty[menuId] > 0) {
+                        this.cart.totalQty--;
+                        this.cart.menuQty[menuId]--;
+                    }
+                    
+                    try {
+                        const response = await fetch('{{ route("pelanggan.cart.decrease") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                menu_id: menuId
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            this.cart.totalQty = data.totalQty;
+                            this.cart.totalPrice = data.totalPrice;
+                            this.cart.menuQty = data.menuQty;
+                            this.cart.itemNames = data.itemNames;
+                        }
+                    } catch (error) {
+                        console.error('Error decreasing cart:', error);
+                    }
+                },
+                async submitModalForm(event, menuId, basePrice) {
+                    const form = event.target;
+                    const formData = new FormData(form);
+                    const qty = parseInt(formData.get('quantity')) || 1;
+                    
+                    // Optimistic feedback
+                    this.activeModal = null;
+                    document.body.style.overflow = '';
+                    this.cart.totalQty += qty;
+                    this.cart.totalPrice += (basePrice * qty);
+                    this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + qty;
+                    
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: formData
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            this.cart.totalQty = data.totalQty;
+                            this.cart.totalPrice = data.totalPrice;
+                            this.cart.menuQty = data.menuQty;
+                            this.cart.itemNames = data.itemNames;
+                            form.reset();
+                        }
+                    } catch (error) {
+                        console.error('Error submitting form:', error);
+                    }
+                }
+            }));
+        });
+    </script>
+</div>
 @endsection

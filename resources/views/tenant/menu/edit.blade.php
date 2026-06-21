@@ -129,6 +129,71 @@
                             @enderror
                         </div>
 
+                        <!-- Opsi Kustomisasi -->
+                        <div class="pt-2 relative">
+                            <input type="checkbox" id="is_customizable" name="is_customizable" value="1" {{ old('is_customizable', $menu->is_customizable) ? 'checked' : '' }} class="peer absolute top-0 left-0 w-5 h-5 text-telkom-red border-gray-300 rounded focus:ring-telkom-red transition-colors cursor-pointer">
+                            
+                            <label for="is_customizable" class="ml-8 block text-sm font-semibold text-gray-900 cursor-pointer">Bisa Dikustomisasi?</label>
+                            <p class="text-[12px] text-gray-500 mt-1 ml-8 leading-snug">Centang jika pelanggan bisa menambahkan opsi (seperti level pedas atau ukuran) untuk menu ini saat memesan.</p>
+
+                            <!-- Alpine.js Dynamic Builder -->
+                            <div class="hidden peer-checked:block mt-6 ml-8 bg-gray-50 p-5 rounded-2xl border border-gray-200">
+                                <div class="space-y-6">
+                                    <template x-for="(section, sIndex) in customizations" :key="sIndex">
+                                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm relative">
+                                            <!-- Section Header -->
+                                            <div class="flex flex-wrap gap-4 items-start mb-4">
+                                                <div class="flex-1">
+                                                    <label class="block text-xs font-bold text-gray-700 mb-1">Nama Grup Opsi</label>
+                                                    <input type="text" x-model="section.name" :name="`customizations[${sIndex}][name]`" placeholder="Misal: Level Pedas" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-telkom-red focus:border-telkom-red" required>
+                                                </div>
+                                                <div class="w-32">
+                                                    <label class="block text-xs font-bold text-gray-700 mb-1">Sifat Pilihan</label>
+                                                    <select x-model="section.is_required" :name="`customizations[${sIndex}][is_required]`" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-telkom-red focus:border-telkom-red">
+                                                        <option value="1">Wajib Pilih 1</option>
+                                                        <option value="0">Opsional</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" @click="removeSection(sIndex)" class="mt-6 text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg transition-colors" title="Hapus Grup">
+                                                    <i class="ph-bold ph-trash"></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- Options List -->
+                                            <div class="space-y-3 pl-4 border-l-2 border-gray-100">
+                                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Pilihan-pilihannya:</p>
+                                                
+                                                <template x-for="(option, oIndex) in section.options" :key="oIndex">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="flex-1">
+                                                            <input type="text" x-model="option.name" :name="`customizations[${sIndex}][options][${oIndex}][name]`" placeholder="Nama pilihan (Misal: Ekstra Pedas)" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-telkom-red focus:border-telkom-red" required>
+                                                        </div>
+                                                        <div class="w-32 relative">
+                                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">+Rp</span>
+                                                            <input type="number" x-model="option.price_adjustment" :name="`customizations[${sIndex}][options][${oIndex}][price_adjustment]`" min="0" class="w-full pl-9 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:ring-telkom-red focus:border-telkom-red" required>
+                                                        </div>
+                                                        <button type="button" @click="removeOption(sIndex, oIndex)" class="text-gray-400 hover:text-red-500 p-2 transition-colors" title="Hapus Pilihan">
+                                                            <i class="ph-bold ph-x"></i>
+                                                        </button>
+                                                    </div>
+                                                </template>
+
+                                                <!-- Add Option Button -->
+                                                <button type="button" @click="addOption(sIndex)" class="mt-2 text-[13px] font-bold text-telkom-red hover:text-red-700 flex items-center">
+                                                    <i class="ph-bold ph-plus mr-1"></i> Tambah Pilihan
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Add Section Button -->
+                                <button type="button" @click="addSection" class="mt-4 w-full py-3 border-2 border-dashed border-gray-300 text-gray-500 font-bold text-sm rounded-xl hover:border-telkom-red hover:text-telkom-red hover:bg-red-50 transition-colors flex items-center justify-center">
+                                    <i class="ph-bold ph-plus-circle mr-2 text-lg"></i> Tambah Grup Kustomisasi Baru
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
 
@@ -152,6 +217,7 @@
                 nama: '{{ old('nama_menu', $menu->nama_menu) }}',
                 deskripsi: `{{ old('deskripsi', $menu->deskripsi) }}`,
                 imageUrl: '{{ $menu->foto ? asset('storage/' . $menu->foto) : '' }}',
+                customizations: @json(old('customizations', $menu->customizations ?? [])),
 
                 fileChosen(event) {
                     this.fileToDataUrl(event, src => this.imageUrl = src)
@@ -159,7 +225,6 @@
                 removeImage() {
                     this.imageUrl = null;
                     this.$refs.fotoInput.value = '';
-                    this.$refs.fotoInput.click();
                 },
                 fileToDataUrl(event, callback) {
                     if (! event.target.files.length) return
@@ -167,6 +232,24 @@
                         reader = new FileReader()
                     reader.readAsDataURL(file)
                     reader.onload = e => callback(e.target.result)
+                },
+                addSection() {
+                    this.customizations.push({
+                        name: '',
+                        is_required: 1,
+                        options: [
+                            { name: '', price_adjustment: 0 }
+                        ]
+                    });
+                },
+                removeSection(index) {
+                    this.customizations.splice(index, 1);
+                },
+                addOption(sectionIndex) {
+                    this.customizations[sectionIndex].options.push({ name: '', price_adjustment: 0 });
+                },
+                removeOption(sectionIndex, optionIndex) {
+                    this.customizations[sectionIndex].options.splice(optionIndex, 1);
                 }
             }))
         })

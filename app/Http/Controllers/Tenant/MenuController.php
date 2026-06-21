@@ -16,6 +16,36 @@ class MenuController extends Controller
         return Tenant::where('user_id', Auth::id())->firstOrFail();
     }
 
+
+
+    private function cleanCustomizations(Request $request)
+    {
+        $cleanCustomizations = [];
+        if ($request->has('is_customizable')) {
+            foreach ($request->input('customizations', []) as $section) {
+                if (!empty($section['name'])) {
+                    $cleanOptions = [];
+                    foreach ($section['options'] ?? [] as $option) {
+                        if (!empty($option['name'])) {
+                            $cleanOptions[] = [
+                                'name' => $option['name'],
+                                'price_adjustment' => (int) ($option['price_adjustment'] ?? 0)
+                            ];
+                        }
+                    }
+                    if (count($cleanOptions) > 0) {
+                        $cleanCustomizations[] = [
+                            'name' => $section['name'],
+                            'is_required' => isset($section['is_required']) && $section['is_required'] == 1,
+                            'options' => $cleanOptions
+                        ];
+                    }
+                }
+            }
+        }
+        return empty($cleanCustomizations) ? null : $cleanCustomizations;
+    }
+
     public function index(Request $request)
     {
         $tenant = $this->getTenant();
@@ -64,12 +94,14 @@ class MenuController extends Controller
         }
 
         Menu::create([
-            'tenant_id' => $tenant->id,
-            'nama_menu' => $request->nama_menu,
-            'deskripsi' => $request->deskripsi,
-            'harga'     => $request->harga,
-            'foto'      => $fotoPath,
-            'status'    => $request->status,
+            'tenant_id'       => $tenant->id,
+            'nama_menu'       => $request->nama_menu,
+            'deskripsi'       => $request->deskripsi,
+            'harga'           => $request->harga,
+            'foto'            => $fotoPath,
+            'status'          => $request->status,
+            'is_customizable' => $request->has('is_customizable'),
+            'customizations'  => $this->cleanCustomizations($request),
         ]);
 
         return redirect()->route('tenant.menu.index')->with('success', 'Menu berhasil ditambahkan!');
@@ -111,11 +143,13 @@ class MenuController extends Controller
         }
 
         $menu->update([
-            'nama_menu' => $request->nama_menu,
-            'deskripsi' => $request->deskripsi,
-            'harga'     => $request->harga,
-            'foto'      => $fotoPath,
-            'status'    => $request->status,
+            'nama_menu'       => $request->nama_menu,
+            'deskripsi'       => $request->deskripsi,
+            'harga'           => $request->harga,
+            'foto'            => $fotoPath,
+            'status'          => $request->status,
+            'is_customizable' => $request->has('is_customizable'),
+            'customizations'  => $this->cleanCustomizations($request),
         ]);
 
         return redirect()->route('tenant.menu.index')->with('success', 'Menu berhasil diperbarui!');

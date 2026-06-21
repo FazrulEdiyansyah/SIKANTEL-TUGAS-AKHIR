@@ -17,4 +17,9 @@ class Kantin extends Model
     {
         return $this->hasMany(Tenant::class);
     }
+
+    public function orders()
+    {
+        return $this->hasManyThrough(Order::class, Tenant::class);
+    }
 }

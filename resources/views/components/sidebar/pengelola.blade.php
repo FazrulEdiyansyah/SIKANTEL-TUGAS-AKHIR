@@ -19,13 +19,13 @@
 </a>
 
 <!-- Rekap Penjualan -->
-<a href="#" class="flex items-center px-4 py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'rekap' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
-    <i class="{{ $active === 'rekap' ? 'ph-fill' : 'ph' }} ph-chart-line-up text-[22px] mr-3 {{ $active === 'rekap' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
-    Rekap Penjualan
+<a href="{{ route('pengelola.rekap.index') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('pengelola.rekap.*') ? 'bg-red-50 text-telkom-red font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium' }}">
+    <i class="ph {{ request()->routeIs('pengelola.rekap.*') ? 'ph-chart-line-up-fill' : 'ph-chart-line-up' }} text-xl transition-transform group-hover:scale-110"></i>
+    <span class="text-[14px]">Rekap Penjualan</span>
 </a>
 
 <!-- Laporan Pencairan Dana -->
-<a href="#" class="flex items-center px-4 py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'laporan' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
-    <i class="{{ $active === 'laporan' ? 'ph-fill' : 'ph' }} ph-file-text text-[22px] mr-3 {{ $active === 'laporan' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
-    Laporan Pencairan Dana
+<a href="{{ route('pengelola.pencairan_dana.index') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('pengelola.pencairan_dana.*') ? 'bg-red-50 text-telkom-red font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium' }}">
+    <i class="ph {{ request()->routeIs('pengelola.pencairan_dana.*') ? 'ph-file-text-fill' : 'ph-file-text' }} text-xl transition-transform group-hover:scale-110"></i>
+    <span class="text-[14px]">Laporan Pencairan<br>Dana</span>
 </a>
