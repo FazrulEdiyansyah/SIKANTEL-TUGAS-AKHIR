@@ -53,7 +53,7 @@
                     <h3 class="text-lg font-bold text-gray-900 mb-1">Nomor Meja (Opsional)</h3>
                     <p class="text-sm text-gray-500 mb-4">Isi nomor meja jika Anda memilih makan di tempat.</p>
                     
-                    <input type="text" name="table_number" placeholder="Masukan Nomor Meja" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-telkom-red focus:border-telkom-red block p-3.5 mb-4 font-medium transition-colors">
+                    <input type="text" name="table_number" x-model="tableNumber" placeholder="Masukan Nomor Meja" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-telkom-red focus:border-telkom-red block p-3.5 mb-4 font-medium transition-colors">
                     
                     <div class="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 border border-gray-100 p-3 rounded-xl">
                         <i class="ph ph-info text-gray-400"></i>
@@ -215,6 +215,7 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('checkoutPage', () => ({
                 orderType: 'dine-in',
+                tableNumber: '',
                 cartItems: {!! json_encode($cart) !!},
                 isProcessingPayment: false,
                 
@@ -325,6 +326,7 @@
                             },
                             body: JSON.stringify({
                                 order_type: this.orderType,
+                                table_number: this.tableNumber
                             })
                         });
                         
@@ -332,7 +334,23 @@
                         
                         if (data.success && data.snap_token) {
                             window.snap.pay(data.snap_token, {
-                                onSuccess: function(result){
+                                onSuccess: async function(result){
+                                    // Panggil endpoint untuk update status karena webhook tidak jalan di localhost
+                                    try {
+                                        await fetch('/pelanggan/checkout/success-local', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                            },
+                                            body: JSON.stringify({
+                                                order_id: data.order_id,
+                                                payment_type: result.payment_type || 'qris'
+                                            })
+                                        });
+                                    } catch (e) {
+                                        console.error(e);
+                                    }
                                     alert('Pembayaran sukses!');
                                     window.location.href = '/pelanggan/orders/' + data.order_id;
                                 },
@@ -342,11 +360,11 @@
                                 },
                                 onError: function(result){
                                     alert('Pembayaran gagal!');
-                                    this.isProcessingPayment = false;
+                                    window.location.reload();
                                 },
-                                onClose: () => {
+                                onClose: function() {
                                     alert('Anda menutup popup tanpa menyelesaikan pembayaran');
-                                    this.isProcessingPayment = false;
+                                    window.location.href = '/pelanggan/orders/' + data.order_id;
                                 }
                             });
                         } else {

@@ -23,44 +23,44 @@
                 
                 <!-- Status Tabs -->
                 <div class="flex flex-wrap gap-3">
-                    <!-- Pesanan Masuk (success) -->
-                    <button @click="activeTab = 'success'" 
+                    <!-- Pesanan Masuk (belum_diproses) -->
+                    <button @click="activeTab = 'belum_diproses'" 
                             class="px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-bold transition-colors"
-                            :class="activeTab === 'success' ? 'bg-red-50 border-red-100 text-telkom-red' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
+                            :class="activeTab === 'belum_diproses' ? 'bg-red-50 border-red-100 text-telkom-red' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
                         <i class="ph-bold ph-tray"></i>
                         Pesanan Masuk
                         <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px]"
-                              :class="activeTab === 'success' ? 'bg-telkom-red text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.success"></span>
+                              :class="activeTab === 'belum_diproses' ? 'bg-telkom-red text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.belum_diproses"></span>
                     </button>
                     
-                    <!-- Sedang Disiapkan (preparing) -->
-                    <button @click="activeTab = 'preparing'" 
+                    <!-- Sedang Disiapkan (diproses) -->
+                    <button @click="activeTab = 'diproses'" 
                             class="px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-bold transition-colors"
-                            :class="activeTab === 'preparing' ? 'bg-yellow-50 border-yellow-100 text-yellow-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
+                            :class="activeTab === 'diproses' ? 'bg-yellow-50 border-yellow-100 text-yellow-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
                         <i class="ph-bold ph-cooking-pot"></i>
                         Sedang Disiapkan
                         <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px]"
-                              :class="activeTab === 'preparing' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.preparing"></span>
+                              :class="activeTab === 'diproses' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.diproses"></span>
                     </button>
                     
-                    <!-- Siap Diambil (ready) -->
-                    <button @click="activeTab = 'ready'" 
+                    <!-- Siap Diambil (siap_diambil) -->
+                    <button @click="activeTab = 'siap_diambil'" 
                             class="px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-bold transition-colors"
-                            :class="activeTab === 'ready' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
+                            :class="activeTab === 'siap_diambil' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
                         <i class="ph-bold ph-shopping-bag"></i>
                         Siap Diambil
                         <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px]"
-                              :class="activeTab === 'ready' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.ready"></span>
+                              :class="activeTab === 'siap_diambil' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.siap_diambil"></span>
                     </button>
                     
-                    <!-- Selesai (completed) -->
-                    <button @click="activeTab = 'completed'" 
+                    <!-- Selesai (selesai) -->
+                    <button @click="activeTab = 'selesai'" 
                             class="px-4 py-2.5 rounded-xl border flex items-center gap-2 text-sm font-bold transition-colors"
-                            :class="activeTab === 'completed' ? 'bg-green-50 border-green-100 text-green-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
+                            :class="activeTab === 'selesai' ? 'bg-green-50 border-green-100 text-green-600' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'">
                         <i class="ph-bold ph-check-circle"></i>
                         Selesai
                         <span class="ml-1 px-1.5 py-0.5 rounded-md text-[10px]"
-                              :class="activeTab === 'completed' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.completed"></span>
+                              :class="activeTab === 'selesai' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'" x-text="counts.selesai"></span>
                     </button>
                 </div>
 
@@ -98,7 +98,7 @@
                             <div class="text-right">
                                 <h4 class="font-bold text-gray-900 text-base" x-text="getTime(order.created_at)"></h4>
                                 <p class="text-[10px] text-gray-400 mb-1" x-text="getDate(order.created_at)"></p>
-                                <span class="text-[10px] font-bold" :class="getStatusColor(order.status)" x-text="getStatusText(order.status)"></span>
+                                <span class="text-[10px] font-bold" :class="getStatusColor(order.order_status)" x-text="getStatusText(order.order_status)"></span>
                             </div>
                         </div>
 
@@ -149,18 +149,18 @@
                             
                             <div class="flex gap-3">
                                 <!-- Form untuk Proses ke Next Status -->
-                                <template x-if="order.status !== 'completed'">
+                                <template x-if="order.order_status !== 'selesai'">
                                     <form :action="'/tenant/orders/' + order.id + '/status'" method="POST" class="flex-1">
                                         @csrf
                                         @method('PATCH')
-                                        <input type="hidden" name="status" :value="getNextStatus(order.status)">
+                                        <input type="hidden" name="order_status" :value="getNextStatus(order.order_status)">
                                         <button type="submit" class="w-full py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
-                                            <span x-text="getProcessButtonText(order.status)"></span>
+                                            <span x-text="getProcessButtonText(order.order_status)"></span>
                                         </button>
                                     </form>
                                 </template>
                                 
-                                <template x-if="order.status === 'completed'">
+                                <template x-if="order.order_status === 'selesai'">
                                     <div class="flex-1 py-2.5 bg-green-50 text-green-600 text-center text-sm font-bold rounded-xl">
                                         Pesanan Selesai
                                     </div>
@@ -193,22 +193,22 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('tenantOrders', () => ({
-                activeTab: 'success', // default tab
+                activeTab: 'belum_diproses', // default tab
                 searchQuery: '',
                 orders: {!! json_encode($orders) !!},
 
                 get counts() {
                     return {
-                        success: this.orders.filter(o => o.status === 'success').length,
-                        preparing: this.orders.filter(o => o.status === 'preparing').length,
-                        ready: this.orders.filter(o => o.status === 'ready').length,
-                        completed: this.orders.filter(o => o.status === 'completed').length,
+                        belum_diproses: this.orders.filter(o => o.order_status === 'belum_diproses').length,
+                        diproses: this.orders.filter(o => o.order_status === 'diproses').length,
+                        siap_diambil: this.orders.filter(o => o.order_status === 'siap_diambil').length,
+                        selesai: this.orders.filter(o => o.order_status === 'selesai').length,
                     };
                 },
 
                 get filteredOrders() {
                     return this.orders.filter(order => {
-                        let matchesTab = order.status === this.activeTab;
+                        let matchesTab = order.order_status === this.activeTab;
                         
                         let search = this.searchQuery.toLowerCase();
                         let matchesSearch = true;
@@ -263,38 +263,38 @@
 
                 getStatusText(status) {
                     switch (status) {
-                        case 'success': return 'Pesanan Masuk';
-                        case 'preparing': return 'Sedang Disiapkan';
-                        case 'ready': return 'Siap Diambil';
-                        case 'completed': return 'Selesai';
+                        case 'belum_diproses': return 'Pesanan Masuk';
+                        case 'diproses': return 'Sedang Disiapkan';
+                        case 'siap_diambil': return 'Siap Diambil';
+                        case 'selesai': return 'Selesai';
                         default: return status;
                     }
                 },
 
                 getStatusColor(status) {
                     switch (status) {
-                        case 'success': return 'text-telkom-red';
-                        case 'preparing': return 'text-yellow-600';
-                        case 'ready': return 'text-blue-600';
-                        case 'completed': return 'text-green-600';
+                        case 'belum_diproses': return 'text-telkom-red';
+                        case 'diproses': return 'text-yellow-600';
+                        case 'siap_diambil': return 'text-blue-600';
+                        case 'selesai': return 'text-green-600';
                         default: return 'text-gray-500';
                     }
                 },
                 
                 getNextStatus(currentStatus) {
                     switch (currentStatus) {
-                        case 'success': return 'preparing';
-                        case 'preparing': return 'ready';
-                        case 'ready': return 'completed';
-                        default: return 'completed';
+                        case 'belum_diproses': return 'diproses';
+                        case 'diproses': return 'siap_diambil';
+                        case 'siap_diambil': return 'selesai';
+                        default: return 'selesai';
                     }
                 },
                 
                 getProcessButtonText(currentStatus) {
                     switch (currentStatus) {
-                        case 'success': return 'Proses Pesanan';
-                        case 'preparing': return 'Tandai Siap Diambil';
-                        case 'ready': return 'Selesaikan Pesanan';
+                        case 'belum_diproses': return 'Proses Pesanan';
+                        case 'diproses': return 'Tandai Siap Diambil';
+                        case 'siap_diambil': return 'Selesaikan Pesanan';
                         default: return 'Selesai';
                     }
                 }

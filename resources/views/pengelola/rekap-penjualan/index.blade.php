@@ -21,9 +21,24 @@
         <!-- Filter & Search Bar -->
         <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Search -->
-            <form action="{{ route('pengelola.rekap.index') }}" method="GET" class="relative w-full md:w-80">
-                <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama kantin..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+            <form action="{{ route('pengelola.rekap.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 w-full">
+                <div class="relative flex-1 md:max-w-xs">
+                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama kantin..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="px-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                    <span class="text-gray-500">-</span>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="px-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                </div>
+                <button type="submit" class="px-6 py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap">
+                    Terapkan Filter
+                </button>
+                @if(request('search') || request('start_date') || request('end_date'))
+                    <a href="{{ route('pengelola.rekap.index') }}" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold rounded-xl transition-colors flex items-center justify-center">
+                        <i class="ph-bold ph-x"></i>
+                    </a>
+                @endif
             </form>
         </div>
 
@@ -43,9 +58,8 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($kantins as $index => $kantin)
                         @php
-                            // Dummy data for presentation
-                            $pesananSelesai = $kantin->tenants_count * 5 + ($index * 3);
-                            $totalPenjualan = $pesananSelesai * 25000;
+                            $pesananSelesai = $kantin->pesanan_selesai ?? 0;
+                            $totalPenjualan = $kantin->total_penjualan ?? 0;
                         @endphp
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $index + 1 }}</td>

@@ -11,7 +11,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Pengelola\PencairanDanaController;
-
+use App\Http\Controllers\ApproverController;
 Route::get('/', function () {
     return redirect()->route('login');
 });
@@ -30,6 +30,47 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Superadmin Routes
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/superadmin/dashboard', [\App\Http\Controllers\Superadmin\DashboardController::class, 'index'])->name('superadmin.dashboard');
+    
+    // Users & Roles
+    Route::resource('/superadmin/users', \App\Http\Controllers\Superadmin\UserController::class, ['as' => 'superadmin']);
+    Route::resource('/superadmin/roles', \App\Http\Controllers\Superadmin\RoleController::class, ['as' => 'superadmin']);
+    
+    // View other data
+    Route::get('/superadmin/kantin', [\App\Http\Controllers\Superadmin\DataController::class, 'kantin'])->name('superadmin.kantin.index');
+    Route::get('/superadmin/tenant', [\App\Http\Controllers\Superadmin\DataController::class, 'tenant'])->name('superadmin.tenant.index');
+    Route::get('/superadmin/orders', [\App\Http\Controllers\Superadmin\DataController::class, 'orders'])->name('superadmin.orders.index');
+    Route::get('/superadmin/pencairan', [\App\Http\Controllers\Superadmin\DataController::class, 'pencairan'])->name('superadmin.pencairan.index');
+});
+
+// Rute Kaur
+Route::middleware(['auth', 'role:kaur'])->prefix('kaur')->name('kaur.')->group(function () {
+    Route::get('/dashboard', [ApproverController::class, 'dashboardKaur'])->name('dashboard');
+    Route::get('/pencairan/{id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{id}/approve', [ApproverController::class, 'approveKaur'])->name('pencairan.approve');
+    Route::post('/pencairan/{id}/reject', [ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
+    
+    Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
+    Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
+    Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+});
+
+// Rute Kabag
+Route::middleware(['auth', 'role:kabag'])->prefix('kabag')->name('kabag.')->group(function () {
+    Route::get('/dashboard', [ApproverController::class, 'dashboardKabag'])->name('dashboard');
+    Route::get('/pencairan/{id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{id}/approve', [ApproverController::class, 'approveKabag'])->name('pencairan.approve');
+    Route::post('/pencairan/{id}/reject', [ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
+
+    Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
+    Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
+    Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+});
+
 Route::middleware(['auth', 'role:pengelola'])->group(function () {
     Route::get('/pengelola/dashboard', [PengelolaController::class, 'dashboard'])->name('pengelola.dashboard');
     Route::get('/pengelola/kantin', [KantinController::class, 'index'])->name('pengelola.kantin.index');
@@ -37,11 +78,15 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
     Route::post('/pengelola/kantin', [KantinController::class, 'store'])->name('pengelola.kantin.store');
     Route::get('/pengelola/kantin/{kantin}', [KantinController::class, 'show'])->name('pengelola.kantin.show');
     
-    // Pencairan Dana
-    Route::get('/pengelola/pencairan-dana', [PencairanDanaController::class, 'index'])->name('pengelola.pencairan_dana.index');
-    Route::get('/pengelola/pencairan-dana/create', [PencairanDanaController::class, 'create'])->name('pengelola.pencairan_dana.create');
-    Route::post('/pengelola/pencairan-dana', [PencairanDanaController::class, 'store'])->name('pengelola.pencairan_dana.store');
-    Route::post('/pengelola/pencairan-dana/calculate', [PencairanDanaController::class, 'calculateSales'])->name('pengelola.pencairan_dana.calculate');
+    // Laporan Pencairan Dana
+    Route::prefix('pengelola/pencairan-dana')->name('pengelola.pencairan_dana.')->group(function () {
+        Route::get('/', [PencairanDanaController::class, 'index'])->name('index');
+        Route::get('/create', [PencairanDanaController::class, 'create'])->name('create');
+        Route::post('/', [PencairanDanaController::class, 'store'])->name('store');
+        Route::post('/calculate', [PencairanDanaController::class, 'calculateSales'])->name('calculate');
+        Route::post('/{id}/propose', [PencairanDanaController::class, 'propose'])->name('propose');
+        Route::get('/preview-pdf', [PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
+    });
     
     // Rute Pengelola Tenant
     Route::get('/pengelola/tenant', [TenantController::class, 'index'])->name('pengelola.tenant.index');
@@ -92,6 +137,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     
     // Checkout & Midtrans
     Route::post('/pelanggan/checkout/process', [CheckoutController::class, 'process'])->name('pelanggan.checkout.process');
+    Route::post('/pelanggan/checkout/success-local', [CheckoutController::class, 'successLocal'])->name('pelanggan.checkout.success-local');
     
     // Pesanan Saya
     Route::get('/pelanggan/orders', [\App\Http\Controllers\Pelanggan\OrderController::class, 'index'])->name('pelanggan.orders.index');

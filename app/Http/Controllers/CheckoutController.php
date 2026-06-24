@@ -37,7 +37,8 @@ class CheckoutController extends Controller
             'user_id'      => auth()->id(),
             'tenant_id'    => $tenantId,
             'total_price'  => $totalPrice,
-            'status'       => 'pending',
+            'payment_status'=> 'pending',
+            'order_status' => 'belum_diproses',
             'order_type'   => $orderType,
             'table_number' => $tableNumber,
         ]);
@@ -74,7 +75,7 @@ class CheckoutController extends Controller
                 'gross_amount' => $totalPrice,
             ),
             'customer_details' => array(
-                'first_name' => auth()->user()->nama,
+                'first_name' => auth()->user()->name,
                 'email' => auth()->user()->email,
             ),
         );
@@ -115,15 +116,28 @@ class CheckoutController extends Controller
             if ($order) {
                 if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
                     $order->update([
-                        'status' => 'success',
+                        'payment_status' => 'success',
                         'payment_type' => $request->payment_type
                     ]);
                 } else if ($request->transaction_status == 'expire' || $request->transaction_status == 'cancel' || $request->transaction_status == 'deny') {
-                    $order->update(['status' => 'failed']);
+                    $order->update(['payment_status' => 'failed']);
                 }
             }
         }
 
+        return response()->json(['success' => true]);
+    }
+
+    public function successLocal(Request $request)
+    {
+        // Simulates the Midtrans Webhook for localhost testing
+        $order = Order::find($request->order_id);
+        if ($order) {
+            $order->update([
+                'payment_status' => 'success',
+                'payment_type' => $request->payment_type ?? 'qris'
+            ]);
+        }
         return response()->json(['success' => true]);
     }
 }

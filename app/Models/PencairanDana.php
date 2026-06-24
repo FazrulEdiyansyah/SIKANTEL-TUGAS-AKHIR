@@ -20,6 +20,8 @@ class PencairanDana extends Model
         'dana_telu',
         'keterangan',
         'status',
+        'catatan_kaur',
+        'catatan_kabag',
     ];
 
     protected $casts = [
@@ -38,5 +40,10 @@ class PencairanDana extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function details()
+    {
+        return $this->hasMany(PencairanDanaDetail::class);
     }
 }

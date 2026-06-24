@@ -39,31 +39,33 @@
                             $statusIcon = '';
                             $descText = '';
                             
-                            if ($order->status == 'pending') {
+                            if ($order->payment_status == 'pending') {
                                 $statusText = 'Menunggu Pembayaran';
                                 $statusClass = 'bg-orange-50 text-orange-600';
                                 $statusIcon = 'ph-clock';
                                 $descText = 'Silakan selesaikan pembayaran Anda agar pesanan dapat diproses.';
-                            } else if ($order->status == 'success') {
-                                $statusText = 'Pesanan Diterima';
-                                $statusClass = 'bg-blue-50 text-blue-600';
-                                $statusIcon = 'ph-check-circle';
-                                $descText = 'Pesanan Anda telah diterima dan akan segera disiapkan oleh tenant.';
-                            } else if ($order->status == 'preparing') {
-                                $statusText = 'Sedang Disiapkan';
-                                $statusClass = 'bg-yellow-50 text-yellow-600';
-                                $statusIcon = 'ph-cooking-pot';
-                                $descText = 'Tenant sedang memasak dan menyiapkan pesanan Anda.';
-                            } else if ($order->status == 'ready') {
-                                $statusText = 'Siap Diambil';
-                                $statusClass = 'bg-teal-50 text-teal-600';
-                                $statusIcon = 'ph-shopping-bag';
-                                $descText = 'Pesanan Anda sudah selesai dibuat dan siap untuk diambil!';
-                            } else if ($order->status == 'completed') {
-                                $statusText = 'Selesai';
-                                $statusClass = 'bg-green-50 text-green-600';
-                                $statusIcon = 'ph-check-circle';
-                                $descText = 'Pesanan ini telah selesai.';
+                            } else if ($order->payment_status == 'success') {
+                                if ($order->order_status == 'belum_diproses') {
+                                    $statusText = 'Pesanan Diterima';
+                                    $statusClass = 'bg-blue-50 text-blue-600';
+                                    $statusIcon = 'ph-check-circle';
+                                    $descText = 'Pesanan Anda telah diterima dan akan segera disiapkan oleh tenant.';
+                                } else if ($order->order_status == 'diproses') {
+                                    $statusText = 'Sedang Disiapkan';
+                                    $statusClass = 'bg-yellow-50 text-yellow-600';
+                                    $statusIcon = 'ph-cooking-pot';
+                                    $descText = 'Tenant sedang memasak dan menyiapkan pesanan Anda.';
+                                } else if ($order->order_status == 'siap_diambil') {
+                                    $statusText = 'Siap Diambil';
+                                    $statusClass = 'bg-teal-50 text-teal-600';
+                                    $statusIcon = 'ph-shopping-bag';
+                                    $descText = 'Pesanan Anda sudah selesai dibuat dan siap untuk diambil!';
+                                } else {
+                                    $statusText = 'Selesai';
+                                    $statusClass = 'bg-green-50 text-green-600';
+                                    $statusIcon = 'ph-check-circle';
+                                    $descText = 'Pesanan ini telah selesai.';
+                                }
                             } else {
                                 $statusText = 'Gagal/Kedaluwarsa';
                                 $statusClass = 'bg-red-50 text-red-600';
@@ -237,11 +239,11 @@
                     
                     <div class="flex items-center justify-between">
                         <span class="text-sm text-gray-500">Status Pembayaran</span>
-                        @if(in_array($order->status, ['success', 'preparing', 'ready', 'completed']))
+                        @if($order->payment_status == 'success')
                             <span class="inline-flex items-center gap-1.5 text-sm font-bold text-green-600">
                                 <div class="w-1.5 h-1.5 rounded-full bg-green-600"></div> Lunas
                             </span>
-                        @elseif($order->status == 'pending')
+                        @elseif($order->payment_status == 'pending')
                             <span class="inline-flex items-center gap-1.5 text-sm font-bold text-orange-600">
                                 <div class="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse"></div> Menunggu
                             </span>
@@ -252,7 +254,7 @@
                         @endif
                     </div>
                     
-                    @if($order->status == 'pending' && $order->snap_token)
+                    @if($order->payment_status == 'pending' && $order->snap_token)
                         <button type="button" onclick="window.snap.pay('{{ $order->snap_token }}')" class="w-full mt-8 py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
                             Lanjutkan Pembayaran
                         </button>

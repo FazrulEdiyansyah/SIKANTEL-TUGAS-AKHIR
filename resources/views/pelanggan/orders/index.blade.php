@@ -43,7 +43,7 @@
                 <select x-model="statusFilter" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red cursor-pointer">
                     <option value="all">Semua Status</option>
                     <option value="pending">Menunggu Pembayaran</option>
-                    <option value="success">Sedang Diproses</option>
+                    <option value="diproses">Sedang Diproses</option>
                     <option value="failed">Gagal/Dibatalkan</option>
                 </select>
                 <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
@@ -101,9 +101,9 @@
                             <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
                                 <div>
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
-                                          :class="getStatusClass(order.status)">
-                                        <i class="ph-bold" :class="getStatusIcon(order.status)"></i>
-                                        <span x-text="getStatusText(order.status)"></span>
+                                          :class="getStatusClass(getUnifiedStatus(order))">
+                                        <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
+                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
                                     </span>
                                 </div>
                                 
@@ -143,15 +143,16 @@
                 get filteredOrders() {
                     return this.orders.filter(order => {
                         // Filter Tab
+                        let unified = this.getUnifiedStatus(order);
                         let isTabMatch = false;
                         if (this.activeTab === 'aktif') {
-                            isTabMatch = ['pending', 'success', 'preparing', 'ready'].includes(order.status);
+                            isTabMatch = ['pending', 'belum_diproses', 'diproses', 'siap_diambil'].includes(unified);
                         } else {
-                            isTabMatch = !['pending', 'success', 'preparing', 'ready'].includes(order.status);
+                            isTabMatch = !['pending', 'belum_diproses', 'diproses', 'siap_diambil'].includes(unified);
                         }
                         
                         // Dropdown Status Filter
-                        let isStatusMatch = this.statusFilter === 'all' || order.status === this.statusFilter;
+                        let isStatusMatch = this.statusFilter === 'all' || unified === this.statusFilter;
 
                         // Search Filter (by tenant name or item names)
                         let searchLower = this.searchQuery.toLowerCase();
@@ -186,15 +187,21 @@
                     return items.map(i => i.nama_menu).join(', ');
                 },
 
+                getUnifiedStatus(order) {
+                    if (order.payment_status === 'pending') return 'pending';
+                    if (order.payment_status === 'failed' || order.payment_status === 'expired') return 'failed';
+                    if (order.payment_status === 'success') return order.order_status;
+                    return order.payment_status;
+                },
+
                 getStatusText(status) {
                     switch (status) {
                         case 'pending': return 'Menunggu Pembayaran';
-                        case 'success': return 'Pesanan Diterima';
-                        case 'preparing': return 'Sedang Disiapkan';
-                        case 'ready': return 'Siap Diambil';
-                        case 'completed': return 'Selesai';
-                        case 'failed': return 'Gagal / Ditolak';
-                        case 'expired': return 'Kedaluwarsa';
+                        case 'belum_diproses': return 'Pesanan Diterima';
+                        case 'diproses': return 'Sedang Disiapkan';
+                        case 'siap_diambil': return 'Siap Diambil';
+                        case 'selesai': return 'Selesai';
+                        case 'failed': return 'Gagal / Dibatalkan';
                         default: return status;
                     }
                 },
@@ -202,12 +209,11 @@
                 getStatusClass(status) {
                     switch (status) {
                         case 'pending': return 'bg-orange-50 text-orange-600';
-                        case 'success': return 'bg-blue-50 text-blue-600';
-                        case 'preparing': return 'bg-yellow-50 text-yellow-600';
-                        case 'ready': return 'bg-teal-50 text-teal-600';
-                        case 'completed': return 'bg-green-50 text-green-600';
-                        case 'failed': 
-                        case 'expired': return 'bg-red-50 text-red-600';
+                        case 'belum_diproses': return 'bg-blue-50 text-blue-600';
+                        case 'diproses': return 'bg-yellow-50 text-yellow-600';
+                        case 'siap_diambil': return 'bg-teal-50 text-teal-600';
+                        case 'selesai': return 'bg-green-50 text-green-600';
+                        case 'failed': return 'bg-red-50 text-red-600';
                         default: return 'bg-gray-50 text-gray-600';
                     }
                 },
@@ -215,12 +221,11 @@
                 getStatusIcon(status) {
                     switch (status) {
                         case 'pending': return 'ph-clock';
-                        case 'success': return 'ph-check-circle';
-                        case 'preparing': return 'ph-cooking-pot';
-                        case 'ready': return 'ph-shopping-bag';
-                        case 'completed': return 'ph-check-circle';
-                        case 'failed': 
-                        case 'expired': return 'ph-x-circle';
+                        case 'belum_diproses': return 'ph-check-circle';
+                        case 'diproses': return 'ph-cooking-pot';
+                        case 'siap_diambil': return 'ph-shopping-bag';
+                        case 'selesai': return 'ph-check-circle';
+                        case 'failed': return 'ph-x-circle';
                         default: return 'ph-info';
                     }
                 }

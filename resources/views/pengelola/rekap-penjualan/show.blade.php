@@ -31,12 +31,32 @@
         <!-- Filter & Search Bar -->
         <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Search -->
-            <form action="{{ route('pengelola.rekap.show', $kantin->id) }}" method="GET" class="relative w-full">
-                <label for="search" class="block text-[13px] font-medium text-gray-700 mb-2">Cari Tenant</label>
-                <div class="relative w-full md:w-80">
-                    <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Cari nama tenant..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+            <form action="{{ route('pengelola.rekap.show', $kantin->id) }}" method="GET" class="flex flex-col md:flex-row gap-4 w-full items-end">
+                <div class="flex-1 w-full md:max-w-xs">
+                    <label for="search" class="block text-[13px] font-medium text-gray-700 mb-2">Cari Tenant</label>
+                    <div class="relative w-full">
+                        <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Cari nama tenant..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                    </div>
                 </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-full">
+                        <label class="block text-[13px] font-medium text-gray-700 mb-2">Periode</label>
+                        <div class="flex items-center gap-2">
+                            <input type="date" name="start_date" value="{{ request('start_date') }}" class="px-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                            <span class="text-gray-500">-</span>
+                            <input type="date" name="end_date" value="{{ request('end_date') }}" class="px-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="px-6 py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm whitespace-nowrap">
+                    Terapkan Filter
+                </button>
+                @if(request('search') || request('start_date') || request('end_date'))
+                    <a href="{{ route('pengelola.rekap.show', $kantin->id) }}" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold rounded-xl transition-colors flex items-center justify-center">
+                        <i class="ph-bold ph-x"></i>
+                    </a>
+                @endif
             </form>
         </div>
 
@@ -55,9 +75,8 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($tenants as $index => $tenant)
                         @php
-                            // Dummy data for presentation
-                            $pesananSelesai = rand(10, 85);
-                            $totalPenjualan = $pesananSelesai * 25000;
+                            $pesananSelesai = $tenant->pesanan_selesai ?? 0;
+                            $totalPenjualan = $tenant->total_penjualan ?? 0;
                         @endphp
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $index + 1 }}</td>
