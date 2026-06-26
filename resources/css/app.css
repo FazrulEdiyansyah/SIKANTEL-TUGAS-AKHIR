@@ -6,12 +6,12 @@
   --color-telkom-maroon: #b6252a;
   
   /* Font Utama */
-  --font-poppins: "Poppins", sans-serif;
+  --font-primary: "Inter", sans-serif;
 }
 
 @layer base {
   body {
-    /* Menerapkan font poppins secara default ke seluruh body */
-    font-family: var(--font-poppins);
+    /* Menerapkan font utama secara default ke seluruh body */
+    font-family: var(--font-primary);
   }
 }

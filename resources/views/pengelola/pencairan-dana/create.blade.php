@@ -150,12 +150,14 @@
                     Batal
                 </a>
                 <div class="flex gap-4">
-                    <!-- Placeholder buttons similar to design -->
-                    <button type="button" class="px-8 py-3.5 bg-telkom-red text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors shadow-sm">
-                        Lihat Laporan
+                    <button type="button" id="btnPdf" disabled onclick="downloadPdf()" class="px-8 py-3.5 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> Download PDF
                     </button>
-                    <button type="submit" id="btnSubmit" disabled class="px-8 py-3.5 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                        Ajukan Laporan
+                    <button type="submit" name="action" value="draft" id="btnDraft" disabled class="px-8 py-3.5 bg-yellow-500 text-white text-sm font-bold rounded-xl hover:bg-yellow-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-bookmark mr-2"></i> Simpan Draft
+                    </button>
+                    <button type="submit" name="action" value="proposed" id="btnProposed" disabled class="px-8 py-3.5 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Ajukan Laporan (Proposed)
                     </button>
                 </div>
             </div>
@@ -166,6 +168,14 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+    function downloadPdf() {
+        const tenantId = document.getElementById('tenant_id').value;
+        const dateRange = document.getElementById('date_range').value;
+        if(tenantId && dateRange) {
+            window.open(`{{ route('pengelola.pencairan_dana.preview_pdf') }}?tenant_id=${tenantId}&date_range=${encodeURIComponent(dateRange)}`, '_blank');
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         // Init Flatpickr for Date Range
         const fp = flatpickr("#date_range", {
@@ -231,14 +241,18 @@
             document.getElementById('calcEmpty').classList.add('hidden');
             document.getElementById('calcResult').classList.add('hidden');
             document.getElementById('calcLoading').classList.remove('hidden');
-            document.getElementById('btnSubmit').disabled = true;
+            document.getElementById('btnDraft').disabled = true;
+            document.getElementById('btnProposed').disabled = true;
+            document.getElementById('btnPdf').disabled = true;
         }
 
         function hideResult() {
             document.getElementById('calcLoading').classList.add('hidden');
             document.getElementById('calcResult').classList.add('hidden');
             document.getElementById('calcEmpty').classList.remove('hidden');
-            document.getElementById('btnSubmit').disabled = true;
+            document.getElementById('btnDraft').disabled = true;
+            document.getElementById('btnProposed').disabled = true;
+            document.getElementById('btnPdf').disabled = true;
         }
 
         function showResult(data) {
@@ -267,9 +281,13 @@
             
             // Enable submit if there are sales
             if(data.total_penjualan > 0) {
-                document.getElementById('btnSubmit').disabled = false;
+                document.getElementById('btnDraft').disabled = false;
+                document.getElementById('btnProposed').disabled = false;
+                document.getElementById('btnPdf').disabled = false;
             } else {
-                document.getElementById('btnSubmit').disabled = true;
+                document.getElementById('btnDraft').disabled = true;
+                document.getElementById('btnProposed').disabled = true;
+                document.getElementById('btnPdf').disabled = true;
             }
         }
     });

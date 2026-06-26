@@ -26,31 +26,35 @@ class DashboardController extends Controller
         // Data Pesanan & Penjualan Hari Ini
         $pesananHariIni = Order::where('tenant_id', $tenant->id)
             ->whereDate('created_at', $today)
-            ->whereIn('status', ['success', 'preparing', 'ready', 'completed'])
+            ->where('payment_status', 'success')
             ->count();
 
         $menungguDiproses = Order::where('tenant_id', $tenant->id)
-            ->where('status', 'success')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'belum_diproses')
             ->count();
 
         $sedangDisiapkan = Order::where('tenant_id', $tenant->id)
-            ->where('status', 'preparing')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'diproses')
             ->count();
 
         $penjualanHariIni = Order::where('tenant_id', $tenant->id)
             ->whereDate('created_at', $today)
-            ->whereIn('status', ['success', 'preparing', 'ready', 'completed'])
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->sum('total_price');
 
         $pesananSelesaiHariIni = Order::where('tenant_id', $tenant->id)
             ->whereDate('created_at', $today)
-            ->where('status', 'completed')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->count();
 
         // Daftar Pesanan Terbaru
         $pesananTerbaru = Order::with(['user', 'items.menu'])
             ->where('tenant_id', $tenant->id)
-            ->whereIn('status', ['success', 'preparing', 'ready', 'completed'])
+            ->where('payment_status', 'success')
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();

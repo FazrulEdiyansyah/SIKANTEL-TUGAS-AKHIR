@@ -22,7 +22,9 @@ return new class extends Migration
             $table->decimal('dana_tenant', 12, 2);
             $table->decimal('dana_telu', 12, 2);
             $table->text('keterangan')->nullable();
-            $table->enum('status', ['draft', 'proposed', 'approved', 'rejected'])->default('draft');
+            $table->string('status')->default('draft');
+            $table->text('catatan_kaur')->nullable();
+            $table->text('catatan_kabag')->nullable();
             $table->timestamps();
         });
     }

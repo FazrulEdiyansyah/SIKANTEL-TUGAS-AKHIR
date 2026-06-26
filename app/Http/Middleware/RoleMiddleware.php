@@ -24,7 +24,13 @@ class RoleMiddleware
 
         if ($user->role !== $role) {
             // Redirect based on user's actual role
-            if ($user->role === 'pengelola') {
+            if ($user->role === 'superadmin') {
+                return redirect('/superadmin/dashboard');
+            } elseif ($user->role === 'kaur') {
+                return redirect('/kaur/dashboard');
+            } elseif ($user->role === 'kabag') {
+                return redirect('/kabag/dashboard');
+            } elseif ($user->role === 'pengelola') {
                 return redirect('/pengelola/dashboard');
             } elseif ($user->role === 'tenant') {
                 return redirect('/tenant/dashboard');

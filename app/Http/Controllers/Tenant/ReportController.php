@@ -32,7 +32,8 @@ class ReportController extends Controller
                 
                 $dailyTotal = Order::where('tenant_id', $tenant->id)
                     ->whereDate('created_at', $date)
-                    ->where('status', 'completed')
+                    ->where('payment_status', 'success')
+                    ->where('order_status', 'selesai')
                     ->sum('total_price');
                     
                 $data[] = $dailyTotal;
@@ -45,7 +46,8 @@ class ReportController extends Controller
                 
                 $dailyTotal = Order::where('tenant_id', $tenant->id)
                     ->whereDate('created_at', $date)
-                    ->where('status', 'completed')
+                    ->where('payment_status', 'success')
+                    ->where('order_status', 'selesai')
                     ->sum('total_price');
                     
                 $data[] = $dailyTotal;
@@ -54,17 +56,20 @@ class ReportController extends Controller
 
         // Summary metrics
         $totalPendapatan = Order::where('tenant_id', $tenant->id)
-            ->where('status', 'completed')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->sum('total_price');
             
         $pesananSelesai = Order::where('tenant_id', $tenant->id)
-            ->where('status', 'completed')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->count();
             
         // Recent completed orders for table
         $orders = Order::with('user')
             ->where('tenant_id', $tenant->id)
-            ->where('status', 'completed')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -91,7 +96,8 @@ class ReportController extends Controller
         
         $orders = Order::with(['user', 'items.menu'])
             ->where('tenant_id', $tenant->id)
-            ->where('status', 'completed')
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->orderBy('created_at', 'desc')
             ->get();
             

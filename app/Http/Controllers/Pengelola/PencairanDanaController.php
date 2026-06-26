@@ -17,7 +17,15 @@ class PencairanDanaController extends Controller
         $status = $request->query('status', 'draft'); // Default tab is draft
 
         $pencairan_danas = PencairanDana::with(['tenant.kantin', 'pengelola'])
-            ->where('status', $status)
+            ->when($status == 'proposed', function ($q) {
+                return $q->whereIn('status', ['proposed', 'approved_kaur']);
+            })
+            ->when($status == 'rejected', function ($q) {
+                return $q->whereIn('status', ['rejected_kaur', 'rejected_kabag']);
+            })
+            ->when(!in_array($status, ['proposed', 'rejected']), function ($q) use ($status) {
+                return $q->where('status', $status);
+            })
             ->latest()
             ->paginate(10)
             ->appends(['status' => $status]);
@@ -45,11 +53,13 @@ class PencairanDanaController extends Controller
         $startDate = Carbon::parse($request->start_date)->startOfDay();
         $endDate = Carbon::parse($request->end_date)->endOfDay();
 
-        $totalPenjualan = Order::where('tenant_id', $tenantId)
-            ->where('status', 'completed')
+        $orders = Order::where('tenant_id', $tenantId)
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('total_price');
+            ->get();
 
+        $totalPenjualan = $orders->sum('total_price');
         $danaTenant = $totalPenjualan * 0.70;
         $danaTelu = $totalPenjualan * 0.30;
 
@@ -68,58 +78,129 @@ class PencairanDanaController extends Controller
         ]);
     }
 
+    // ==========================================
+    // ACTION: STORE PENCAIRAN DANA
+    // ==========================================
     public function store(Request $request)
     {
         $request->validate([
             'tenant_id' => 'required|exists:tenants,id',
-            'approver_name' => 'required|string',
-            'date_range' => 'required|string',
+            'date_range' => 'required',
             'keterangan' => 'nullable|string',
         ]);
 
-        // date_range is expected to be "01 Jun 2024 - 07 Jun 2024" or similar
-        // Let's parse it safely
         $dates = explode(' - ', $request->date_range);
         if (count($dates) != 2) {
-            return back()->withErrors(['date_range' => 'Format tanggal tidak valid.'])->withInput();
+            return back()->withErrors(['date_range' => 'Format tanggal tidak valid'])->withInput();
         }
 
-        try {
-            $startDate = Carbon::createFromFormat('d M Y', trim($dates[0]))->startOfDay();
-            $endDate = Carbon::createFromFormat('d M Y', trim($dates[1]))->endOfDay();
-        } catch (\Exception $e) {
-            // fallback
-            try {
-                $startDate = Carbon::parse(trim($dates[0]))->startOfDay();
-                $endDate = Carbon::parse(trim($dates[1]))->endOfDay();
-            } catch (\Exception $e) {
-                return back()->withErrors(['date_range' => 'Format tanggal gagal diproses.'])->withInput();
-            }
+        $startDate = \Carbon\Carbon::parse($dates[0])->startOfDay();
+        $endDate = \Carbon\Carbon::parse($dates[1])->endOfDay();
+
+        // Cek duplicate
+        $exists = PencairanDana::where('tenant_id', $request->tenant_id)
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                  ->orWhereBetween('end_date', [$startDate, $endDate]);
+            })
+            ->whereNotIn('status', ['rejected_kaur', 'rejected_kabag'])
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors(['tenant_id' => 'Periode ini sudah pernah diajukan untuk tenant tersebut dan masih diproses/selesai.'])->withInput();
         }
 
-        // Calculate again securely
-        $totalPenjualan = Order::where('tenant_id', $request->tenant_id)
-            ->where('status', 'completed')
+        // Kalkulasi
+        $orders = Order::with('items')
+            ->where('tenant_id', $request->tenant_id)
+            ->where('order_status', 'selesai')
             ->whereBetween('created_at', [$startDate, $endDate])
-            ->sum('total_price');
+            ->get();
+
+        $totalPenjualan = $orders->sum('total_price');
+
+        if ($totalPenjualan <= 0) {
+            return back()->withErrors(['date_range' => 'Tidak ada penjualan pada periode ini.'])->withInput();
+        }
 
         $danaTenant = $totalPenjualan * 0.70;
         $danaTelu = $totalPenjualan * 0.30;
 
-        PencairanDana::create([
-            'pengelola_id' => Auth::id(),
+        $status = $request->input('action', 'draft') === 'draft' ? 'draft' : 'proposed';
+
+        $pencairan = PencairanDana::create([
             'tenant_id' => $request->tenant_id,
-            'approver_name' => $request->approver_name,
+            'pengelola_id' => auth()->id(),
             'start_date' => $startDate,
             'end_date' => $endDate,
             'total_penjualan' => $totalPenjualan,
             'dana_tenant' => $danaTenant,
             'dana_telu' => $danaTelu,
             'keterangan' => $request->keterangan,
-            'status' => 'proposed', // we can set it to proposed immediately when submitted
+            'status' => $status
         ]);
 
-        return redirect()->route('pengelola.pencairan_dana.index', ['status' => 'proposed'])
-            ->with('success', 'Laporan pencairan dana berhasil diajukan.');
+        // Simpan detail
+        foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                \App\Models\PencairanDanaDetail::create([
+                    'pencairan_dana_id' => $pencairan->id,
+                    'menu_id' => $item->menu_id,
+                    'qty' => $item->qty,
+                    'subtotal' => $item->subtotal,
+                ]);
+            }
+        }
+
+        $message = $status === 'draft' ? 'Laporan berhasil disimpan sebagai Draft.' : 'Laporan berhasil diajukan ke Kaur.';
+        return redirect()->route('pengelola.pencairan_dana.index', ['status' => $status])->with('success', $message);
+    }
+
+    public function propose($id)
+    {
+        $pencairan = PencairanDana::findOrFail($id);
+        if ($pencairan->status !== 'draft') {
+            return back()->with('error', 'Hanya laporan draft yang dapat diajukan.');
+        }
+
+        $pencairan->update(['status' => 'proposed']);
+        return back()->with('success', 'Laporan berhasil diajukan ke Kaur.');
+    }
+
+    public function generatePdf(Request $request)
+    {
+        $tenantId = $request->query('tenant_id');
+        $dateRange = $request->query('date_range');
+
+        if (!$tenantId || !$dateRange) {
+            return back()->withErrors('Parameter tidak lengkap');
+        }
+
+        $dates = explode(' - ', $dateRange);
+        $startDate = \Carbon\Carbon::parse($dates[0])->startOfDay();
+        $endDate = \Carbon\Carbon::parse($dates[1])->endOfDay();
+
+        $tenant = Tenant::with('kantin')->findOrFail($tenantId);
+        
+        $orders = Order::where('tenant_id', $tenantId)
+            ->where('order_status', 'selesai')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->get();
+
+        $totalPenjualan = $orders->sum('total_price');
+        $danaTenant = $totalPenjualan * 0.70;
+        $danaTelu = $totalPenjualan * 0.30;
+
+        $data = [
+            'tenant' => $tenant,
+            'startDate' => $startDate,
+            'endDate' => $endDate,
+            'totalPenjualan' => $totalPenjualan,
+            'danaTenant' => $danaTenant,
+            'danaTelu' => $danaTelu,
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pengelola.pencairan-dana.pdf', $data);
+        return $pdf->download('Preview-Laporan-Pencairan-Dana.pdf');
     }
 }

@@ -19,7 +19,8 @@ class PengelolaController extends Controller
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
-        $penjualanBulanIni = Order::where('status', 'completed')
+        $penjualanBulanIni = Order::where('payment_status', 'success')
+            ->where('order_status', 'selesai')
             ->whereMonth('created_at', $currentMonth)
             ->whereYear('created_at', $currentYear)
             ->sum('total_price');
@@ -32,7 +33,8 @@ class PengelolaController extends Controller
             $labels[] = $date->format('d M');
             
             $dailyTotal = Order::whereDate('created_at', $date)
-                ->where('status', 'completed')
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai')
                 ->sum('total_price');
                 
             $data[] = $dailyTotal;
@@ -41,10 +43,12 @@ class PengelolaController extends Controller
         // Top 5 Tenants by Sales
         $topTenants = Tenant::with('kantin')
             ->withSum(['orders' => function ($query) {
-                $query->where('orders.status', 'completed');
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
             }], 'total_price')
             ->withCount(['orders' => function ($query) {
-                $query->where('orders.status', 'completed');
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
             }])
             ->orderByDesc('orders_sum_total_price')
             ->take(5)
@@ -52,7 +56,8 @@ class PengelolaController extends Controller
 
         // Kantin Teramai (by completed orders)
         $kantinTeramai = Kantin::withCount(['orders' => function ($query) {
-                $query->where('orders.status', 'completed');
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
             }])
             ->orderByDesc('orders_count')
             ->first();

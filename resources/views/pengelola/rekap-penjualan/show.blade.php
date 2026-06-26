@@ -29,13 +29,46 @@
     <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         
         <!-- Filter & Search Bar -->
-        <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <!-- Search -->
-            <form action="{{ route('pengelola.rekap.show', $kantin->id) }}" method="GET" class="relative w-full">
-                <label for="search" class="block text-[13px] font-medium text-gray-700 mb-2">Cari Tenant</label>
-                <div class="relative w-full md:w-80">
+        <!-- Filter & Search Bar -->
+        <div class="p-6 border-b border-gray-100">
+            <form action="{{ route('pengelola.rekap.show', $kantin->id) }}" method="GET" class="flex flex-col xl:flex-row gap-4 w-full items-start xl:items-center justify-between">
+                
+                <!-- Left: Search -->
+                <div class="relative flex-1 w-full xl:max-w-xs">
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Cari nama tenant..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama tenant..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all">
+                </div>
+                
+                <!-- Right: Filters -->
+                <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
+                    
+                    <div class="relative w-full md:w-40">
+                        <select name="period" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all appearance-none cursor-pointer">
+                            <option value="all" {{ request('period') == 'all' ? 'selected' : '' }}>Semua Waktu</option>
+                            <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Hari Ini</option>
+                            <option value="this_week" {{ request('period') == 'this_week' ? 'selected' : '' }}>Minggu Ini</option>
+                            <option value="this_month" {{ request('period') == 'this_month' ? 'selected' : '' }}>Bulan Ini</option>
+                            <option value="custom" {{ request('period') == 'custom' ? 'selected' : '' }}>Pilih Tanggal</option>
+                        </select>
+                        <i class="ph ph-calendar-blank absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Custom Date Range -->
+                    <div class="flex items-center gap-2 w-full md:w-auto">
+                        <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Mulai">
+                        <span class="text-gray-400">-</span>
+                        <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Akhir">
+                    </div>
+
+                    <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center">
+                        Terapkan
+                    </button>
+                    
+                    @if(request('search') || request('period') && request('period') !== 'all')
+                        <a href="{{ route('pengelola.rekap.show', $kantin->id) }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold rounded-xl transition-colors flex items-center justify-center" title="Reset Filter">
+                            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+                        </a>
+                    @endif
                 </div>
             </form>
         </div>
@@ -55,9 +88,8 @@
                 <tbody class="divide-y divide-gray-50">
                     @forelse($tenants as $index => $tenant)
                         @php
-                            // Dummy data for presentation
-                            $pesananSelesai = rand(10, 85);
-                            $totalPenjualan = $pesananSelesai * 25000;
+                            $pesananSelesai = $tenant->pesanan_selesai ?? 0;
+                            $totalPenjualan = $tenant->total_penjualan ?? 0;
                         @endphp
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $index + 1 }}</td>

@@ -114,18 +114,18 @@
                         </div>
 
                         <!-- Update Status Form -->
-                        @if($order->status !== 'completed')
+                        @if($order->order_status !== 'selesai')
                             @php
                                 $nextStatus = '';
                                 $btnText = '';
-                                if ($order->status == 'success') {
-                                    $nextStatus = 'preparing';
+                                if ($order->order_status == 'belum_diproses') {
+                                    $nextStatus = 'diproses';
                                     $btnText = 'Proses Pesanan';
-                                } else if ($order->status == 'preparing') {
-                                    $nextStatus = 'ready';
+                                } else if ($order->order_status == 'diproses') {
+                                    $nextStatus = 'siap_diambil';
                                     $btnText = 'Tandai Siap Diambil';
-                                } else if ($order->status == 'ready') {
-                                    $nextStatus = 'completed';
+                                } else if ($order->order_status == 'siap_diambil') {
+                                    $nextStatus = 'selesai';
                                     $btnText = 'Selesaikan Pesanan';
                                 }
                             @endphp
@@ -133,7 +133,7 @@
                             <form action="{{ route('tenant.orders.update-status', $order->id) }}" method="POST">
                                 @csrf
                                 @method('PATCH')
-                                <input type="hidden" name="status" value="{{ $nextStatus }}">
+                                <input type="hidden" name="order_status" value="{{ $nextStatus }}">
                                 <button type="submit" class="w-full py-3.5 bg-telkom-red hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg">
                                     {{ $btnText }}
                                 </button>

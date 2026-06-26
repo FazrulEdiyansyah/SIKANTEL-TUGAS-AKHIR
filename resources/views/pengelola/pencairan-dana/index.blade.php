@@ -122,23 +122,45 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1.5"></span> Dibuat
                                     </span>
                                 @elseif($item->status == 'proposed')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span> Diproses
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200" title="Menunggu Kaur">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span> Diproses (Kaur)
+                                    </span>
+                                @elseif($item->status == 'approved_kaur')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-200" title="Menunggu Kabag">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-1.5"></span> Diproses (Kabag)
                                     </span>
                                 @elseif($item->status == 'approved')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border border-green-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span> Selesai
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span> Ditolak
-                                    </span>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border border-green-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span> Selesai
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 font-medium">Approv. by Kaur & Kabag</span>
+                                    </div>
+                                @elseif(in_array($item->status, ['rejected_kaur', 'rejected_kabag']))
+                                    <div class="flex flex-col gap-1 max-w-[150px]">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span> Ditolak ({{ $item->status == 'rejected_kaur' ? 'Kaur' : 'Kabag' }})
+                                        </span>
+                                        <div class="text-[11px] text-red-500 bg-red-50 p-1.5 rounded border border-red-100">
+                                            <strong>Catatan:</strong> {{ $item->status == 'rejected_kaur' ? $item->catatan_kaur : $item->catatan_kabag }}
+                                        </div>
+                                    </div>
                                 @endif
                             </td>
                             <td class="py-4 px-4 text-center">
-                                <button class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center mx-auto">
-                                    <i class="ph ph-eye mr-1.5 text-sm"></i> Detail
-                                </button>
+                                <div class="flex items-center justify-center gap-2">
+                                    <button class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center">
+                                        <i class="ph ph-eye mr-1.5 text-sm"></i> Detail
+                                    </button>
+                                    @if($item->status == 'draft')
+                                        <form action="{{ route('pengelola.pencairan_dana.propose', $item->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="px-3 py-1.5 text-xs font-bold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center" onclick="return confirm('Ajukan laporan ini ke Kaur?')">
+                                                <i class="fa-solid fa-paper-plane mr-1.5"></i> Ajukan
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

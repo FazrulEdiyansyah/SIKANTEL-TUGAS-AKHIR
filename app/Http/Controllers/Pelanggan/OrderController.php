@@ -30,7 +30,7 @@ class OrderController extends Controller
     public function cancel($id)
     {
         $order = Order::where('user_id', auth()->id())
-            ->where('status', 'pending')
+            ->where('payment_status', 'pending')
             ->findOrFail($id);
 
         // Setup Midtrans
@@ -45,7 +45,7 @@ class OrderController extends Controller
             \Illuminate\Support\Facades\Log::error('Midtrans cancel error: ' . $e->getMessage());
         }
 
-        $order->update(['status' => 'failed']);
+        $order->update(['payment_status' => 'failed']);
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
     }

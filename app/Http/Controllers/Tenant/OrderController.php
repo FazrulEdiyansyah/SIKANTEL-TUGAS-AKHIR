@@ -14,7 +14,7 @@ class OrderController extends Controller
 
         $orders = Order::with(['user', 'items.menu'])
             ->where('tenant_id', $tenantId)
-            ->whereIn('status', ['success', 'preparing', 'ready', 'completed'])
+            ->where('payment_status', 'success')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -35,14 +35,14 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:preparing,ready,completed'
+            'order_status' => 'required|in:belum_diproses,diproses,siap_diambil,selesai'
         ]);
 
         $tenantId = auth()->user()->tenant->id;
         $order = Order::where('tenant_id', $tenantId)->findOrFail($id);
 
         $order->update([
-            'status' => $request->status
+            'order_status' => $request->order_status
         ]);
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');

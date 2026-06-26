@@ -8,10 +8,10 @@
     <!-- Midtrans Snap -->
     <script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
 
-    <!-- Font Poppins -->
+    <!-- Font Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -23,7 +23,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="font-poppins bg-[#FAFBFC] text-gray-800 antialiased flex flex-col min-h-screen">
+<body class="font-primary bg-[#FAFBFC] text-gray-800 antialiased flex flex-col min-h-screen">
 
     <!-- Navbar -->
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50 h-20 px-6 lg:px-16 flex items-center justify-between">
@@ -37,9 +37,7 @@
             <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.dashboard') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Beranda
             </a>
-            <a href="#" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.kantin.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
-                Kantin
-            </a>
+
             <a href="{{ route('pelanggan.orders.index') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.orders.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Pesanan Saya
             </a>
