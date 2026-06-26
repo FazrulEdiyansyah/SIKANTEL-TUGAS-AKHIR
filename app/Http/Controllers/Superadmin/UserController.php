@@ -13,15 +13,35 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()->paginate(10);
-        return view('superadmin.users.index', compact('users'));
+        $query = User::where('role', '!=', 'superadmin');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('role') && $request->role !== 'all') {
+            $query->where('role', $request->role);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('is_active', $request->status);
+        }
+
+        $users = $query->latest()->paginate(10)->withQueryString();
+        $roles = Role::where('name', '!=', 'superadmin')->get();
+        
+        return view('superadmin.users.index', compact('users', 'roles'));
     }
 
     public function create()
     {
-        $roles = Role::all();
+        $roles = Role::where('name', '!=', 'superadmin')->get();
         return view('superadmin.users.create', compact('roles'));
     }
 
@@ -30,44 +50,49 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
             'role' => 'required|string',
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make('password'),
             'role' => $request->role,
+            'is_active' => true,
         ]);
 
-        return redirect()->route('superadmin.users.index')->with('success', 'User berhasil ditambahkan');
+        return redirect()->route('superadmin.users.index')->with('success', 'User berhasil ditambahkan dengan password default "password"');
     }
 
     public function edit(User $user)
     {
-        $roles = Role::all();
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Akun Superadmin tidak dapat diedit');
+        }
+
+        $roles = Role::where('name', '!=', 'superadmin')->get();
         return view('superadmin.users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
     {
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Akun Superadmin tidak dapat diedit');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|string',
-            'password' => 'nullable|string|min:8',
+            'is_active' => 'required|boolean',
         ]);
 
         $data = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'is_active' => $request->is_active,
         ];
-
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($request->password);
-        }
 
         $user->update($data);
 
@@ -76,6 +101,10 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        if ($user->role === 'superadmin') {
+            return back()->with('error', 'Akun Superadmin tidak dapat dihapus');
+        }
+
         if ($user->id === auth()->id()) {
             return back()->with('error', 'Tidak bisa menghapus akun sendiri');
         }

@@ -345,6 +345,7 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('tenantMenu', () => ({
                 activeModal: null,
+                requestSequence: 0,
                 cart: {
                     totalQty: {{ $totalQty }},
                     totalPrice: {{ $totalPrice }},
@@ -360,6 +361,9 @@
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + 1;
                     if(price) this.cart.totalPrice += price;
                     
+                    this.requestSequence++;
+                    const currentSeq = this.requestSequence;
+                    
                     try {
                         const response = await fetch('{{ route("pelanggan.cart.add") }}', {
                             method: 'POST',
@@ -374,7 +378,7 @@
                             })
                         });
                         const data = await response.json();
-                        if (data.success) {
+                        if (data.success && this.requestSequence === currentSeq) {
                             this.cart.totalQty = data.totalQty;
                             this.cart.totalPrice = data.totalPrice;
                             this.cart.menuQty = data.menuQty;
@@ -391,6 +395,9 @@
                         this.cart.menuQty[menuId]--;
                     }
                     
+                    this.requestSequence++;
+                    const currentSeq = this.requestSequence;
+                    
                     try {
                         const response = await fetch('{{ route("pelanggan.cart.decrease") }}', {
                             method: 'POST',
@@ -404,7 +411,7 @@
                             })
                         });
                         const data = await response.json();
-                        if (data.success) {
+                        if (data.success && this.requestSequence === currentSeq) {
                             this.cart.totalQty = data.totalQty;
                             this.cart.totalPrice = data.totalPrice;
                             this.cart.menuQty = data.menuQty;
@@ -426,6 +433,9 @@
                     this.cart.totalPrice += (basePrice * qty);
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + qty;
                     
+                    this.requestSequence++;
+                    const currentSeq = this.requestSequence;
+                    
                     try {
                         const response = await fetch(form.action, {
                             method: 'POST',
@@ -436,7 +446,7 @@
                             body: formData
                         });
                         const data = await response.json();
-                        if (data.success) {
+                        if (data.success && this.requestSequence === currentSeq) {
                             this.cart.totalQty = data.totalQty;
                             this.cart.totalPrice = data.totalPrice;
                             this.cart.menuQty = data.menuQty;

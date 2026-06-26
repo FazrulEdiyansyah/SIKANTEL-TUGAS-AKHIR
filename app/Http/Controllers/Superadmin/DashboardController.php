@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Kantin;
 use App\Models\Tenant;
+use App\Models\PencairanDana;
 
 class DashboardController extends Controller
 {
@@ -18,8 +19,8 @@ class DashboardController extends Controller
         $totalOrders = Order::count();
         $totalKantin = Kantin::count();
         $totalTenant = Tenant::count();
-        $pendingOrders = Order::where('order_status', 'diproses')->count();
+        $totalPencairan = PencairanDana::count();
         
-        return view('superadmin.dashboard', compact('totalUsers', 'totalOrders', 'totalKantin', 'totalTenant', 'pendingOrders'));
+        return view('superadmin.dashboard', compact('totalUsers', 'totalOrders', 'totalKantin', 'totalTenant', 'totalPencairan'));
     }
 }

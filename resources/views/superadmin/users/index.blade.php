@@ -12,6 +12,51 @@
         </a>
     </div>
     
+    <div class="p-4 border-b border-gray-100 bg-gray-50/50">
+        <form action="{{ route('superadmin.users.index') }}" method="GET" class="flex flex-wrap gap-3 items-center">
+            <!-- Search -->
+            <div class="relative flex-1 min-w-[200px]">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 bg-white outline-none transition-shadow hover:shadow-sm">
+            </div>
+            
+            <!-- Role -->
+            <div class="relative min-w-[150px]">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <select name="role" class="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer outline-none transition-shadow hover:shadow-sm" onchange="this.form.submit()">
+                    <option value="all"> Semua Role</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>{{ ucfirst($role->name) }}</option>
+                    @endforeach
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-500">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="relative min-w-[150px]">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <select name="status" class="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-full text-sm focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none cursor-pointer outline-none transition-shadow hover:shadow-sm" onchange="this.form.submit()">
+                    <option value="all">Status</option>
+                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Aktif</option>
+                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Nonaktif</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-500">
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="hidden">Filter</button>
+        </form>
+    </div>
+    
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -20,6 +65,7 @@
                     <th class="px-6 py-4 font-medium border-b border-gray-100">Name</th>
                     <th class="px-6 py-4 font-medium border-b border-gray-100">Email</th>
                     <th class="px-6 py-4 font-medium border-b border-gray-100">Role</th>
+                    <th class="px-6 py-4 font-medium border-b border-gray-100">Status</th>
                     <th class="px-6 py-4 font-medium border-b border-gray-100">Joined Date</th>
                     <th class="px-6 py-4 font-medium border-b border-gray-100 text-right">Actions</th>
                 </tr>
@@ -49,20 +95,22 @@
                             {{ ucfirst($user->role) }}
                         </span>
                     </td>
-                    <td class="px-6 py-4 text-gray-500">{{ $user->created_at->format('d M Y') }}</td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <a href="{{ route('superadmin.users.edit', $user->id) }}" class="text-blue-500 hover:text-blue-700 transition-colors p-1" title="Edit">
-                            <i class="fa-solid fa-pen"></i>
-                        </a>
-                        @if($user->id !== auth()->id())
-                        <form action="{{ route('superadmin.users.destroy', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-500 hover:text-red-700 transition-colors p-1" title="Delete">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </form>
+                    <td class="px-6 py-4">
+                        @if($user->is_active)
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                                <i class="fa-solid fa-check-circle mr-1"></i> Aktif
+                            </span>
+                        @else
+                            <span class="px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                                <i class="fa-solid fa-times-circle mr-1"></i> Nonaktif
+                            </span>
                         @endif
+                    </td>
+                    <td class="px-6 py-4 text-gray-500">{{ $user->created_at->format('d M Y') }}</td>
+                    <td class="px-6 py-4 text-right">
+                        <a href="{{ route('superadmin.users.edit', $user->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                            <i class="fa-solid fa-circle-info mr-1.5"></i> Detail
+                        </a>
                     </td>
                 </tr>
                 @empty

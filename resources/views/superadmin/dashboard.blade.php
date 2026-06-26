@@ -31,11 +31,11 @@
     <!-- Card 3 -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center justify-between hover:shadow-md transition-shadow">
         <div>
-            <p class="text-sm font-medium text-gray-500 mb-1">Pending Orders</p>
-            <h3 class="text-2xl font-bold text-gray-800">{{ $pendingOrders }}</h3>
+            <p class="text-sm font-medium text-gray-500 mb-1">Laporan Pencairan</p>
+            <h3 class="text-2xl font-bold text-gray-800">{{ $totalPencairan }}</h3>
         </div>
         <div class="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center">
-            <i class="fa-solid fa-hourglass-half text-orange-500 text-xl"></i>
+            <i class="fa-solid fa-file-invoice-dollar text-orange-500 text-xl"></i>
         </div>
     </div>
 

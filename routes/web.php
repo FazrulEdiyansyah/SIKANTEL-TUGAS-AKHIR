@@ -32,17 +32,35 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Superadmin Routes
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/superadmin', function () {
+        return redirect()->route('superadmin.dashboard');
+    });
     Route::get('/superadmin/dashboard', [\App\Http\Controllers\Superadmin\DashboardController::class, 'index'])->name('superadmin.dashboard');
     
     // Users & Roles
     Route::resource('/superadmin/users', \App\Http\Controllers\Superadmin\UserController::class, ['as' => 'superadmin']);
-    Route::resource('/superadmin/roles', \App\Http\Controllers\Superadmin\RoleController::class, ['as' => 'superadmin']);
     
-    // View other data
-    Route::get('/superadmin/kantin', [\App\Http\Controllers\Superadmin\DataController::class, 'kantin'])->name('superadmin.kantin.index');
-    Route::get('/superadmin/tenant', [\App\Http\Controllers\Superadmin\DataController::class, 'tenant'])->name('superadmin.tenant.index');
+    // View other data (Orders only for now, the rest are full CRUD)
     Route::get('/superadmin/orders', [\App\Http\Controllers\Superadmin\DataController::class, 'orders'])->name('superadmin.orders.index');
-    Route::get('/superadmin/pencairan', [\App\Http\Controllers\Superadmin\DataController::class, 'pencairan'])->name('superadmin.pencairan.index');
+    Route::get('/superadmin/orders/{order}', [\App\Http\Controllers\Superadmin\DataController::class, 'showOrder'])->name('superadmin.orders.show');
+    
+    Route::resource('/superadmin/kantin', \App\Http\Controllers\Superadmin\KantinController::class, ['as' => 'superadmin']);
+    Route::resource('/superadmin/tenant', \App\Http\Controllers\Superadmin\TenantController::class, ['as' => 'superadmin']);
+    
+    // Pencairan Dana Superadmin
+    Route::prefix('superadmin/pencairan')->name('superadmin.pencairan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'store'])->name('store');
+        Route::post('/calculate', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'calculateSales'])->name('calculate');
+        Route::get('/preview-pdf', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
+        
+        Route::get('/{id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'show'])->name('show');
+        Route::post('/{id}/propose', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'propose'])->name('propose');
+        Route::post('/{id}/approve', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'approve'])->name('approve');
+        Route::post('/{id}/reject', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'reject'])->name('reject');
+        Route::delete('/{id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'destroy'])->name('destroy');
+    });
 });
 
 // Rute Kaur

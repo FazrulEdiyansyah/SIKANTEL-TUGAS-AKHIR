@@ -24,10 +24,33 @@ class DataController extends Controller
         return view('superadmin.tenant.index', compact('tenants'));
     }
 
-    public function orders()
+    public function orders(Request $request)
     {
-        $orders = Order::with('tenant', 'user', 'items')->latest()->paginate(15);
+        $query = Order::with('tenant', 'user', 'items')->latest();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('order_id', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('tenant', function($q) use ($search) {
+                      $q->where('nama_tenant', 'like', "%{$search}%");
+                  });
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('order_status', $request->status);
+        }
+
+        $orders = $query->paginate(15)->withQueryString();
         return view('superadmin.orders.index', compact('orders'));
+    }
+
+    public function showOrder(Order $order)
+    {
+        $order->load(['tenant', 'user', 'items.menu']);
+        return view('superadmin.orders.show', compact('order'));
     }
 
     public function pencairan()

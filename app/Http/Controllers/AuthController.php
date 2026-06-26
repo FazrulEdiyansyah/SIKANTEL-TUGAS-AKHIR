@@ -41,6 +41,13 @@ class AuthController extends Controller
 
         $user = Auth::user();
 
+        if (!$user->is_active) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return back()->with('error', 'Akun Anda sedang dinonaktifkan. Silakan hubungi Administrator.');
+        }
+
         if ($user->role === 'superadmin') {
             return redirect()->intended('/superadmin/dashboard');
         } elseif ($user->role === 'kaur') {
