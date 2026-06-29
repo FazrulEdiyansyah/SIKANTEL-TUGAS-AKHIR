@@ -16,6 +16,22 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+
+        $middleware->redirectUsersTo(function (Request $request) {
+            if (auth()->check()) {
+                $role = auth()->user()->role;
+                return match ($role) {
+                    'superadmin' => '/superadmin/dashboard',
+                    'kaur' => '/kaur/dashboard',
+                    'kabag' => '/kabag/dashboard',
+                    'pengelola' => '/pengelola/dashboard',
+                    'tenant' => '/tenant/dashboard',
+                    'pelanggan' => '/pelanggan/dashboard',
+                    default => '/login',
+                };
+            }
+            return '/login';
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

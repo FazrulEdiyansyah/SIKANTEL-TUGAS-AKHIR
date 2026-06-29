@@ -13,6 +13,18 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Pengelola\PencairanDanaController;
 use App\Http\Controllers\ApproverController;
 Route::get('/', function () {
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        return match ($role) {
+            'superadmin' => redirect()->route('superadmin.dashboard'),
+            'kaur' => redirect()->route('kaur.dashboard'),
+            'kabag' => redirect()->route('kabag.dashboard'),
+            'pengelola' => redirect()->route('pengelola.dashboard'),
+            'tenant' => redirect()->route('tenant.dashboard'),
+            'pelanggan' => redirect()->route('pelanggan.dashboard'),
+            default => redirect()->route('login'),
+        };
+    }
     return redirect()->route('login');
 });
 
