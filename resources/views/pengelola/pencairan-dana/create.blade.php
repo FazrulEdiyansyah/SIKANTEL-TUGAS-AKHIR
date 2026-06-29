@@ -37,34 +37,38 @@
                 <!-- Periode Laporan -->
                 <div>
                     <label class="block text-sm font-bold text-gray-900 mb-2">Periode Laporan <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <i class="ph ph-calendar absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                        <input type="text" id="date_range" name="date_range" placeholder="Contoh: 01 Jun 2024 - 07 Jun 2024" required class="w-full pl-12 pr-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                    <div class="flex gap-4">
+                        <div class="relative flex-1">
+                            <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Mulai</span>
+                            <input type="date" id="start_date" name="start_date" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                        </div>
+                        <div class="relative flex-1">
+                            <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Selesai</span>
+                            <input type="date" id="end_date" name="end_date" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Tenant -->
                 <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Tenant <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <select id="tenant_id" name="tenant_id" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">Pilih Tenant...</option>
+                    <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Tenant <span class="text-red-500">*</span></label>
+                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                        <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <label class="flex items-center space-x-2 text-sm font-bold text-gray-700 cursor-pointer">
+                                <input type="checkbox" id="checkAllTenants" class="rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
+                                <span>Pilih Semua Tenant</span>
+                            </label>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto p-2" id="tenantCheckboxContainer">
                             @foreach($tenants as $tenant)
-                                <option value="{{ $tenant->id }}" data-kantin="{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}">{{ $tenant->nama_tenant }}</option>
+                                <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                                    <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
+                                    <span class="text-sm font-medium text-gray-700">{{ $tenant->nama_tenant }}</span>
+                                    <span class="text-xs text-gray-400 ml-auto">{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}</span>
+                                </label>
                             @endforeach
-                        </select>
-                        <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
                     </div>
-                </div>
-
-                <!-- Kantin -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Kantin</label>
-                    <div class="relative">
-                        <input type="text" id="kantin_name" disabled placeholder="Kantin GKU" class="w-full px-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-500 outline-none cursor-not-allowed">
-                        <i class="ph ph-lock-key absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-lg"></i>
-                    </div>
-                    <p class="text-[11px] text-gray-400 mt-2 font-medium">Kantin otomatis terisi berdasarkan tenant.</p>
                 </div>
 
                 <!-- Pilih Approver -->
@@ -73,8 +77,9 @@
                     <div class="relative">
                         <select id="approver_name" name="approver_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer">
                             <option value="">Pilih Approver...</option>
-                            <option value="Approver 1">Approver 1</option>
-                            <option value="Approver 2">Approver 2</option>
+                            @foreach($approvers as $approver)
+                                <option value="{{ $approver->name }}">{{ $approver->name }} ({{ ucwords(str_replace('_', ' ', $approver->role)) }})</option>
+                            @endforeach
                         </select>
                         <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
                     </div>
@@ -104,7 +109,7 @@
                                 <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase text-right">Bagian Tel-U 30%</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="resultsBody">
                             <!-- Loading State -->
                             <tr id="calcLoading" class="hidden">
                                 <td colspan="6" class="py-8 text-center">
@@ -121,24 +126,6 @@
                                     Pilih Periode Laporan dan Tenant untuk melihat detail perhitungan.
                                 </td>
                             </tr>
-
-                            <!-- Result State -->
-                            <tr id="calcResult" class="hidden hover:bg-gray-50 transition-colors">
-                                <td class="py-5 px-6 text-sm font-medium text-gray-600">1</td>
-                                <td class="py-5 px-6">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200 flex items-center justify-center">
-                                            <img id="res_tenant_foto" src="" class="w-full h-full object-cover hidden">
-                                            <i id="res_tenant_icon" class="ph-fill ph-storefront text-gray-400 text-xs"></i>
-                                        </div>
-                                        <span id="res_tenant_name" class="text-sm font-bold text-gray-900">-</span>
-                                    </div>
-                                </td>
-                                <td class="py-5 px-6 text-sm font-medium text-gray-600" id="res_kantin">-</td>
-                                <td class="py-5 px-6 text-sm font-semibold text-gray-900 text-right" id="res_total">-</td>
-                                <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right" id="res_dana_tenant">-</td>
-                                <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right" id="res_dana_telu">-</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -150,9 +137,6 @@
                     Batal
                 </a>
                 <div class="flex gap-4">
-                    <button type="button" id="btnPdf" disabled onclick="downloadPdf()" class="px-8 py-3.5 bg-white border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> Download PDF
-                    </button>
                     <button type="submit" name="action" value="draft" id="btnDraft" disabled class="px-8 py-3.5 bg-yellow-500 text-white text-sm font-bold rounded-xl hover:bg-yellow-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-bookmark mr-2"></i> Simpan Draft
                     </button>
@@ -168,53 +152,44 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    function downloadPdf() {
-        const tenantId = document.getElementById('tenant_id').value;
-        const dateRange = document.getElementById('date_range').value;
-        if(tenantId && dateRange) {
-            window.open(`{{ route('pengelola.pencairan_dana.preview_pdf') }}?tenant_id=${tenantId}&date_range=${encodeURIComponent(dateRange)}`, '_blank');
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", function() {
-        // Init Flatpickr for Date Range
-        const fp = flatpickr("#date_range", {
-            mode: "range",
-            dateFormat: "d M Y",
-            onChange: function(selectedDates, dateStr, instance) {
-                if(selectedDates.length === 2) {
-                    calculateSales();
-                }
-            }
-        });
-
-        const tenantSelect = document.getElementById('tenant_id');
-        const kantinInput = document.getElementById('kantin_name');
+        const checkAll = document.getElementById('checkAllTenants');
+        const checkboxes = document.querySelectorAll('.tenant-checkbox');
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
         
-        tenantSelect.addEventListener('change', function() {
-            // Auto fill kantin name
-            const selectedOption = this.options[this.selectedIndex];
-            kantinInput.value = selectedOption.dataset.kantin || '';
-            
+        startDateInput.addEventListener('change', calculateSales);
+        endDateInput.addEventListener('change', calculateSales);
+        
+        checkAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
             calculateSales();
         });
 
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                checkAll.checked = Array.from(checkboxes).every(c => c.checked);
+                calculateSales();
+            });
+        });
+
         function calculateSales() {
-            const tenantId = tenantSelect.value;
-            const dateRange = document.getElementById('date_range').value;
+            const selectedTenants = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
             
-            if(!tenantId || !dateRange.includes(' - ')) {
+            if(selectedTenants.length === 0 || !startDate || !endDate) {
                 hideResult();
                 return;
             }
 
-            const dates = dateRange.split(' - ');
-            const startDate = dates[0];
-            const endDate = dates[1];
+            if(new Date(startDate) > new Date(endDate)) {
+                hideResult();
+                return;
+            }
 
             showLoading();
 
-            // Fetch AJAX
             fetch("{{ route('pengelola.pencairan_dana.calculate') }}", {
                 method: "POST",
                 headers: {
@@ -222,7 +197,7 @@
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({
-                    tenant_id: tenantId,
+                    tenant_ids: selectedTenants,
                     start_date: startDate,
                     end_date: endDate
                 })
@@ -239,55 +214,65 @@
 
         function showLoading() {
             document.getElementById('calcEmpty').classList.add('hidden');
-            document.getElementById('calcResult').classList.add('hidden');
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             document.getElementById('calcLoading').classList.remove('hidden');
             document.getElementById('btnDraft').disabled = true;
             document.getElementById('btnProposed').disabled = true;
-            document.getElementById('btnPdf').disabled = true;
         }
 
         function hideResult() {
             document.getElementById('calcLoading').classList.add('hidden');
-            document.getElementById('calcResult').classList.add('hidden');
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             document.getElementById('calcEmpty').classList.remove('hidden');
             document.getElementById('btnDraft').disabled = true;
             document.getElementById('btnProposed').disabled = true;
-            document.getElementById('btnPdf').disabled = true;
         }
 
-        function showResult(data) {
+        function showResult(dataArray) {
             document.getElementById('calcLoading').classList.add('hidden');
             document.getElementById('calcEmpty').classList.add('hidden');
             
-            // Set values
-            document.getElementById('res_tenant_name').textContent = data.tenant_name;
-            document.getElementById('res_kantin').textContent = data.kantin_name;
-            document.getElementById('res_total').textContent = data.formatted_penjualan;
-            document.getElementById('res_dana_tenant').textContent = data.formatted_dana_tenant;
-            document.getElementById('res_dana_telu').textContent = data.formatted_dana_telu;
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             
-            const fotoImg = document.getElementById('res_tenant_foto');
-            const iconImg = document.getElementById('res_tenant_icon');
-            if(data.tenant_foto) {
-                fotoImg.src = data.tenant_foto;
-                fotoImg.classList.remove('hidden');
-                iconImg.classList.add('hidden');
-            } else {
-                fotoImg.classList.add('hidden');
-                iconImg.classList.remove('hidden');
-            }
+            const tbody = document.getElementById('resultsBody');
+            let hasSales = false;
 
-            document.getElementById('calcResult').classList.remove('hidden');
+            dataArray.forEach((data, index) => {
+                if(data.total_penjualan > 0) hasSales = true;
+                
+                let imgHtml = '';
+                if(data.tenant_foto) {
+                    imgHtml = `<img src="${data.tenant_foto}" class="w-full h-full object-cover">`;
+                } else {
+                    imgHtml = `<i class="ph-fill ph-storefront text-gray-400 text-xs"></i>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'calc-result-row hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-5 px-6 text-sm font-medium text-gray-600">${index + 1}</td>
+                    <td class="py-5 px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200 flex items-center justify-center">
+                                ${imgHtml}
+                            </div>
+                            <span class="text-sm font-bold text-gray-900">${data.tenant_name}</span>
+                        </div>
+                    </td>
+                    <td class="py-5 px-6 text-sm font-medium text-gray-600">${data.kantin_name}</td>
+                    <td class="py-5 px-6 text-sm font-semibold text-gray-900 text-right">${data.formatted_penjualan}</td>
+                    <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right">${data.formatted_dana_tenant}</td>
+                    <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right">${data.formatted_dana_telu}</td>
+                `;
+                tbody.appendChild(tr);
+            });
             
-            // Enable submit if there are sales
-            if(data.total_penjualan > 0) {
+            if(hasSales) {
                 document.getElementById('btnDraft').disabled = false;
                 document.getElementById('btnProposed').disabled = false;
-                document.getElementById('btnPdf').disabled = false;
             } else {
                 document.getElementById('btnDraft').disabled = true;
                 document.getElementById('btnProposed').disabled = true;
-                document.getElementById('btnPdf').disabled = true;
             }
         }
     });
