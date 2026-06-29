@@ -103,7 +103,9 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
         Route::post('/', [PencairanDanaController::class, 'store'])->name('store');
         Route::post('/calculate', [PencairanDanaController::class, 'calculateSales'])->name('calculate');
         Route::post('/{id}/propose', [PencairanDanaController::class, 'propose'])->name('propose');
-        Route::get('/preview-pdf', [PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
+        Route::get('/preview-pdf/{id}', [PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
+        Route::get('/batch/{batch_id}', [PencairanDanaController::class, 'show'])->name('show');
+        Route::get('/batch/{batch_id}/pdf', [PencairanDanaController::class, 'generateBatchPdf'])->name('batch_pdf');
     });
     
     // Rute Pengelola Tenant

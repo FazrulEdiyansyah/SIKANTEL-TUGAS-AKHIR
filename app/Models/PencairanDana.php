@@ -10,6 +10,7 @@ class PencairanDana extends Model
     use HasFactory;
 
     protected $fillable = [
+        'batch_id',
         'pengelola_id',
         'tenant_id',
         'approver_name',

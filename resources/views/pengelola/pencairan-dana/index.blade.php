@@ -80,8 +80,8 @@
                     <tr class="border-b border-gray-100">
                         <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
                         <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Periode Laporan</th>
-                        <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Tenant</th>
-                        <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Kantin</th>
+                        <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Referensi / Batch ID</th>
+                        <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Keterangan Kantin</th>
                         <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Total Penjualan</th>
                         <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Dana Tenant 70%</th>
                         <th class="py-4 px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
@@ -93,22 +93,21 @@
                         <tr class="hover:bg-gray-50/50 transition-colors group">
                             <td class="py-4 px-4 text-sm font-semibold text-gray-600">{{ $pencairan_danas->firstItem() + $index }}</td>
                             <td class="py-4 px-4 text-sm font-medium text-gray-700">
-                                {{ $item->start_date->format('d M Y') }} - {{ $item->end_date->format('d M Y') }}
+                                {{ \Carbon\Carbon::parse($item->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($item->end_date)->format('d M Y') }}
                             </td>
                             <td class="py-4 px-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200">
-                                        @if($item->tenant && $item->tenant->foto)
-                                            <img src="{{ asset('storage/' . $item->tenant->foto) }}" class="w-full h-full object-cover">
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs"><i class="ph-fill ph-storefront"></i></div>
-                                        @endif
+                                    <div class="w-8 h-8 rounded-full bg-red-50 text-telkom-red flex items-center justify-center shrink-0 border border-red-100">
+                                        <i class="ph-bold ph-files"></i>
                                     </div>
-                                    <span class="text-sm font-bold text-gray-900">{{ $item->tenant->nama_tenant ?? 'Unknown' }}</span>
+                                    <div>
+                                        <span class="text-sm font-bold text-gray-900 block">{{ $item->batch_id }}</span>
+                                        <span class="text-[11px] text-gray-500 font-medium">{{ $item->tenant_count }} Tenant</span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="py-4 px-4 text-sm font-medium text-gray-600">
-                                {{ $item->tenant && $item->tenant->kantin ? $item->tenant->kantin->nama_kantin : '-' }}
+                                Berbagai Kantin
                             </td>
                             <td class="py-4 px-4 text-sm font-semibold text-gray-900">
                                 Rp{{ number_format($item->total_penjualan, 0, ',', '.') }}
@@ -141,25 +140,14 @@
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
                                             <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span> Ditolak ({{ $item->status == 'rejected_kaur' ? 'Kaur' : 'Kabag' }})
                                         </span>
-                                        <div class="text-[11px] text-red-500 bg-red-50 p-1.5 rounded border border-red-100">
-                                            <strong>Catatan:</strong> {{ $item->status == 'rejected_kaur' ? $item->catatan_kaur : $item->catatan_kabag }}
-                                        </div>
                                     </div>
                                 @endif
                             </td>
                             <td class="py-4 px-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center">
+                                    <a href="{{ route('pengelola.pencairan_dana.show', $item->batch_id) }}" class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center">
                                         <i class="ph ph-eye mr-1.5 text-sm"></i> Detail
-                                    </button>
-                                    @if($item->status == 'draft')
-                                        <form action="{{ route('pengelola.pencairan_dana.propose', $item->id) }}" method="POST" class="inline">
-                                            @csrf
-                                            <button type="submit" class="px-3 py-1.5 text-xs font-bold text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center" onclick="return confirm('Ajukan laporan ini ke Kaur?')">
-                                                <i class="fa-solid fa-paper-plane mr-1.5"></i> Ajukan
-                                            </button>
-                                        </form>
-                                    @endif
+                                    </a>
                                 </div>
                             </td>
                         </tr>

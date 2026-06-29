@@ -19,6 +19,8 @@
     @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
+
+    @stack('styles')
 </head>
 <body class="font-primary bg-[#F8F9FA] text-gray-800 antialiased overflow-x-hidden flex h-screen" x-data="{ sidebarOpen: false }">
 
@@ -107,5 +109,6 @@
 
     </main>
 
+    @stack('scripts')
 </body>
 </html>
