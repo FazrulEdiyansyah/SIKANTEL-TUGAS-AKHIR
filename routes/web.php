@@ -78,27 +78,37 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 // Rute Kaur
 Route::middleware(['auth', 'role:kaur'])->prefix('kaur')->name('kaur.')->group(function () {
     Route::get('/dashboard', [ApproverController::class, 'dashboardKaur'])->name('dashboard');
-    Route::get('/pencairan/{id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
-    Route::post('/pencairan/{id}/approve', [ApproverController::class, 'approveKaur'])->name('pencairan.approve');
-    Route::post('/pencairan/{id}/reject', [ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
+    Route::get('/riwayat', [ApproverController::class, 'riwayatKaur'])->name('riwayat');
+    Route::get('/pencairan/{batch_id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{batch_id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{batch_id}/approve', [ApproverController::class, 'approveKaur'])->name('pencairan.approve');
+    Route::post('/pencairan/{batch_id}/reject', [ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
     
     Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
     Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
     Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+    
+    // Profil
+    Route::get('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'update'])->name('profile.update');
 });
 
 // Rute Kabag
 Route::middleware(['auth', 'role:kabag'])->prefix('kabag')->name('kabag.')->group(function () {
     Route::get('/dashboard', [ApproverController::class, 'dashboardKabag'])->name('dashboard');
-    Route::get('/pencairan/{id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
-    Route::post('/pencairan/{id}/approve', [ApproverController::class, 'approveKabag'])->name('pencairan.approve');
-    Route::post('/pencairan/{id}/reject', [ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
+    Route::get('/riwayat', [ApproverController::class, 'riwayatKabag'])->name('riwayat');
+    Route::get('/pencairan/{batch_id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{batch_id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{batch_id}/approve', [ApproverController::class, 'approveKabag'])->name('pencairan.approve');
+    Route::post('/pencairan/{batch_id}/reject', [ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
 
     Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
     Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
     Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+    
+    // Profil
+    Route::get('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'update'])->name('profile.update');
 });
 
 Route::middleware(['auth', 'role:pengelola'])->group(function () {
@@ -115,6 +125,7 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
         Route::post('/', [PencairanDanaController::class, 'store'])->name('store');
         Route::post('/calculate', [PencairanDanaController::class, 'calculateSales'])->name('calculate');
         Route::post('/{id}/propose', [PencairanDanaController::class, 'propose'])->name('propose');
+        Route::post('/batch/{batch_id}/duplicate', [PencairanDanaController::class, 'duplicateBatch'])->name('duplicate');
         Route::get('/preview-pdf/{id}', [PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
         Route::get('/batch/{batch_id}', [PencairanDanaController::class, 'show'])->name('show');
         Route::get('/batch/{batch_id}/pdf', [PencairanDanaController::class, 'generateBatchPdf'])->name('batch_pdf');
@@ -131,6 +142,10 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
     // Rute Rekap Penjualan
     Route::get('/pengelola/rekap-penjualan', [RekapPenjualanController::class, 'index'])->name('pengelola.rekap.index');
     Route::get('/pengelola/rekap-penjualan/{kantin}', [RekapPenjualanController::class, 'show'])->name('pengelola.rekap.show');
+    
+    // Profil
+    Route::get('/pengelola/profile', [\App\Http\Controllers\Pengelola\ProfileController::class, 'index'])->name('pengelola.profile.index');
+    Route::put('/pengelola/profile', [\App\Http\Controllers\Pengelola\ProfileController::class, 'update'])->name('pengelola.profile.update');
 });
 
 Route::middleware(['auth', 'role:tenant'])->group(function () {
@@ -153,6 +168,10 @@ Route::middleware(['auth', 'role:tenant'])->group(function () {
     Route::get('/tenant/rekap-penjualan', [\App\Http\Controllers\Tenant\ReportController::class, 'index'])->name('tenant.reports.index');
     Route::get('/tenant/rekap-penjualan/export/excel', [\App\Http\Controllers\Tenant\ReportController::class, 'exportExcel'])->name('tenant.reports.export-excel');
     Route::get('/tenant/rekap-penjualan/export/pdf', [\App\Http\Controllers\Tenant\ReportController::class, 'exportPdf'])->name('tenant.reports.export-pdf');
+
+    // Profil Tenant
+    Route::get('/tenant/profile', [\App\Http\Controllers\Tenant\ProfileController::class, 'index'])->name('tenant.profile.index');
+    Route::put('/tenant/profile', [\App\Http\Controllers\Tenant\ProfileController::class, 'update'])->name('tenant.profile.update');
 });
 
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {

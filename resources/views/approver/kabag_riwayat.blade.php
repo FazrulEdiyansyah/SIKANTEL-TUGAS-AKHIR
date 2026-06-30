@@ -1,15 +1,15 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Kaur Dashboard - Approval Pencairan')
+@section('title', 'Kabag Dashboard - Approval Pencairan')
 
 @section('sidebar_menu')
-    <x-sidebar.approver active="dashboard" />
+    <x-sidebar.approver active="riwayat" />
 @endsection
 
 @section('content')
     <div class="mb-8">
-        <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Antrean Persetujuan (Kaur)</h1>
-        <p class="text-[15px] text-gray-500 font-medium">Daftar usulan pencairan dana yang menunggu persetujuan tingkat 1 (Kaur).</p>
+        <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Riwayat Persetujuan (Kabag)</h1>
+        <p class="text-[15px] text-gray-500 font-medium">Daftar riwayat laporan pencairan dana yang telah diproses oleh Kabag.</p>
     </div>
 
     @if(session('success'))
@@ -46,12 +46,18 @@
                         <td class="py-4 px-4 text-[14px] font-black text-gray-900">Rp {{ number_format($p->dana_tenant, 0, ',', '.') }}</td>
                         <td class="py-4 px-4 text-[14px] font-bold text-gray-700">{{ $p->tenant_count }} Tenant</td>
                         <td class="py-4 px-4">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500 mr-1.5"></span> Proposed
-                            </span>
+                            @if($p->status == 'approved')
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600 border border-green-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span> Disetujui
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600 border border-red-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span> Ditolak
+                                </span>
+                            @endif
                         </td>
                         <td class="py-4 px-4 text-center">
-                            <a href="{{ route('kaur.pencairan.show', $p->batch_id) }}" class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors inline-flex items-center justify-center">
+                            <a href="{{ route('kabag.pencairan.show', $p->batch_id) }}" class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors inline-flex items-center justify-center">
                                 <i class="ph ph-eye mr-1.5 text-sm"></i> Detail
                             </a>
                         </td>

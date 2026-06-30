@@ -1,31 +1,31 @@
 @props(['active' => 'dashboard'])
 
 <!-- Dashboard -->
-<a href="{{ route('pengelola.dashboard') }}" class="flex items-center px-4 py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'dashboard' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
-    <i class="{{ $active === 'dashboard' ? 'ph-fill' : 'ph' }} ph-squares-four text-[22px] mr-3 {{ $active === 'dashboard' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
-    Dashboard
+<a href="{{ route('pengelola.dashboard') }}" :class="desktopSidebarOpen ? 'px-4 justify-start' : 'px-0 justify-center'" class="flex items-center py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'dashboard' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
+    <i :class="desktopSidebarOpen ? 'mr-3' : 'mr-0'" class="{{ $active === 'dashboard' ? 'ph-fill' : 'ph' }} ph-squares-four text-[22px] {{ $active === 'dashboard' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
+    <span x-show="desktopSidebarOpen" x-transition.opacity>Dashboard</span>
 </a>
 
 <!-- Data Kantin -->
-<a href="{{ route('pengelola.kantin.index') }}" class="flex items-center px-4 py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'kantin' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
-    <i class="{{ $active === 'kantin' ? 'ph-fill' : 'ph' }} ph-storefront text-[22px] mr-3 {{ $active === 'kantin' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
-    Data Kantin
+<a href="{{ route('pengelola.kantin.index') }}" :class="desktopSidebarOpen ? 'px-4 justify-start' : 'px-0 justify-center'" class="flex items-center py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'kantin' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
+    <i :class="desktopSidebarOpen ? 'mr-3' : 'mr-0'" class="{{ $active === 'kantin' ? 'ph-fill' : 'ph' }} ph-storefront text-[22px] {{ $active === 'kantin' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
+    <span x-show="desktopSidebarOpen" x-transition.opacity>Data Kantin</span>
 </a>
 
 <!-- Data Tenant -->
-<a href="{{ route('pengelola.tenant.index') }}" class="flex items-center px-4 py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'tenant' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
-    <i class="{{ $active === 'tenant' ? 'ph-fill' : 'ph' }} ph-users text-[22px] mr-3 {{ $active === 'tenant' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
-    Data Tenant
+<a href="{{ route('pengelola.tenant.index') }}" :class="desktopSidebarOpen ? 'px-4 justify-start' : 'px-0 justify-center'" class="flex items-center py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'tenant' ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
+    <i :class="desktopSidebarOpen ? 'mr-3' : 'mr-0'" class="{{ $active === 'tenant' ? 'ph-fill' : 'ph' }} ph-users text-[22px] {{ $active === 'tenant' ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
+    <span x-show="desktopSidebarOpen" x-transition.opacity>Data Tenant</span>
 </a>
 
 <!-- Rekap Penjualan -->
-<a href="{{ route('pengelola.rekap.index') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('pengelola.rekap.*') ? 'bg-red-50 text-telkom-red font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium' }}">
-    <i class="ph {{ request()->routeIs('pengelola.rekap.*') ? 'ph-chart-line-up-fill' : 'ph-chart-line-up' }} text-xl transition-transform group-hover:scale-110"></i>
-    <span class="text-[14px]">Rekap Penjualan</span>
+<a href="{{ route('pengelola.rekap.index') }}" :class="desktopSidebarOpen ? 'px-4 justify-start' : 'px-0 justify-center'" class="flex items-center py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'rekap' || request()->routeIs('pengelola.rekap.*') ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
+    <i :class="desktopSidebarOpen ? 'mr-3' : 'mr-0'" class="{{ $active === 'rekap' || request()->routeIs('pengelola.rekap.*') ? 'ph-fill' : 'ph' }} ph-chart-line-up text-[22px] {{ $active === 'rekap' || request()->routeIs('pengelola.rekap.*') ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
+    <span x-show="desktopSidebarOpen" x-transition.opacity>Rekap Penjualan</span>
 </a>
 
 <!-- Laporan Pencairan Dana -->
-<a href="{{ route('pengelola.pencairan_dana.index') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('pengelola.pencairan_dana.*') ? 'bg-red-50 text-telkom-red font-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-medium' }}">
-    <i class="ph {{ request()->routeIs('pengelola.pencairan_dana.*') ? 'ph-file-text-fill' : 'ph-file-text' }} text-xl transition-transform group-hover:scale-110"></i>
-    <span class="text-[14px]">Laporan Pencairan<br>Dana</span>
+<a href="{{ route('pengelola.pencairan_dana.index') }}" :class="desktopSidebarOpen ? 'px-4 justify-start' : 'px-0 justify-center'" class="flex items-center py-3.5 text-[15px] font-semibold rounded-xl transition-colors group {{ $active === 'laporan' || request()->routeIs('pengelola.pencairan_dana.*') ? 'text-telkom-red bg-red-50' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50 font-medium' }}">
+    <i :class="desktopSidebarOpen ? 'mr-3' : 'mr-0'" class="{{ $active === 'laporan' || request()->routeIs('pengelola.pencairan_dana.*') ? 'ph-fill' : 'ph' }} ph-file-text text-[22px] {{ $active === 'laporan' || request()->routeIs('pengelola.pencairan_dana.*') ? '' : 'text-gray-400 group-hover:text-gray-600 transition-colors' }}"></i>
+    <span x-show="desktopSidebarOpen" x-transition.opacity class="leading-tight">Laporan Pencairan<br>Dana</span>
 </a>

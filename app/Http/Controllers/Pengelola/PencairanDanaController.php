@@ -39,8 +39,9 @@ class PencairanDanaController extends Controller
     public function create()
     {
         $tenants = Tenant::with('kantin')->where('status', 'aktif')->get();
+        $kantins = \App\Models\Kantin::all();
         $approvers = \App\Models\User::whereIn('role', ['kaur', 'kabag'])->get();
-        return view('pengelola.pencairan-dana.create', compact('tenants', 'approvers'));
+        return view('pengelola.pencairan-dana.create', compact('tenants', 'kantins', 'approvers'));
     }
 
     public function calculateSales(Request $request)
@@ -98,7 +99,8 @@ class PencairanDanaController extends Controller
         $request->validate([
             'tenant_ids' => 'required|array',
             'tenant_ids.*' => 'exists:tenants,id',
-            'approver_name' => 'required|string',
+            'approver_1_name' => 'required|string',
+            'approver_2_name' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'keterangan' => 'nullable|string',
@@ -127,12 +129,14 @@ class PencairanDanaController extends Controller
 
             $danaTenant = $totalPenjualan * 0.70;
             $danaTelu = $totalPenjualan * 0.30;
+            
+            $approverNameCombined = $request->approver_1_name . ' (Kaur) & ' . $request->approver_2_name . ' (Kabag)';
 
             $pencairan = PencairanDana::create([
                 'batch_id' => $batchId,
                 'tenant_id' => $tenantId,
                 'pengelola_id' => auth()->id(),
-                'approver_name' => $request->approver_name,
+                'approver_name' => $approverNameCombined,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'total_penjualan' => $totalPenjualan,
@@ -184,6 +188,40 @@ class PencairanDanaController extends Controller
         }
 
         return back()->with('success', 'Seluruh Laporan dalam batch berhasil diajukan ke Kaur.');
+    }
+
+    public function duplicateBatch($batch_id)
+    {
+        $oldRecords = PencairanDana::where('batch_id', $batch_id)->get();
+        if ($oldRecords->isEmpty()) {
+            return back()->with('error', 'Laporan tidak ditemukan.');
+        }
+        
+        $newBatchId = 'REQ-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+        $createdCount = 0;
+        
+        foreach ($oldRecords as $old) {
+            $newRecord = $old->replicate();
+            $newRecord->batch_id = $newBatchId;
+            $newRecord->status = 'draft';
+            $newRecord->catatan_kaur = null;
+            $newRecord->catatan_kabag = null;
+            $newRecord->created_at = now();
+            $newRecord->updated_at = now();
+            $newRecord->save();
+            
+            // Replicate details
+            $oldDetails = \App\Models\PencairanDanaDetail::where('pencairan_dana_id', $old->id)->get();
+            foreach ($oldDetails as $detail) {
+                $newDetail = $detail->replicate();
+                $newDetail->pencairan_dana_id = $newRecord->id;
+                $newDetail->save();
+            }
+            $createdCount++;
+        }
+        
+        return redirect()->route('pengelola.pencairan_dana.show', $newBatchId)
+            ->with('success', "{$createdCount} Laporan berhasil diduplikasi menjadi Draft baru. Silakan tinjau dan ajukan ulang.");
     }
 
     public function show($batch_id)

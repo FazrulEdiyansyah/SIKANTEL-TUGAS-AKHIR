@@ -15,28 +15,60 @@ class ApproverController extends Controller
     // ==========================================
     public function dashboardKaur()
     {
-        $pencairans = PencairanDana::with('tenant')->where('status', 'proposed')->latest()->paginate(15);
+        $pencairans = PencairanDana::with(['pengelola'])
+            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->where('status', 'proposed')
+            ->whereNotNull('batch_id')
+            ->groupBy('batch_id', 'status')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
         return view('approver.kaur_dashboard', compact('pencairans'));
     }
 
-    public function approveKaur(Request $request, $id)
+    public function approveKaur(Request $request, $batch_id)
     {
-        $pencairan = PencairanDana::findOrFail($id);
-        $pencairan->update([
-            'status' => 'approved_kaur'
-        ]);
-        return redirect()->route('kaur.dashboard')->with('success', 'Pencairan Dana disetujui oleh Kaur.');
+        $updated = PencairanDana::where('batch_id', $batch_id)
+            ->where('status', 'proposed')
+            ->update([
+                'status' => 'approved_kaur'
+            ]);
+            
+        if (!$updated) {
+            return redirect()->route('kaur.dashboard')->with('error', 'Laporan tidak dapat disetujui. Pastikan statusnya masih dalam antrean.');
+        }
+            
+        return redirect()->route('kaur.dashboard')->with('success', 'Laporan (Batch) disetujui oleh Kaur.');
     }
 
-    public function rejectKaur(Request $request, $id)
+    public function rejectKaur(Request $request, $batch_id)
     {
         $request->validate(['catatan' => 'required|string']);
-        $pencairan = PencairanDana::findOrFail($id);
-        $pencairan->update([
-            'status' => 'rejected_kaur',
-            'catatan_kaur' => $request->catatan
-        ]);
-        return redirect()->route('kaur.dashboard')->with('error', 'Pencairan Dana ditolak oleh Kaur.');
+        $updated = PencairanDana::where('batch_id', $batch_id)
+            ->where('status', 'proposed')
+            ->update([
+                'status' => 'rejected_kaur',
+                'catatan_kaur' => $request->catatan
+            ]);
+            
+        if (!$updated) {
+            return redirect()->route('kaur.dashboard')->with('error', 'Laporan tidak dapat ditolak. Pastikan statusnya masih dalam antrean.');
+        }
+        
+        return redirect()->route('kaur.dashboard')->with('error', 'Laporan (Batch) ditolak oleh Kaur.');
+    }
+
+    public function riwayatKaur()
+    {
+        $pencairans = PencairanDana::with(['pengelola'])
+            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->whereIn('status', ['approved_kaur', 'approved', 'rejected_kaur', 'rejected_kabag'])
+            ->whereNotNull('batch_id')
+            ->groupBy('batch_id', 'status')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
+        return view('approver.kaur_riwayat', compact('pencairans'));
     }
 
     // ==========================================
@@ -44,37 +76,75 @@ class ApproverController extends Controller
     // ==========================================
     public function dashboardKabag()
     {
-        $pencairans = PencairanDana::with('tenant')->where('status', 'approved_kaur')->latest()->paginate(15);
+        $pencairans = PencairanDana::with(['pengelola'])
+            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->where('status', 'approved_kaur')
+            ->whereNotNull('batch_id')
+            ->groupBy('batch_id', 'status')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
         return view('approver.kabag_dashboard', compact('pencairans'));
     }
 
-    public function approveKabag(Request $request, $id)
+    public function approveKabag(Request $request, $batch_id)
     {
-        $pencairan = PencairanDana::findOrFail($id);
-        $pencairan->update([
-            'status' => 'approved' // final
-        ]);
-        return redirect()->route('kabag.dashboard')->with('success', 'Pencairan Dana disetujui oleh Kabag (Final).');
+        $updated = PencairanDana::where('batch_id', $batch_id)
+            ->where('status', 'approved_kaur')
+            ->update([
+                'status' => 'approved' // final
+            ]);
+            
+        if (!$updated) {
+            return redirect()->route('kabag.dashboard')->with('error', 'Laporan tidak dapat disetujui. Pastikan statusnya valid.');
+        }
+            
+        return redirect()->route('kabag.dashboard')->with('success', 'Laporan (Batch) disetujui oleh Kabag (Final).');
     }
 
-    public function rejectKabag(Request $request, $id)
+    public function rejectKabag(Request $request, $batch_id)
     {
         $request->validate(['catatan' => 'required|string']);
-        $pencairan = PencairanDana::findOrFail($id);
-        $pencairan->update([
-            'status' => 'rejected_kabag',
-            'catatan_kabag' => $request->catatan
-        ]);
-        return redirect()->route('kabag.dashboard')->with('error', 'Pencairan Dana ditolak oleh Kabag.');
+        $updated = PencairanDana::where('batch_id', $batch_id)
+            ->where('status', 'approved_kaur')
+            ->update([
+                'status' => 'rejected_kabag',
+                'catatan_kabag' => $request->catatan
+            ]);
+            
+        if (!$updated) {
+            return redirect()->route('kabag.dashboard')->with('error', 'Laporan tidak dapat ditolak. Pastikan statusnya valid.');
+        }
+            
+        return redirect()->route('kabag.dashboard')->with('error', 'Laporan (Batch) ditolak oleh Kabag.');
+    }
+
+    public function riwayatKabag()
+    {
+        $pencairans = PencairanDana::with(['pengelola'])
+            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->whereIn('status', ['approved', 'rejected_kabag'])
+            ->whereNotNull('batch_id')
+            ->groupBy('batch_id', 'status')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+            
+        return view('approver.kabag_riwayat', compact('pencairans'));
     }
 
     // ==========================================
     // SHARED APPROVER METHODS
     // ==========================================
-    public function showPencairan($id)
+    public function showPencairan($batch_id)
     {
-        $pencairan = PencairanDana::with(['tenant.kantin', 'pengelola', 'details.menu'])->findOrFail($id);
-        return view('approver.pencairan.show', compact('pencairan'));
+        $pencairan_danas = PencairanDana::with(['tenant.kantin', 'pengelola'])
+            ->where('batch_id', $batch_id)
+            ->get();
+            
+        $batchInfo = $pencairan_danas->first();
+        if (!$batchInfo) abort(404);
+        
+        return view('pengelola.pencairan-dana.show', compact('pencairan_danas', 'batchInfo', 'batch_id'));
     }
 
     public function generatePdf($id)
