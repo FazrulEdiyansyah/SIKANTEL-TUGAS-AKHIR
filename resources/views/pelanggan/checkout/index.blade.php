@@ -6,16 +6,21 @@
 <div x-data="checkoutPage()">
     <!-- Breadcrumb -->
     <div class="max-w-[1400px] mx-auto mt-6 px-6 lg:px-16 mb-4">
-        <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
-            <a href="{{ route('pelanggan.dashboard') }}" class="hover:text-telkom-red transition-colors">Kantin</a>
-            <span>></span>
-            @if($tenantId)
-                <a href="{{ route('pelanggan.tenant.show', $tenantId) }}" class="hover:text-telkom-red transition-colors">Kantin GKU</a>
-            @else
-                <span>Kantin GKU</span>
-            @endif
-            <span>></span>
-            <span class="text-gray-900 font-bold">Checkout</span>
+        <div class="flex items-center space-x-3">
+            <a href="{{ $tenantId ? route('pelanggan.tenant.show', $tenantId) : route('pelanggan.dashboard') }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+                <i class="ph-bold ph-arrow-left text-sm"></i>
+            </a>
+            <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
+                <a href="{{ route('pelanggan.dashboard') }}" class="hidden sm:inline hover:text-telkom-red transition-colors">Kantin</a>
+                <span class="hidden sm:inline">></span>
+                @if($tenantId)
+                    <a href="{{ route('pelanggan.tenant.show', $tenantId) }}" class="hidden sm:inline hover:text-telkom-red transition-colors">Tenant</a>
+                @else
+                    <span class="hidden sm:inline">Tenant</span>
+                @endif
+                <span class="hidden sm:inline">></span>
+                <span class="text-gray-900 font-bold">Checkout</span>
+            </div>
         </div>
     </div>
 

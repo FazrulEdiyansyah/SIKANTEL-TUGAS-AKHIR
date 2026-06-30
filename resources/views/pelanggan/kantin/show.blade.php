@@ -24,12 +24,17 @@
             <!-- Content Area (Left) -->
             <div class="relative z-20 w-full h-full p-8 md:p-12 flex flex-col justify-center">
                 <!-- Breadcrumb -->
-                <div class="flex items-center space-x-2 text-[13px] text-white/80 font-medium mb-4">
-                    <a href="{{ route('pelanggan.dashboard') }}" class="hover:text-white transition-colors">Beranda</a>
-                    <span>></span>
-                    <a href="{{ route('pelanggan.dashboard') }}" class="hover:text-white transition-colors">Kantin</a>
-                    <span>></span>
-                    <span class="text-white">{{ $kantin->nama_kantin }}</span>
+                <div class="flex items-center space-x-3 mb-4">
+                    <a href="{{ route('pelanggan.dashboard') }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white transition-colors shadow-sm border border-white/20">
+                        <i class="ph-bold ph-arrow-left text-sm"></i>
+                    </a>
+                    <div class="flex items-center space-x-2 text-[13px] text-white/80 font-medium">
+                        <a href="{{ route('pelanggan.dashboard') }}" class="hidden sm:inline hover:text-white transition-colors">Beranda</a>
+                        <span class="hidden sm:inline">></span>
+                        <a href="{{ route('pelanggan.dashboard') }}" class="hidden sm:inline hover:text-white transition-colors">Kantin</a>
+                        <span class="hidden sm:inline">></span>
+                        <span class="text-white font-bold">{{ $kantin->nama_kantin }}</span>
+                    </div>
                 </div>
 
                 <!-- Titles -->
@@ -69,7 +74,7 @@
 
         <!-- Floating Search Bar -->
         <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[800px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 z-30 flex items-center">
-            <form action="{{ route('pelanggan.kantin.show', $kantin->id) }}" method="GET" class="flex flex-col md:flex-row w-full items-center">
+            <form id="search-form" action="{{ route('pelanggan.kantin.show', $kantin->id) }}" method="GET" class="flex flex-col md:flex-row w-full items-center">
                 
                 <!-- Search Input -->
                 <div class="flex items-center flex-1 w-full pl-4 py-2 border-b md:border-b-0 border-gray-100">
@@ -78,27 +83,11 @@
                     </div>
                     <div class="flex items-center flex-1">
                         <i class="ph ph-magnifying-glass text-gray-400 text-lg mx-3 shrink-0"></i>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Masukkan nama tenant" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
+                        <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Masukkan nama tenant" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
                     </div>
                 </div>
 
-                <!-- Divider -->
-                <div class="hidden md:block w-px h-10 bg-gray-200 mx-4 shrink-0"></div>
 
-                <!-- Status Dropdown -->
-                <div class="flex items-center w-full md:w-auto px-4 py-2 shrink-0">
-                    <div class="flex flex-col shrink-0 mr-4">
-                        <span class="text-[11px] font-bold text-gray-900 uppercase">Status</span>
-                    </div>
-                    <div class="relative w-full md:w-40">
-                        <select name="status" onchange="this.form.submit()" class="w-full bg-transparent border-none focus:outline-none text-sm font-semibold text-gray-700 appearance-none cursor-pointer pr-6">
-                            <option value="">Semua Tenant</option>
-                            <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Buka</option>
-                            <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Tutup</option>
-                        </select>
-                        <i class="ph ph-caret-down absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-xs"></i>
-                    </div>
-                </div>
                 
                 <!-- Submit Button for Mobile -->
                 <button type="submit" class="md:hidden mt-2 w-full bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-xl transition-colors">
@@ -119,7 +108,7 @@
         </div>
 
         <!-- Grid Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="tenant-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             @forelse($tenants as $tenant)
                 <!-- Tenant Card -->
                 <div class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 p-6 flex flex-col transition-all group">
@@ -180,4 +169,63 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchForm = document.getElementById('search-form');
+            const gridContainer = document.getElementById('tenant-grid');
+
+            const performSearch = () => {
+                const url = new URL(searchForm.action);
+                if (searchInput.value) {
+                    url.searchParams.set('search', searchInput.value);
+                }
+
+                let loadingTimeout;
+                if (gridContainer) {
+                    loadingTimeout = setTimeout(() => {
+                        gridContainer.style.transition = 'opacity 0.2s';
+                        gridContainer.style.opacity = '0.5';
+                    }, 250); // Muncul animasi jika loading lebih dari 250ms
+                }
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    clearTimeout(loadingTimeout);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newGrid = doc.getElementById('tenant-grid');
+                    
+                    if (newGrid && gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                        gridContainer.innerHTML = newGrid.innerHTML;
+                    }
+                    
+                    // Update URL tanpa reload
+                    window.history.pushState({}, '', url);
+                })
+                .catch(error => {
+                    clearTimeout(loadingTimeout);
+                    if (gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                    }
+                    console.error('Error:', error);
+                });
+            };
+
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+        });
+    </script>
 @endsection

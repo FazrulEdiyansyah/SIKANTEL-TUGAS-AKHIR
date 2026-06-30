@@ -7,12 +7,17 @@
 
     <!-- Breadcrumb -->
     <div class="max-w-[1400px] mx-auto mt-6 px-6 lg:px-16 mb-4">
-        <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
-            <a href="{{ route('pelanggan.dashboard') }}" class="hover:text-[#E31E24] transition-colors">Kantin</a>
-            <span>></span>
-            <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="hover:text-[#E31E24] transition-colors">{{ $tenant->kantin->nama_kantin ?? 'Kantin' }}</a>
-            <span>></span>
-            <span class="text-gray-900 font-bold">{{ $tenant->nama_tenant }}</span>
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+                <i class="ph-bold ph-arrow-left text-sm"></i>
+            </a>
+            <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
+                <a href="{{ route('pelanggan.dashboard') }}" class="hidden sm:inline hover:text-[#E31E24] transition-colors">Kantin</a>
+                <span class="hidden sm:inline">></span>
+                <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="hidden sm:inline hover:text-[#E31E24] transition-colors">{{ $tenant->kantin->nama_kantin ?? 'Kantin' }}</a>
+                <span class="hidden sm:inline">></span>
+                <span class="text-gray-900 font-bold truncate">{{ $tenant->nama_tenant }}</span>
+            </div>
         </div>
     </div>
 
@@ -83,14 +88,14 @@
 
         <!-- Floating Search Bar -->
         <div class="absolute -bottom-7 left-1/2 -translate-x-1/2 w-[90%] max-w-[800px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-30 flex items-center">
-            <form action="{{ route('pelanggan.tenant.show', $tenant->id) }}" method="GET" class="flex flex-row w-full items-center">
+            <form id="search-form" action="{{ route('pelanggan.tenant.show', $tenant->id) }}" method="GET" class="flex flex-row w-full items-center">
                 
                 <div class="flex items-center shrink-0 w-24 pl-4 border-r border-gray-100">
                     <i class="ph ph-magnifying-glass text-gray-400 text-lg mr-2 shrink-0"></i>
                     <span class="text-[11px] font-bold text-gray-900 uppercase">Cari menu</span>
                 </div>
                 <div class="flex items-center flex-1 px-4">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Masukkan nama menu" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
+                    <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Masukkan nama menu" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
                 </div>
                 
                 <button type="submit" class="hidden"></button>
@@ -107,7 +112,7 @@
         </div>
 
         <!-- Grid Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @forelse($menus as $menu)
                 <!-- Menu Card -->
                 <div class="bg-white rounded-[24px] shadow-sm hover:shadow-md overflow-hidden flex flex-col transition-all group" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'border-y border-r border-gray-100 border-l-[6px] border-l-[#E31E24]' : 'border border-gray-100'">
@@ -299,6 +304,66 @@
             @endforelse
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchForm = document.getElementById('search-form');
+            const gridContainer = document.getElementById('menu-grid');
+
+            const performSearch = () => {
+                const url = new URL(searchForm.action);
+                if (searchInput.value) {
+                    url.searchParams.set('search', searchInput.value);
+                }
+
+                let loadingTimeout;
+                if (gridContainer) {
+                    loadingTimeout = setTimeout(() => {
+                        gridContainer.style.transition = 'opacity 0.2s';
+                        gridContainer.style.opacity = '0.5';
+                    }, 250); // Muncul animasi jika loading lebih dari 250ms
+                }
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    clearTimeout(loadingTimeout);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newGrid = doc.getElementById('menu-grid');
+                    
+                    if (newGrid && gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                        gridContainer.innerHTML = newGrid.innerHTML;
+                    }
+                    
+                    // Update URL tanpa reload
+                    window.history.pushState({}, '', url);
+                })
+                .catch(error => {
+                    clearTimeout(loadingTimeout);
+                    if (gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                    }
+                    console.error('Error:', error);
+                });
+            };
+
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+        });
+    </script>
 
     <script>
         document.addEventListener('alpine:init', () => {
