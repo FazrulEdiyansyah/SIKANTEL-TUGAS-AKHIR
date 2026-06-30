@@ -51,6 +51,7 @@ class CheckoutController extends Controller
                 'order_status' => 'belum_diproses',
                 'order_type'   => $orderType,
                 'table_number' => $tableNumber,
+                'pickup_pin'   => str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
             ]);
 
             // Save Order Items untuk tenant ini

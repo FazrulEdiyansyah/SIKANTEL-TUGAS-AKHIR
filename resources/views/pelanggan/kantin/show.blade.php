@@ -134,7 +134,11 @@
                         <!-- Content -->
                         <div class="flex-1 min-h-[64px] flex flex-col justify-center">
                             <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1">{{ $tenant->nama_tenant }}</h3>
-                            <p class="text-[12px] font-medium text-gray-500 leading-snug line-clamp-2 mb-2">{{ $tenant->jenis_makanan ?? 'Aneka makanan dan minuman' }}</p>
+                            @if($tenant->reviews_count > 0)
+                                <div class="flex items-center text-yellow-500 text-[12px] font-bold mb-1">
+                                    <i class="ph-fill ph-star mr-1"></i> {{ number_format($tenant->reviews_avg_rating, 1) }}
+                                </div>
+                            @endif
                             
                             @if($tenant->is_open)
                                 <span class="text-[13px] font-bold text-gray-900 mt-auto">Buka</span>

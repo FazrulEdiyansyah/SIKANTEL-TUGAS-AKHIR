@@ -71,6 +71,9 @@
                         <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
                         <p class="text-[12px] text-gray-500 truncate">{{ Auth::user()->email }}</p>
                     </div>
+                    <a href="{{ route('pelanggan.profile.index') }}" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium transition-colors flex items-center">
+                        <i class="ph ph-user-circle mr-2 text-lg text-gray-400"></i> Profil Saya
+                    </a>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-2 text-sm text-telkom-red hover:bg-red-50 font-semibold transition-colors flex items-center">
@@ -148,7 +151,7 @@
         });
     </script>
 
-    @if(!request()->routeIs('pelanggan.checkout'))
+    @if(request()->routeIs('pelanggan.tenant.show') || request()->routeIs('pelanggan.kantin.show'))
         <template x-if="$store.cart.totalQty > 0">
             <div class="fixed bottom-0 inset-x-0 p-4 z-40 flex justify-center pointer-events-none">
                 <div x-transition:enter="transition ease-out duration-300 transform"

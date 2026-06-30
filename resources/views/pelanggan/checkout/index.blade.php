@@ -235,6 +235,59 @@
                         <i class="ph ph-info text-gray-400 mt-0.5"></i>
                         <p class="text-[11px] text-gray-500 leading-relaxed">Periksa kembali detail pesanan, jenis layanan, dan nomor meja sebelum melanjutkan.</p>
                     </div>
+
+                    @if(count($cart) > 0)
+                        @php
+                            $bgClass = 'bg-green-50';
+                            $borderClass = 'border-green-200';
+                            $iconBgClass = 'bg-green-100';
+                            $textClass = 'text-green-600';
+                            $iconClass = 'ph-check-circle text-green-600';
+                            $estTitle = 'Antrean Sepi';
+                            
+                            if ($activeOrders >= 3 && $activeOrders <= 8) {
+                                $bgClass = 'bg-yellow-50';
+                                $borderClass = 'border-yellow-200';
+                                $iconBgClass = 'bg-yellow-100';
+                                $textClass = 'text-yellow-600';
+                                $iconClass = 'ph-timer text-yellow-600';
+                                $estTitle = 'Antrean Normal';
+                            } else if ($activeOrders > 8) {
+                                $bgClass = 'bg-red-50';
+                                $borderClass = 'border-red-200';
+                                $iconBgClass = 'bg-red-100';
+                                $textClass = 'text-[#E31E24]';
+                                $iconClass = 'ph-warning-circle text-[#E31E24]';
+                                $estTitle = 'Antrean Ramai';
+                            }
+                        @endphp
+                        
+                        <div class="mb-6 rounded-xl border {{ $borderClass }} {{ $bgClass }} p-4 shadow-sm relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 opacity-10">
+                                <i class="ph-fill ph-clock text-8xl {{ $textClass }}"></i>
+                            </div>
+                            
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-8 h-8 rounded-full {{ $iconBgClass }} flex items-center justify-center shrink-0">
+                                        <i class="ph-fill {{ $iconClass }} text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-900">Estimasi Selesai</h4>
+                                        <p class="text-[11px] text-gray-600 font-medium">{{ $estMin }}-{{ $estMax }} Menit <span class="{{ $textClass }} ml-1">({{ $estTitle }})</span></p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center justify-center bg-white/60 rounded-lg p-3 border border-white/50 text-center">
+                                    <div>
+                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Sekitar Pukul (WIB)</p>
+                                        <p class="text-xl font-black text-gray-900">{{ $estStartStr }} - {{ $estEndStr }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     
                     <button type="button" @click="proceedToPayment()" class="w-full py-4 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center" :disabled="Object.keys(cartItems).length === 0 || isProcessingPayment" :class="(Object.keys(cartItems).length === 0 || isProcessingPayment) ? 'opacity-50 cursor-not-allowed' : ''">
                         <span x-show="!isProcessingPayment">Lanjut ke Pembayaran</span>

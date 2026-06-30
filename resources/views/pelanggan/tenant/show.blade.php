@@ -57,16 +57,19 @@
 
                 <!-- Text Info -->
                 <div class="flex-1 flex flex-col justify-center">
-                    <h1 class="text-3xl md:text-5xl font-bold mb-2 tracking-tight">{{ $tenant->nama_tenant }}</h1>
+                    <div class="flex flex-wrap items-center gap-3 mb-2">
+                        <h1 class="text-3xl md:text-5xl font-bold tracking-tight">{{ $tenant->nama_tenant }}</h1>
+                        @if($tenant->reviews_count > 0)
+                            <div class="flex items-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1 text-yellow-400 text-sm font-bold shadow-sm">
+                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }} <span class="text-white/80 font-medium ml-1.5">{{ $tenant->reviews_count }} Ulasan</span>
+                            </div>
+                        @endif
+                    </div>
                     
-                    <div class="flex items-center text-white/90 text-sm md:text-base font-medium mb-3">
+                    <div class="flex items-center text-white/90 text-sm md:text-base font-medium mb-5">
                         <i class="ph ph-map-pin mr-2"></i>
                         {{ $tenant->kantin->nama_kantin ?? 'Lokasi tidak diketahui' }}
                     </div>
-
-                    <p class="text-sm md:text-base text-white/80 mb-6 max-w-lg leading-relaxed line-clamp-2">
-                        {{ $tenant->jenis_makanan ?? 'Menyediakan aneka makanan dan minuman yang lezat.' }}
-                    </p>
 
                     <div class="flex items-center space-x-3">
                         @if($tenant->is_open)

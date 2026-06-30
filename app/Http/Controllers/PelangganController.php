@@ -27,6 +27,8 @@ class PelangganController extends Controller
         $status = $request->input('status');
 
         $tenants = $kantin->tenants()
+            ->withAvg('reviews', 'rating')
+            ->withCount('reviews')
             ->where('status', 'aktif')
             ->when($search, function ($query, $search) {
                 return $query->where('nama_tenant', 'ilike', "%{$search}%");
@@ -44,7 +46,9 @@ class PelangganController extends Controller
 
     public function showTenant(Tenant $tenant, Request $request)
     {
-        $tenant->load('kantin');
+        $tenant->load(['kantin']);
+        $tenant->loadAvg('reviews', 'rating');
+        $tenant->loadCount('reviews');
 
         $search = $request->input('search');
 

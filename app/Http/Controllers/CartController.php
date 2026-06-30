@@ -12,12 +12,32 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         
         $tenantId = null;
+        $estMin = 5;
+        $estMax = 10;
+        $estStartStr = '';
+        $estEndStr = '';
+        $activeOrders = 0;
+
         if (count($cart) > 0) {
             $firstItem = reset($cart);
             $tenantId = $firstItem['tenant_id'] ?? null;
+
+            if ($tenantId) {
+                $activeOrders = \App\Models\Order::where('tenant_id', $tenantId)
+                    ->whereIn('order_status', ['belum_diproses', 'diproses'])
+                    ->count();
+                
+                $batchCount = floor($activeOrders / 3);
+                $estMin = 5 + ($batchCount * 5);
+                $estMax = 10 + ($batchCount * 5);
+                
+                $now = \Carbon\Carbon::now();
+                $estStartStr = $now->copy()->addMinutes($estMin)->format('H:i');
+                $estEndStr = $now->copy()->addMinutes($estMax)->format('H:i');
+            }
         }
 
-        return view('pelanggan.checkout.index', compact('cart', 'tenantId'));
+        return view('pelanggan.checkout.index', compact('cart', 'tenantId', 'estMin', 'estMax', 'estStartStr', 'estEndStr', 'activeOrders'));
     }
 
     public function add(Request $request)

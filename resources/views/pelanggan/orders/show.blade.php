@@ -121,6 +121,13 @@
                             <span>{{ $statusText }}</span>
                         </div>
                         <p class="text-sm text-gray-500">{{ $descText }}</p>
+                        
+                        @if($order->order_status == 'siap_diambil')
+                        <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl inline-block">
+                            <p class="text-xs text-gray-500 mb-1 font-bold">PIN PENGAMBILAN</p>
+                            <p class="text-4xl font-black text-[#E31E24] tracking-[0.2em]">{{ $order->pickup_pin ?? '---' }}</p>
+                        </div>
+                        @endif
                     </div>
                     
                     <div class="flex items-center gap-8 md:border-l border-gray-100 md:pl-8">
@@ -308,6 +315,49 @@
                             </button>
                         </form>
                     @endif
+
+                    @if($order->order_status == 'selesai')
+                        <form action="{{ route('pelanggan.orders.reorder', $order->id) }}" method="POST" class="mt-8">
+                            @csrf
+                            <button type="submit" class="w-full py-3.5 bg-white border-2 border-[#E31E24] text-[#E31E24] hover:bg-red-50 font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-arrows-clockwise text-lg"></i> Pesan Ulang (Reorder)
+                            </button>
+                        </form>
+
+                        @if(!$order->review)
+                        <div class="mt-6 border-t border-gray-100 pt-6">
+                            <h4 class="text-sm font-bold text-gray-900 mb-4">Beri Ulasan Tenant</h4>
+                            <form action="{{ route('pelanggan.orders.review', $order->id) }}" method="POST" class="space-y-4">
+                                @csrf
+                                <div>
+                                    <select name="rating" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-telkom-red font-medium">
+                                        <option value="5">⭐⭐⭐⭐⭐ Sangat Baik</option>
+                                        <option value="4">⭐⭐⭐⭐ Baik</option>
+                                        <option value="3">⭐⭐⭐ Cukup</option>
+                                        <option value="2">⭐⭐ Kurang</option>
+                                        <option value="1">⭐ Sangat Kurang</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <textarea name="comment" rows="3" placeholder="Bagaimana rasa dan pelayanannya?" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-telkom-red resize-none"></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-colors shadow-md">
+                                    Kirim Ulasan
+                                </button>
+                            </form>
+                        </div>
+                        @else
+                        <div class="mt-6 border-t border-gray-100 pt-6">
+                            <h4 class="text-sm font-bold text-gray-900 mb-3">Ulasan Anda</h4>
+                            <div class="flex text-yellow-400 text-sm mb-2 gap-1">
+                                @for($i=1; $i<=5; $i++)
+                                    <i class="{{ $i <= $order->review->rating ? 'ph-fill' : 'ph' }} ph-star text-lg"></i>
+                                @endfor
+                            </div>
+                            <p class="text-sm text-gray-600 italic bg-gray-50 p-4 rounded-xl">"{{ $order->review->comment ?? 'Tidak ada komentar.' }}"</p>
+                        </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 
@@ -315,4 +365,18 @@
 
     </div>
 </div>
+
+<script>
+    // Polling API every 5 seconds to auto-refresh status
+    setInterval(function() {
+        fetch('{{ route("pelanggan.orders.status-api", $order->id) }}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.order_status !== '{{ $order->order_status }}' || data.payment_status !== '{{ $order->payment_status }}') {
+                    window.location.reload();
+                }
+            })
+            .catch(err => console.error('Polling error:', err));
+    }, 5000);
+</script>
 @endsection
