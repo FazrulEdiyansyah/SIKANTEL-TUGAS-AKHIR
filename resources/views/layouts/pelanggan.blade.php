@@ -16,6 +16,9 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -23,7 +26,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @endif
 </head>
-<body class="font-primary bg-[#FAFBFC] text-gray-800 antialiased flex flex-col min-h-screen">
+<body x-data class="font-primary bg-[#FAFBFC] text-gray-800 antialiased flex flex-col min-h-screen">
 
     <!-- Navbar -->
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50 h-20 px-6 lg:px-16 flex items-center justify-between">
@@ -90,12 +93,85 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-8 mt-12">
+    <footer class="bg-white border-t border-gray-100 py-8 mt-12 pb-24">
         <div class="container mx-auto px-6 lg:px-16 text-center">
             <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-6 object-contain mx-auto mb-4 opacity-50 grayscale">
             <p class="text-[13px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
         </div>
     </footer>
+
+    <!-- Global Cart State & Banner -->
+    @php
+        $cartItems = session('cart') ?: [];
+        $globalTotalQty = 0;
+        $globalTotalPrice = 0;
+        $globalItemNames = [];
+        $globalMenuQtyData = [];
+        $globalKantinId = null;
+
+        if (count($cartItems) > 0) {
+            $firstCartItem = reset($cartItems);
+            $globalTenantId = $firstCartItem['tenant_id'] ?? null;
+            if (!$globalTenantId) {
+                $existingMenu = \App\Models\Menu::find($firstCartItem['menu_id']);
+                $globalTenantId = $existingMenu ? $existingMenu->tenant_id : null;
+            }
+            if ($globalTenantId) {
+                $existingTenant = \App\Models\Tenant::find($globalTenantId);
+                $globalKantinId = $existingTenant ? $existingTenant->kantin_id : null;
+            }
+        }
+
+        foreach($cartItems as $item) {
+            $globalTotalQty += $item['quantity'];
+            $globalTotalPrice += ($item['quantity'] * $item['harga']);
+            $globalItemNames[] = $item['nama_menu'];
+            
+            if(!isset($globalMenuQtyData[$item['menu_id']])) $globalMenuQtyData[$item['menu_id']] = 0;
+            $globalMenuQtyData[$item['menu_id']] += $item['quantity'];
+        }
+        $globalItemNamesStr = implode(', ', array_unique($globalItemNames));
+    @endphp
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('cart', {
+                totalQty: {{ $globalTotalQty }},
+                totalPrice: {{ $globalTotalPrice }},
+                kantinId: {{ $globalKantinId ?? 'null' }},
+                itemNames: `{!! addslashes($globalItemNamesStr) !!}`,
+                menuQty: {!! json_encode($globalMenuQtyData) !!},
+                formatPrice(price) {
+                    return new Intl.NumberFormat('id-ID').format(price);
+                }
+            });
+        });
+    </script>
+
+    @if(!request()->routeIs('pelanggan.checkout'))
+        <template x-if="$store.cart.totalQty > 0">
+            <div class="fixed bottom-0 inset-x-0 p-4 z-40 flex justify-center pointer-events-none">
+                <div x-transition:enter="transition ease-out duration-300 transform"
+                     x-transition:enter-start="translate-y-full opacity-0"
+                     x-transition:enter-end="translate-y-0 opacity-100"
+                     x-transition:leave="transition ease-in duration-300 transform"
+                     x-transition:leave-start="translate-y-0 opacity-100"
+                     x-transition:leave-end="translate-y-full opacity-0"
+                     class="bg-[#E31E24] w-full max-w-3xl rounded-2xl shadow-2xl p-4 flex items-center justify-between text-white pointer-events-auto">
+                    <div class="flex-1 flex flex-col">
+                        <span class="font-bold text-sm mb-0.5"><span x-text="$store.cart.totalQty"></span> item</span>
+                        <span class="text-xs text-white/80 font-medium truncate pr-4" x-text="$store.cart.itemNames"></span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="font-bold text-lg">Rp <span x-text="$store.cart.formatPrice($store.cart.totalPrice)"></span></span>
+                        <a href="{{ route('pelanggan.checkout') }}" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
+                            Keranjang
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </template>
+    @endif
 
     <!-- Global Toast Notification (CSS Only) -->
     @if(session('success_cart'))
@@ -115,6 +191,24 @@
                 animation: fadeInDown 3s ease-in-out forwards;
             }
         </style>
+    @endif
+
+    @if(session('success'))
+        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
+            <div class="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
+                <i class="ph-fill ph-check-circle text-xl mr-2"></i>
+                {{ session('success') }}
+            </div>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
+            <div class="bg-[#E31E24] text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
+                <i class="ph-fill ph-warning-circle text-xl mr-2"></i>
+                {{ session('error') }}
+            </div>
+        </div>
     @endif
 
 </body>

@@ -20,47 +20,56 @@ class CheckoutController extends Controller
         $orderType = $request->order_type ?? 'dine-in';
         $tableNumber = $request->table_number ?? null;
 
-        // Hitung total
+        // Hitung total dan group per tenant
         $totalPrice = 0;
-        $tenantId = null;
+        $tenantOrders = [];
+        
         foreach ($cart as $item) {
+            $tenantId = $item['tenant_id'];
+            if (!isset($tenantOrders[$tenantId])) {
+                $tenantOrders[$tenantId] = [
+                    'total_price' => 0,
+                    'items' => []
+                ];
+            }
+            $tenantOrders[$tenantId]['total_price'] += ($item['quantity'] * $item['harga']);
+            $tenantOrders[$tenantId]['items'][] = $item;
             $totalPrice += ($item['quantity'] * $item['harga']);
-            $tenantId = $item['tenant_id']; // assuming 1 cart = 1 tenant for now
         }
 
-        // Generate Order ID (Misal: ORD-169876543-1234)
+        // Generate Order ID (Satu ID transaksi Midtrans untuk semua tenant ini)
         $orderId = 'ORD-' . time() . '-' . rand(1000, 9999);
 
-        // Save Order to Database
-        $order = Order::create([
-            'order_id'     => $orderId,
-            'user_id'      => auth()->id(),
-            'tenant_id'    => $tenantId,
-            'total_price'  => $totalPrice,
-            'payment_status'=> 'pending',
-            'order_status' => 'belum_diproses',
-            'order_type'   => $orderType,
-            'table_number' => $tableNumber,
-        ]);
-
-        // Save Order Items
-        foreach ($cart as $item) {
-            // item.selected_options is usually a string in old sessions, array in new ones
-            // the database can store json, so we json_encode if it's array
-            $options = $item['selected_options'] ?? null;
-            if (is_array($options)) {
-                $options = json_encode($options);
-            }
-
-            OrderItem::create([
-                'order_id'         => $order->id,
-                'menu_id'          => $item['menu_id'],
-                'nama_menu'        => $item['nama_menu'],
-                'quantity'         => $item['quantity'],
-                'harga'            => $item['harga'],
-                'selected_options' => $options,
-                'catatan'          => $item['catatan'] ?? null,
+        // Save Order(s) to Database
+        foreach ($tenantOrders as $tenantId => $tData) {
+            $order = Order::create([
+                'order_id'     => $orderId,
+                'user_id'      => auth()->id(),
+                'tenant_id'    => $tenantId,
+                'total_price'  => $tData['total_price'],
+                'payment_status'=> 'pending',
+                'order_status' => 'belum_diproses',
+                'order_type'   => $orderType,
+                'table_number' => $tableNumber,
             ]);
+
+            // Save Order Items untuk tenant ini
+            foreach ($tData['items'] as $item) {
+                $options = $item['selected_options'] ?? null;
+                if (is_array($options)) {
+                    $options = json_encode($options);
+                }
+
+                OrderItem::create([
+                    'order_id'         => $order->id,
+                    'menu_id'          => $item['menu_id'],
+                    'nama_menu'        => $item['nama_menu'],
+                    'quantity'         => $item['quantity'],
+                    'harga'            => $item['harga'],
+                    'selected_options' => $options,
+                    'catatan'          => $item['catatan'] ?? null,
+                ]);
+            }
         }
 
         // Setup Midtrans
@@ -84,8 +93,8 @@ class CheckoutController extends Controller
             // Get Snap Payment Page URL
             $snapToken = \Midtrans\Snap::getSnapToken($params);
             
-            // Save snap token to order
-            $order->update(['snap_token' => $snapToken]);
+            // Save snap token to all created orders
+            Order::where('order_id', $orderId)->update(['snap_token' => $snapToken]);
 
             // Clear Cart from session
             session()->forget('cart');
@@ -93,7 +102,7 @@ class CheckoutController extends Controller
             return response()->json([
                 'success' => true,
                 'snap_token' => $snapToken,
-                'order_id' => $order->id
+                'order_id' => $orderId
             ]);
             
         } catch (\Exception $e) {
@@ -111,16 +120,16 @@ class CheckoutController extends Controller
         $hashed = hash("sha512", $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
 
         if ($hashed == $request->signature_key) {
-            $order = Order::where('order_id', $request->order_id)->first();
+            $orders = Order::where('order_id', $request->order_id)->get();
             
-            if ($order) {
+            if ($orders->count() > 0) {
                 if ($request->transaction_status == 'capture' || $request->transaction_status == 'settlement') {
-                    $order->update([
+                    Order::where('order_id', $request->order_id)->update([
                         'payment_status' => 'success',
                         'payment_type' => $request->payment_type
                     ]);
                 } else if ($request->transaction_status == 'expire' || $request->transaction_status == 'cancel' || $request->transaction_status == 'deny') {
-                    $order->update(['payment_status' => 'failed']);
+                    Order::where('order_id', $request->order_id)->update(['payment_status' => 'failed']);
                 }
             }
         }
@@ -131,9 +140,9 @@ class CheckoutController extends Controller
     public function successLocal(Request $request)
     {
         // Simulates the Midtrans Webhook for localhost testing
-        $order = Order::find($request->order_id);
-        if ($order) {
-            $order->update([
+        $orders = Order::where('order_id', $request->order_id)->get();
+        if ($orders->count() > 0) {
+            Order::where('order_id', $request->order_id)->update([
                 'payment_status' => 'success',
                 'payment_type' => $request->payment_type ?? 'qris'
             ]);

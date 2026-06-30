@@ -48,16 +48,33 @@
                     </div>
                 </div>
 
-                <!-- Nomor Meja (Opsional) -->
+                <!-- Nomor Meja -->
                 <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 transition-all" x-show="orderType === 'dine-in'" x-transition>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">Nomor Meja (Opsional)</h3>
-                    <p class="text-sm text-gray-500 mb-4">Isi nomor meja jika Anda memilih makan di tempat.</p>
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">Nomor Meja</h3>
+                    <p class="text-sm text-gray-500 mb-4">Isi nomor meja atau tandai jika belum mendapatkan meja.</p>
                     
-                    <input type="text" name="table_number" x-model="tableNumber" placeholder="Masukan Nomor Meja" class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-telkom-red focus:border-telkom-red block p-3.5 mb-4 font-medium transition-colors">
-                    
-                    <div class="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 border border-gray-100 p-3 rounded-xl">
-                        <i class="ph ph-info text-gray-400"></i>
-                        <p>Jika belum dapat meja, Anda dapat mengisi nanti di halaman berikutnya.</p>
+                    <div class="flex flex-col gap-4">
+                        <input type="text" x-model="tableNumber" placeholder="Contoh: Meja 12" 
+                               class="w-full border text-gray-900 text-sm rounded-xl focus:ring-telkom-red focus:border-telkom-red block p-3.5 font-medium transition-colors disabled:opacity-50 disabled:bg-gray-100"
+                               :class="showTableError ? 'border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500' : 'bg-gray-50 border-gray-200'"
+                               :disabled="noTableYet"
+                               @input="showTableError = false">
+                               
+                        <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                            <div class="relative flex items-center justify-center">
+                                <input type="checkbox" x-model="noTableYet" @change="if(noTableYet) { tableNumber = ''; showTableError = false; }" class="peer sr-only">
+                                <div class="w-5 h-5 border-2 border-gray-300 rounded-md peer-checked:bg-telkom-red peer-checked:border-telkom-red transition-all"></div>
+                                <i class="ph-bold ph-check text-white absolute opacity-0 peer-checked:opacity-100 text-sm"></i>
+                            </div>
+                            <span class="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">Saya belum dapat meja</span>
+                        </label>
+                    </div>
+
+                    <div x-show="showTableError" x-transition>
+                        <div class="flex items-center gap-1.5 mt-3 text-sm text-red-500 font-medium">
+                            <i class="ph-fill ph-warning-circle"></i>
+                            <span>Harap isi nomor meja atau centang opsi "belum dapat meja" di atas.</span>
+                        </div>
                     </div>
                 </div>
 
@@ -105,13 +122,28 @@
                                                 </div>
                                             </template>
 
-                                            <!-- Catatan -->
-                                            <template x-if="item.catatan">
-                                                <p class="text-[13px] text-gray-500 mt-1.5 leading-normal">
-                                                    <span class="font-semibold text-gray-700">Catatan: </span>
-                                                    <span x-text="item.catatan"></span>
-                                                </p>
-                                            </template>
+                                            <!-- Catatan Display & Edit Button -->
+                                            <div class="mt-1.5" x-show="editingNoteKey !== key">
+                                                <template x-if="item.catatan">
+                                                    <p class="text-[13px] text-gray-500 leading-normal mb-1">
+                                                        <span class="font-semibold text-gray-700">Catatan: </span>
+                                                        <span x-text="item.catatan"></span>
+                                                    </p>
+                                                </template>
+                                                <button type="button" @click="startEditNote(key)" class="text-[12px] text-telkom-red font-semibold hover:underline flex items-center gap-1">
+                                                    <i class="ph-bold" :class="item.catatan ? 'ph-pencil' : 'ph-plus'"></i> 
+                                                    <span x-text="item.catatan ? 'Edit Catatan' : 'Tambah Catatan'"></span>
+                                                </button>
+                                            </div>
+
+                                            <!-- Catatan Edit Form -->
+                                            <div class="mt-2 flex flex-col gap-2" x-show="editingNoteKey === key" x-transition>
+                                                <input type="text" x-model="editNoteText" placeholder="Contoh: Pedas, tanpa micin" class="w-full text-[13px] bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:ring-telkom-red focus:border-telkom-red block px-3 py-2" @keydown.enter="saveNote(key)">
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" @click="saveNote(key)" class="text-[12px] bg-telkom-red text-white font-semibold py-1.5 px-3 rounded-md hover:bg-red-700 transition-colors">Simpan</button>
+                                                    <button type="button" @click="cancelEditNote()" class="text-[12px] bg-gray-200 text-gray-700 font-semibold py-1.5 px-3 rounded-md hover:bg-gray-300 transition-colors">Batal</button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -216,8 +248,12 @@
             Alpine.data('checkoutPage', () => ({
                 orderType: 'dine-in',
                 tableNumber: '',
+                noTableYet: false,
+                showTableError: false,
                 cartItems: {!! json_encode($cart) !!},
                 isProcessingPayment: false,
+                editingNoteKey: null,
+                editNoteText: '',
                 
                 get totalQty() {
                     let total = 0;
@@ -254,18 +290,49 @@
                     return [];
                 },
                 
-                async updateQuantity(cartKey, action) {
+                startEditNote(key) {
+                    this.editingNoteKey = key;
+                    this.editNoteText = this.cartItems[key].catatan || '';
+                },
+                
+                cancelEditNote() {
+                    this.editingNoteKey = null;
+                    this.editNoteText = '';
+                },
+                
+                async saveNote(cartKey) {
                     // Optimistic update
-                    if (action === 'increase') {
-                        this.cartItems[cartKey].quantity++;
-                    } else {
-                        if (this.cartItems[cartKey].quantity > 1) {
-                            this.cartItems[cartKey].quantity--;
-                        } else {
-                            // If it becomes 0, we can remove it entirely
-                            delete this.cartItems[cartKey];
-                        }
+                    const oldNote = this.cartItems[cartKey].catatan;
+                    this.cartItems[cartKey].catatan = this.editNoteText;
+                    this.editingNoteKey = null;
+                    
+                    try {
+                        const response = await fetch('{{ route("pelanggan.cart.update-note") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({
+                                cart_key: cartKey,
+                                catatan: this.editNoteText
+                            })
+                        });
+                    } catch (error) {
+                        console.error('Error saving note:', error);
+                        // Revert on error
+                        this.cartItems[cartKey].catatan = oldNote;
                     }
+                },
+                
+                async updateQuantity(cartKey, action) {
+                    const currentQty = this.cartItems[cartKey].quantity;
+                    if (action === 'minus' && currentQty <= 1) return;
+                    
+                    // Optimistic update
+                    if (action === 'plus') this.cartItems[cartKey].quantity++;
+                    if (action === 'minus') this.cartItems[cartKey].quantity--;
                     
                     try {
                         const response = await fetch('{{ route("pelanggan.cart.update") }}', {
@@ -277,15 +344,9 @@
                             },
                             body: JSON.stringify({
                                 cart_key: cartKey,
-                                action: action
+                                action: action === 'plus' ? 'increase' : 'decrease'
                             })
                         });
-                        const data = await response.json();
-                        // Re-sync with server state just in case
-                        if (data.success && data.cart) {
-                           // if server returns the new cart object we can sync it, but our getCartResponse doesn't return full cart object.
-                           // Actually we can just trust the optimistic update or fetch the full cart again if needed.
-                        }
                     } catch (error) {
                         console.error('Error updating cart:', error);
                     }
@@ -315,6 +376,13 @@
                 },
                 
                 async proceedToPayment() {
+                    if (this.orderType === 'dine-in' && !this.noTableYet && !this.tableNumber.trim()) {
+                        this.showTableError = true;
+                        window.scrollTo({top: 0, behavior: 'smooth'});
+                        return;
+                    }
+                    this.showTableError = false;
+
                     this.isProcessingPayment = true;
                     try {
                         const response = await fetch('{{ route("pelanggan.checkout.process") }}', {
@@ -352,11 +420,11 @@
                                         console.error(e);
                                     }
                                     alert('Pembayaran sukses!');
-                                    window.location.href = '/pelanggan/orders/' + data.order_id;
+                                    window.location.href = '/pelanggan/orders';
                                 },
                                 onPending: function(result){
                                     alert('Menunggu pembayaran Anda!');
-                                    window.location.href = '/pelanggan/orders/' + data.order_id;
+                                    window.location.href = '/pelanggan/orders';
                                 },
                                 onError: function(result){
                                     alert('Pembayaran gagal!');
@@ -364,7 +432,7 @@
                                 },
                                 onClose: function() {
                                     alert('Anda menutup popup tanpa menyelesaikan pembayaran');
-                                    window.location.href = '/pelanggan/orders/' + data.order_id;
+                                    window.location.href = '/pelanggan/orders';
                                 }
                             });
                         } else {

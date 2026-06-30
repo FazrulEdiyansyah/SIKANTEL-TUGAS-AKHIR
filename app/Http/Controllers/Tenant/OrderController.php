@@ -35,15 +35,23 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'order_status' => 'required|in:belum_diproses,diproses,siap_diambil,selesai'
+            'order_status' => 'required|in:belum_diproses,diproses,siap_diambil,selesai',
+            'order_type' => 'nullable|in:dine-in,takeaway'
         ]);
 
         $tenantId = auth()->user()->tenant->id;
         $order = Order::where('tenant_id', $tenantId)->findOrFail($id);
 
-        $order->update([
-            'order_status' => $request->order_status
-        ]);
+        $updateData = ['order_status' => $request->order_status];
+        
+        if ($request->has('order_type')) {
+            $updateData['order_type'] = $request->order_type;
+            if ($request->order_type == 'takeaway') {
+                $updateData['table_number'] = null;
+            }
+        }
+
+        $order->update($updateData);
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }

@@ -122,8 +122,13 @@
                                     $nextStatus = 'diproses';
                                     $btnText = 'Proses Pesanan';
                                 } else if ($order->order_status == 'diproses') {
-                                    $nextStatus = 'siap_diambil';
-                                    $btnText = 'Tandai Siap Diambil';
+                                    if ($order->order_type == 'dine-in') {
+                                        $nextStatus = !empty($order->table_number) ? 'selesai' : 'siap_diambil';
+                                        $btnText = !empty($order->table_number) ? 'Selesaikan Pesanan' : 'Tandai Ambil Sendiri';
+                                    } else {
+                                        $nextStatus = 'siap_diambil';
+                                        $btnText = 'Tandai Siap Diambil';
+                                    }
                                 } else if ($order->order_status == 'siap_diambil') {
                                     $nextStatus = 'selesai';
                                     $btnText = 'Selesaikan Pesanan';

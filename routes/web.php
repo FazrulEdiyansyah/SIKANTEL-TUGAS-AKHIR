@@ -165,6 +165,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::post('/pelanggan/cart/add', [CartController::class, 'add'])->name('pelanggan.cart.add');
     Route::post('/pelanggan/cart/decrease', [CartController::class, 'decrease'])->name('pelanggan.cart.decrease');
     Route::post('/pelanggan/cart/update', [CartController::class, 'updateQuantity'])->name('pelanggan.cart.update');
+    Route::post('/pelanggan/cart/update-note', [CartController::class, 'updateNote'])->name('pelanggan.cart.update-note');
     Route::post('/pelanggan/cart/remove', [CartController::class, 'remove'])->name('pelanggan.cart.remove');
     
     // Checkout & Midtrans
@@ -174,5 +175,6 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     // Pesanan Saya
     Route::get('/pelanggan/orders', [\App\Http\Controllers\Pelanggan\OrderController::class, 'index'])->name('pelanggan.orders.index');
     Route::get('/pelanggan/orders/{order}', [\App\Http\Controllers\Pelanggan\OrderController::class, 'show'])->name('pelanggan.orders.show');
+    Route::patch('/pelanggan/orders/{order}/table', [\App\Http\Controllers\Pelanggan\OrderController::class, 'updateTable'])->name('pelanggan.orders.update-table');
     Route::post('/pelanggan/orders/{order}/cancel', [\App\Http\Controllers\Pelanggan\OrderController::class, 'cancel'])->name('pelanggan.orders.cancel');
 });

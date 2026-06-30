@@ -168,7 +168,7 @@
                                 <template x-if="(cart.menuQty[{{ $menu->id }}] || 0) === 0">
                                     <div class="w-full">
                                         @if($menu->is_customizable && !empty($menu->customizations))
-                                            <button type="button" @click="activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden';" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                                            <button type="button" @click="if(canAddMenu()) { activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden'; }" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
                                                 Tambah
                                             </button>
                                         @else
@@ -300,62 +300,37 @@
         </div>
     </div>
 
-    <!-- Floating Cart Banner -->
-    @php
-        $cartItems = session('cart') ?: [];
-        $totalQty = 0;
-        $totalPrice = 0;
-        $itemNames = [];
-        $menuQtyData = [];
-        foreach($cartItems as $item) {
-            $totalQty += $item['quantity'];
-            $totalPrice += ($item['quantity'] * $item['harga']);
-            $itemNames[] = $item['nama_menu'];
-            
-            if(!isset($menuQtyData[$item['menu_id']])) $menuQtyData[$item['menu_id']] = 0;
-            $menuQtyData[$item['menu_id']] += $item['quantity'];
-        }
-        $itemNamesStr = implode(', ', array_unique($itemNames));
-    @endphp
-
-    <template x-if="cart.totalQty > 0">
-        <div class="fixed bottom-0 inset-x-0 p-4 z-40 flex justify-center pointer-events-none">
-            <div x-transition:enter="transition ease-out duration-300 transform"
-                 x-transition:enter-start="translate-y-full opacity-0"
-                 x-transition:enter-end="translate-y-0 opacity-100"
-                 x-transition:leave="transition ease-in duration-300 transform"
-                 x-transition:leave-start="translate-y-0 opacity-100"
-                 x-transition:leave-end="translate-y-full opacity-0"
-                 class="bg-[#E31E24] w-full max-w-3xl rounded-2xl shadow-2xl p-4 flex items-center justify-between text-white pointer-events-auto">
-                <div class="flex-1 flex flex-col">
-                    <span class="font-bold text-sm mb-0.5"><span x-text="cart.totalQty"></span> item</span>
-                    <span class="text-xs text-white/80 font-medium truncate pr-4" x-text="cart.itemNames"></span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="font-bold text-lg">Rp <span x-text="formatPrice(cart.totalPrice)"></span></span>
-                    <a href="{{ route('pelanggan.checkout') }}" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
-                        Keranjang
-                    </a>
-                </div>
-            </div>
-        </div>
-    </template>
-
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('tenantMenu', () => ({
                 activeModal: null,
                 requestSequence: 0,
-                cart: {
-                    totalQty: {{ $totalQty }},
-                    totalPrice: {{ $totalPrice }},
-                    itemNames: `{!! addslashes($itemNamesStr) !!}`,
-                    menuQty: {!! json_encode($menuQtyData) !!}
+                tenantKantinId: {{ $tenant->kantin_id }},
+                canAddMenu() {
+                    if (this.cart.totalQty > 0 && this.cart.kantinId !== null && this.cart.kantinId !== this.tenantKantinId) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Beda Kantin',
+                            text: 'Maaf, Anda hanya bisa memesan dari satu kantin dalam satu pesanan. Selesaikan atau kosongkan keranjang Anda terlebih dahulu.',
+                            confirmButtonColor: '#E31E24'
+                        });
+                        return false;
+                    }
+                    return true;
+                },
+                get cart() {
+                    return this.$store.cart;
                 },
                 formatPrice(price) {
                     return new Intl.NumberFormat('id-ID').format(price);
                 },
                 async addToCart(menuId, price) {
+                    if (!this.canAddMenu()) return;
+                    
+                    if (this.cart.totalQty === 0) {
+                        this.cart.kantinId = this.tenantKantinId;
+                    }
+                    
                     // Optimistic UI Update for instant feedback
                     this.cart.totalQty++;
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + 1;
@@ -383,9 +358,32 @@
                             this.cart.totalPrice = data.totalPrice;
                             this.cart.menuQty = data.menuQty;
                             this.cart.itemNames = data.itemNames;
+                        } else if (!data.success) {
+                            // Rollback optimistic update
+                            this.cart.totalQty--;
+                            this.cart.menuQty[menuId]--;
+                            if(price) this.cart.totalPrice -= price;
+                            
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                confirmButtonColor: '#E31E24'
+                            });
                         }
                     } catch (error) {
                         console.error('Error adding to cart:', error);
+                        // Rollback optimistic update on error
+                        this.cart.totalQty--;
+                        this.cart.menuQty[menuId]--;
+                        if(price) this.cart.totalPrice -= price;
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Jaringan',
+                            text: 'Gagal menghubungi server. Silakan coba lagi.',
+                            confirmButtonColor: '#E31E24'
+                        });
                     }
                 },
                 async decreaseCart(menuId) {
@@ -422,9 +420,15 @@
                     }
                 },
                 async submitModalForm(event, menuId, basePrice) {
+                    if (!this.canAddMenu()) return;
+                    
                     const form = event.target;
                     const formData = new FormData(form);
                     const qty = parseInt(formData.get('quantity')) || 1;
+                    
+                    if (this.cart.totalQty === 0) {
+                        this.cart.kantinId = this.tenantKantinId;
+                    }
                     
                     // Optimistic feedback
                     this.activeModal = null;
@@ -452,9 +456,34 @@
                             this.cart.menuQty = data.menuQty;
                             this.cart.itemNames = data.itemNames;
                             form.reset();
+                        } else if (!data.success) {
+                            // Rollback optimistic update
+                            this.cart.totalQty -= qty;
+                            this.cart.totalPrice -= (basePrice * qty);
+                            this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
+                            if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
+                            
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                confirmButtonColor: '#E31E24'
+                            });
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
+                        // Rollback optimistic update
+                        this.cart.totalQty -= qty;
+                        this.cart.totalPrice -= (basePrice * qty);
+                        this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
+                        if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Jaringan',
+                            text: 'Gagal menghubungi server. Silakan coba lagi.',
+                            confirmButtonColor: '#E31E24'
+                        });
                     }
                 }
             }));

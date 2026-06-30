@@ -28,6 +28,42 @@
             <!-- Left Column (Status, Tenant, Menu) -->
             <div class="flex-1 space-y-6">
                 
+                @if($order->order_type == 'dine-in' && empty($order->table_number))
+                    @if(in_array($order->order_status, ['siap_diambil', 'selesai']))
+                        <div class="bg-red-50 border border-red-200 rounded-[24px] p-6 shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-telkom-red shrink-0">
+                                    <i class="ph-fill ph-warning-circle text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-1">Pesanan Siap (Ambil Sendiri)</h3>
+                                    <p class="text-sm text-gray-600 mb-0">Karena Anda tidak mengisi nomor meja hingga pesanan selesai dimasak, silakan ambil sendiri makanan Anda di konter tenant.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="bg-blue-50 border border-blue-200 rounded-[24px] p-6 shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                                    <i class="ph-fill ph-info text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-1">Jangan Lupa Isi Nomor Meja</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Anda memilih layanan Makan di Tempat namun belum memasukkan nomor meja. Silakan isi jika sudah mendapatkan meja.</p>
+                                    
+                                    <form action="{{ route('pelanggan.orders.update-table', $order->id) }}" method="POST" class="flex flex-col sm:flex-row gap-3">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="text" name="table_number" placeholder="Contoh: Meja 12" class="flex-1 rounded-xl border border-blue-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-3 px-4 font-medium bg-white" required>
+                                        <button type="submit" name="action" value="update_table" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm">Simpan</button>
+                                        <button type="submit" name="action" value="takeaway" class="bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm formnovalidate">Ambil Sendiri</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+                
                 <!-- Status Pesanan -->
                 <div class="bg-white rounded-[24px] p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
@@ -56,11 +92,17 @@
                                     $statusIcon = 'ph-cooking-pot';
                                     $descText = 'Tenant sedang memasak dan menyiapkan pesanan Anda.';
                                 } else if ($order->order_status == 'siap_diambil') {
-                                    $statusText = 'Siap Diambil';
+                                    if ($order->order_type == 'dine-in') {
+                                        $statusText = empty($order->table_number) ? 'Ambil Sendiri' : 'Sedang Diantar';
+                                        $statusIcon = empty($order->table_number) ? 'ph-shopping-bag' : 'ph-scooter';
+                                        $descText = empty($order->table_number) ? 'Karena Anda tidak mengisi nomor meja, silakan ambil di konter.' : 'Pesanan sedang diantar ke meja Anda.';
+                                    } else {
+                                        $statusText = 'Siap Diambil';
+                                        $statusIcon = 'ph-shopping-bag';
+                                        $descText = 'Pesanan Anda sudah siap, silakan ambil di konter tenant.';
+                                    }
                                     $statusClass = 'bg-teal-50 text-teal-600';
-                                    $statusIcon = 'ph-shopping-bag';
-                                    $descText = 'Pesanan Anda sudah selesai dibuat dan siap untuk diambil!';
-                                } else {
+                                } else if ($order->order_status == 'selesai') {                                
                                     $statusText = 'Selesai';
                                     $statusClass = 'bg-green-50 text-green-600';
                                     $statusIcon = 'ph-check-circle';

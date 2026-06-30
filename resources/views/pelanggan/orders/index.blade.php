@@ -103,7 +103,7 @@
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
                                           :class="getStatusClass(getUnifiedStatus(order))">
                                         <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
-                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
+                                        <span x-text="getStatusText(getUnifiedStatus(order), order.order_type, order.table_number)"></span>
                                     </span>
                                 </div>
                                 
@@ -194,12 +194,16 @@
                     return order.payment_status;
                 },
 
-                getStatusText(status) {
+                getStatusText(status, orderType, tableNumber) {
                     switch (status) {
                         case 'pending': return 'Menunggu Pembayaran';
                         case 'belum_diproses': return 'Pesanan Diterima';
                         case 'diproses': return 'Sedang Disiapkan';
-                        case 'siap_diambil': return 'Siap Diambil';
+                        case 'siap_diambil': 
+                            if (orderType === 'dine-in') {
+                                return tableNumber ? 'Sedang Diantar' : 'Ambil Sendiri';
+                            }
+                            return 'Siap Diambil';
                         case 'selesai': return 'Selesai';
                         case 'failed': return 'Gagal / Dibatalkan';
                         default: return status;
