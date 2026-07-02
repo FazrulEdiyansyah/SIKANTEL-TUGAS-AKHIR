@@ -67,12 +67,14 @@
 
     <div class="header">
         <h1>Rekap Penjualan - {{ $tenant->nama_tenant }}</h1>
+        <p>Periode: {{ str_replace('_', ' ', ucwords($filter ?? 'Semua')) }}</p>
         <p>Dicetak pada: {{ \Carbon\Carbon::now()->format('d M Y, H:i') }}</p>
     </div>
 
     <div class="summary">
         <p>Total Pesanan Selesai: {{ count($orders) }} pesanan</p>
-        <p>Total Pendapatan: Rp{{ number_format($totalPendapatan, 0, ',', '.') }}</p>
+        <p>Total Pendapatan Kotor: Rp{{ number_format($totalPendapatanKotor ?? 0, 0, ',', '.') }}</p>
+        <p style="color:#ed1c24;">Total Pendapatan Bersih (70%): Rp{{ number_format($totalPendapatanBersih ?? 0, 0, ',', '.') }}</p>
     </div>
 
     <table>
@@ -84,7 +86,7 @@
                 <th width="15%">Pelanggan</th>
                 <th width="10%">Layanan</th>
                 <th width="25%">Menu</th>
-                <th width="15%" class="text-right">Total</th>
+                <th width="15%" class="text-right">Kotor (Rp)</th>
             </tr>
         </thead>
         <tbody>

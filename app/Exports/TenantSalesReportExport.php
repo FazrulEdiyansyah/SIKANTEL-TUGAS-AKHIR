@@ -14,19 +14,30 @@ use Carbon\Carbon;
 class TenantSalesReportExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
 {
     protected $tenant_id;
+    protected $filter;
 
-    public function __construct($tenant_id)
+    public function __construct($tenant_id, $filter = 'bulan_ini')
     {
         $this->tenant_id = $tenant_id;
+        $this->filter = $filter;
     }
 
     public function collection()
     {
-        return Order::with(['user', 'items.menu'])
+        $query = Order::with(['user', 'items.menu'])
             ->where('tenant_id', $this->tenant_id)
-            ->where('status', 'completed')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai');
+            
+        if ($this->filter == 'hari_ini') {
+            $query->whereDate('created_at', Carbon::today());
+        } elseif ($this->filter == 'minggu_ini') {
+            $query->whereBetween('created_at', [Carbon::today()->subDays(6), Carbon::now()]);
+        } elseif ($this->filter == 'bulan_ini') {
+            $query->whereBetween('created_at', [Carbon::today()->subDays(29), Carbon::now()]);
+        }
+            
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     public function headings(): array
@@ -38,7 +49,8 @@ class TenantSalesReportExport implements FromCollection, WithHeadings, WithMappi
             'Nama Pelanggan',
             'Layanan',
             'Menu yang Dipesan',
-            'Total Pembayaran (Rp)'
+            'Pendapatan Kotor (Rp)',
+            'Pendapatan Bersih 70% (Rp)'
         ];
     }
 
@@ -55,7 +67,8 @@ class TenantSalesReportExport implements FromCollection, WithHeadings, WithMappi
             $order->user->name ?? 'Guest',
             $order->order_type == 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang',
             $menuList,
-            $order->total_price
+            $order->total_price,
+            $order->total_price * 0.70
         ];
     }
 

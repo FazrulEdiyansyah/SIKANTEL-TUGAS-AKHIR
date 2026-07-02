@@ -386,11 +386,14 @@
                 
                 async updateQuantity(cartKey, action) {
                     const currentQty = this.cartItems[cartKey].quantity;
-                    if (action === 'minus' && currentQty <= 1) return;
+                    if (action === 'decrease' && currentQty <= 1) {
+                        this.removeItem(cartKey);
+                        return;
+                    }
                     
                     // Optimistic update
-                    if (action === 'plus') this.cartItems[cartKey].quantity++;
-                    if (action === 'minus') this.cartItems[cartKey].quantity--;
+                    if (action === 'increase') this.cartItems[cartKey].quantity++;
+                    if (action === 'decrease') this.cartItems[cartKey].quantity--;
                     
                     try {
                         const response = await fetch('{{ route("pelanggan.cart.update") }}', {
@@ -402,7 +405,7 @@
                             },
                             body: JSON.stringify({
                                 cart_key: cartKey,
-                                action: action === 'plus' ? 'increase' : 'decrease'
+                                action: action
                             })
                         });
                     } catch (error) {
