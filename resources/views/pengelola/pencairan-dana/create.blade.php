@@ -40,50 +40,43 @@
                     <div class="flex gap-4">
                         <div class="relative flex-1">
                             <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Mulai</span>
-                            <input type="date" id="start_date" name="start_date" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                            <input type="date" id="start_date" name="start_date" value="{{ date('Y-m-01') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
                         </div>
                         <div class="relative flex-1">
                             <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Selesai</span>
-                            <input type="date" id="end_date" name="end_date" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                            <input type="date" id="end_date" name="end_date" value="{{ date('Y-m-t') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
                         </div>
                     </div>
                 </div>
 
-                <!-- Tenant -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Tenant <span class="text-red-500">*</span></label>
-                    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                        <div class="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                            <label class="flex items-center space-x-2 text-sm font-bold text-gray-700 cursor-pointer">
-                                <input type="checkbox" id="checkAllTenants" class="rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
-                                <span>Pilih Semua Tenant</span>
-                            </label>
-                        </div>
-                        <div class="max-h-48 overflow-y-auto p-2" id="tenantCheckboxContainer">
-                            @foreach($tenants as $tenant)
-                                <label class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
-                                    <span class="text-sm font-medium text-gray-700">{{ $tenant->nama_tenant }}</span>
-                                    <span class="text-xs text-gray-400 ml-auto">{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}</span>
-                                </label>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Pilih Approver -->
-                <div>
-                    <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Approver <span class="text-red-500">*</span></label>
-                    <div class="relative">
-                        <select id="approver_name" name="approver_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer">
-                            <option value="">Pilih Approver...</option>
-                            @foreach($approvers as $approver)
-                                <option value="{{ $approver->name }}">{{ $approver->name }} ({{ ucwords(str_replace('_', ' ', $approver->role)) }})</option>
-                            @endforeach
-                        </select>
-                        <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Approver 1 (Kaur) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select name="approver_1_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
+                                <option value="">Pilih Kaur...</option>
+                                @foreach($approvers->where('role', 'kaur') as $approver)
+                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
                     </div>
-                    <p class="text-[11px] text-gray-400 mt-2 font-medium">Pilih pihak yang akan melakukan approval laporan ini.</p>
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Approver 2 (Kabag) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select name="approver_2_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
+                                <option value="">Pilih Kabag...</option>
+                                @foreach($approvers->where('role', 'kabag') as $approver)
+                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -91,6 +84,56 @@
             <div class="mb-8">
                 <label class="block text-sm font-bold text-gray-900 mb-2">Keterangan Laporan</label>
                 <textarea name="keterangan" rows="4" placeholder="Masukkan keterangan tambahan jika perlu..." class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all"></textarea>
+            </div>
+
+            <!-- Pilih Tenant -->
+            <div class="mb-8" x-data="{ search: '', selectedKantin: '' }" 
+                 x-init="$watch('search', () => document.getElementById('checkAllTenants').checked = false); $watch('selectedKantin', () => document.getElementById('checkAllTenants').checked = false)">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Tenant <span class="text-red-500">*</span></label>
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                    
+                    <!-- Search & Select All Header -->
+                    <div class="p-3 border-b border-gray-100 bg-gray-50 flex flex-col gap-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-1">
+                                <!-- Kantin Select -->
+                                <div class="relative w-full sm:max-w-[220px]">
+                                    <select x-model="selectedKantin" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-telkom-red/20 appearance-none text-gray-700">
+                                        <option value="">Semua Kantin</option>
+                                        @foreach($kantins as $kantin)
+                                            <option value="{{ $kantin->id }}">{{ $kantin->nama_kantin }}</option>
+                                        @endforeach
+                                    </select>
+                                    <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                
+                                <!-- Search Input -->
+                                <div class="relative flex-1">
+                                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" x-model="search" placeholder="Cari nama tenant..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-telkom-red/20 bg-white">
+                                </div>
+                            </div>
+                            
+                            <!-- Select All -->
+                            <label class="flex items-center space-x-2 text-sm font-bold text-gray-700 cursor-pointer shrink-0 bg-white px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <input type="checkbox" id="checkAllTenants" class="rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
+                                <span>Pilih Semua yang Tampil</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Tenant List -->
+                    <div class="max-h-48 overflow-y-auto p-2" id="tenantCheckboxContainer">
+                        @foreach($tenants as $tenant)
+                            <label x-show="(selectedKantin === '' || '{{ $tenant->kantin_id }}' == selectedKantin) && (search === '' || '{{ strtolower($tenant->nama_tenant) }}'.includes(search.toLowerCase()))" 
+                                   class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors tenant-item-wrapper">
+                                <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
+                                <span class="text-sm font-medium text-gray-700">{{ $tenant->nama_tenant }}</span>
+                                <span class="text-xs text-gray-400 ml-auto">{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
             </div>
 
             <!-- Detail Perhitungan -->
@@ -162,7 +205,13 @@
         endDateInput.addEventListener('change', calculateSales);
         
         checkAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            const isChecked = this.checked;
+            checkboxes.forEach(cb => {
+                const label = cb.closest('label');
+                if (label.style.display !== 'none') {
+                    cb.checked = isChecked;
+                }
+            });
             calculateSales();
         });
 
@@ -178,12 +227,19 @@
             const startDate = startDateInput.value;
             const endDate = endDateInput.value;
             
-            if(selectedTenants.length === 0 || !startDate || !endDate) {
+            if(selectedTenants.length === 0) {
+                hideResult();
+                return;
+            }
+
+            if(!startDate || !endDate) {
+                alert("Mohon isi Periode Laporan (Mulai & Selesai) agar sistem dapat menghitung total penjualan tenant.");
                 hideResult();
                 return;
             }
 
             if(new Date(startDate) > new Date(endDate)) {
+                alert("Tanggal 'Selesai' tidak boleh lebih kecil dari tanggal 'Mulai'.");
                 hideResult();
                 return;
             }

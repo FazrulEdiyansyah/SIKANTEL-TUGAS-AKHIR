@@ -28,6 +28,42 @@
             <!-- Left Column (Status, Tenant, Menu) -->
             <div class="flex-1 space-y-6">
                 
+                @if($order->order_type == 'dine-in' && empty($order->table_number))
+                    @if(in_array($order->order_status, ['siap_diambil', 'selesai']))
+                        <div class="bg-red-50 border border-red-200 rounded-[24px] p-6 shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center text-telkom-red shrink-0">
+                                    <i class="ph-fill ph-warning-circle text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-1">Pesanan Siap (Ambil Sendiri)</h3>
+                                    <p class="text-sm text-gray-600 mb-0">Karena Anda tidak mengisi nomor meja hingga pesanan selesai dimasak, silakan ambil sendiri makanan Anda di konter tenant.</p>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="bg-blue-50 border border-blue-200 rounded-[24px] p-6 shadow-sm">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                                    <i class="ph-fill ph-info text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 text-lg mb-1">Jangan Lupa Isi Nomor Meja</h3>
+                                    <p class="text-sm text-gray-600 mb-4">Anda memilih layanan Makan di Tempat namun belum memasukkan nomor meja. Silakan isi jika sudah mendapatkan meja.</p>
+                                    
+                                    <form action="{{ route('pelanggan.orders.update-table', $order->id) }}" method="POST" class="flex flex-col sm:flex-row gap-3">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="text" name="table_number" placeholder="Contoh: Meja 12" class="flex-1 rounded-xl border border-blue-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-3 px-4 font-medium bg-white" required>
+                                        <button type="submit" name="action" value="update_table" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm">Simpan</button>
+                                        <button type="submit" name="action" value="takeaway" class="bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm formnovalidate">Ambil Sendiri</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endif
+                
                 <!-- Status Pesanan -->
                 <div class="bg-white rounded-[24px] p-6 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
@@ -56,11 +92,17 @@
                                     $statusIcon = 'ph-cooking-pot';
                                     $descText = 'Tenant sedang memasak dan menyiapkan pesanan Anda.';
                                 } else if ($order->order_status == 'siap_diambil') {
-                                    $statusText = 'Siap Diambil';
+                                    if ($order->order_type == 'dine-in') {
+                                        $statusText = empty($order->table_number) ? 'Ambil Sendiri' : 'Sedang Diantar';
+                                        $statusIcon = empty($order->table_number) ? 'ph-shopping-bag' : 'ph-scooter';
+                                        $descText = empty($order->table_number) ? 'Karena Anda tidak mengisi nomor meja, silakan ambil di konter.' : 'Pesanan sedang diantar ke meja Anda.';
+                                    } else {
+                                        $statusText = 'Siap Diambil';
+                                        $statusIcon = 'ph-shopping-bag';
+                                        $descText = 'Pesanan Anda sudah siap, silakan ambil di konter tenant.';
+                                    }
                                     $statusClass = 'bg-teal-50 text-teal-600';
-                                    $statusIcon = 'ph-shopping-bag';
-                                    $descText = 'Pesanan Anda sudah selesai dibuat dan siap untuk diambil!';
-                                } else {
+                                } else if ($order->order_status == 'selesai') {                                
                                     $statusText = 'Selesai';
                                     $statusClass = 'bg-green-50 text-green-600';
                                     $statusIcon = 'ph-check-circle';
@@ -79,6 +121,13 @@
                             <span>{{ $statusText }}</span>
                         </div>
                         <p class="text-sm text-gray-500">{{ $descText }}</p>
+                        
+                        @if($order->order_status == 'siap_diambil')
+                        <div class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl inline-block">
+                            <p class="text-xs text-gray-500 mb-1 font-bold">PIN PENGAMBILAN</p>
+                            <p class="text-4xl font-black text-[#E31E24] tracking-[0.2em]">{{ $order->pickup_pin ?? '---' }}</p>
+                        </div>
+                        @endif
                     </div>
                     
                     <div class="flex items-center gap-8 md:border-l border-gray-100 md:pl-8">
@@ -266,6 +315,49 @@
                             </button>
                         </form>
                     @endif
+
+                    @if($order->order_status == 'selesai')
+                        <form action="{{ route('pelanggan.orders.reorder', $order->id) }}" method="POST" class="mt-8">
+                            @csrf
+                            <button type="submit" class="w-full py-3.5 bg-white border-2 border-[#E31E24] text-[#E31E24] hover:bg-red-50 font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center gap-2">
+                                <i class="ph-bold ph-arrows-clockwise text-lg"></i> Pesan Ulang (Reorder)
+                            </button>
+                        </form>
+
+                        @if(!$order->review)
+                        <div class="mt-6 border-t border-gray-100 pt-6">
+                            <h4 class="text-sm font-bold text-gray-900 mb-4">Beri Ulasan Tenant</h4>
+                            <form action="{{ route('pelanggan.orders.review', $order->id) }}" method="POST" class="space-y-4">
+                                @csrf
+                                <div>
+                                    <select name="rating" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-telkom-red font-medium">
+                                        <option value="5">⭐⭐⭐⭐⭐ Sangat Baik</option>
+                                        <option value="4">⭐⭐⭐⭐ Baik</option>
+                                        <option value="3">⭐⭐⭐ Cukup</option>
+                                        <option value="2">⭐⭐ Kurang</option>
+                                        <option value="1">⭐ Sangat Kurang</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <textarea name="comment" rows="3" placeholder="Bagaimana rasa dan pelayanannya?" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-telkom-red resize-none"></textarea>
+                                </div>
+                                <button type="submit" class="w-full py-3 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-colors shadow-md">
+                                    Kirim Ulasan
+                                </button>
+                            </form>
+                        </div>
+                        @else
+                        <div class="mt-6 border-t border-gray-100 pt-6">
+                            <h4 class="text-sm font-bold text-gray-900 mb-3">Ulasan Anda</h4>
+                            <div class="flex text-yellow-400 text-sm mb-2 gap-1">
+                                @for($i=1; $i<=5; $i++)
+                                    <i class="{{ $i <= $order->review->rating ? 'ph-fill' : 'ph' }} ph-star text-lg"></i>
+                                @endfor
+                            </div>
+                            <p class="text-sm text-gray-600 italic bg-gray-50 p-4 rounded-xl">"{{ $order->review->comment ?? 'Tidak ada komentar.' }}"</p>
+                        </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 
@@ -273,4 +365,18 @@
 
     </div>
 </div>
+
+<script>
+    // Polling API every 5 seconds to auto-refresh status
+    setInterval(function() {
+        fetch('{{ route("pelanggan.orders.status-api", $order->id) }}')
+            .then(res => res.json())
+            .then(data => {
+                if (data.order_status !== '{{ $order->order_status }}' || data.payment_status !== '{{ $order->payment_status }}') {
+                    window.location.reload();
+                }
+            })
+            .catch(err => console.error('Polling error:', err));
+    }, 5000);
+</script>
 @endsection

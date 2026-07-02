@@ -113,6 +113,14 @@
                             <span class="text-xl font-black text-telkom-red">Rp{{ number_format($order->total_price, 0, ',', '.') }}</span>
                         </div>
 
+                        @if($order->order_status == 'siap_diambil' || $order->order_status == 'selesai')
+                        <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
+                            <p class="text-xs text-gray-500 mb-1 font-bold">PIN PENGAMBILAN PELANGGAN</p>
+                            <p class="text-4xl font-black text-gray-900 tracking-[0.2em]">{{ $order->pickup_pin ?? '---' }}</p>
+                            <p class="text-[11px] text-gray-400 mt-2">Pastikan cocok sebelum menyerahkan pesanan.</p>
+                        </div>
+                        @endif
+
                         <!-- Update Status Form -->
                         @if($order->order_status !== 'selesai')
                             @php
@@ -122,8 +130,13 @@
                                     $nextStatus = 'diproses';
                                     $btnText = 'Proses Pesanan';
                                 } else if ($order->order_status == 'diproses') {
-                                    $nextStatus = 'siap_diambil';
-                                    $btnText = 'Tandai Siap Diambil';
+                                    if ($order->order_type == 'dine-in') {
+                                        $nextStatus = !empty($order->table_number) ? 'selesai' : 'siap_diambil';
+                                        $btnText = !empty($order->table_number) ? 'Selesaikan Pesanan' : 'Tandai Ambil Sendiri';
+                                    } else {
+                                        $nextStatus = 'siap_diambil';
+                                        $btnText = 'Tandai Siap Diambil';
+                                    }
                                 } else if ($order->order_status == 'siap_diambil') {
                                     $nextStatus = 'selesai';
                                     $btnText = 'Selesaikan Pesanan';

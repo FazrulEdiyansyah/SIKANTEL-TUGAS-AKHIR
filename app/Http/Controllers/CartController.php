@@ -12,12 +12,32 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         
         $tenantId = null;
+        $estMin = 5;
+        $estMax = 10;
+        $estStartStr = '';
+        $estEndStr = '';
+        $activeOrders = 0;
+
         if (count($cart) > 0) {
             $firstItem = reset($cart);
             $tenantId = $firstItem['tenant_id'] ?? null;
+
+            if ($tenantId) {
+                $activeOrders = \App\Models\Order::where('tenant_id', $tenantId)
+                    ->whereIn('order_status', ['belum_diproses', 'diproses'])
+                    ->count();
+                
+                $batchCount = floor($activeOrders / 3);
+                $estMin = 5 + ($batchCount * 5);
+                $estMax = 10 + ($batchCount * 5);
+                
+                $now = \Carbon\Carbon::now();
+                $estStartStr = $now->copy()->addMinutes($estMin)->format('H:i');
+                $estEndStr = $now->copy()->addMinutes($estMax)->format('H:i');
+            }
         }
 
-        return view('pelanggan.checkout.index', compact('cart', 'tenantId'));
+        return view('pelanggan.checkout.index', compact('cart', 'tenantId', 'estMin', 'estMax', 'estStartStr', 'estEndStr', 'activeOrders'));
     }
 
     public function add(Request $request)
@@ -29,9 +49,33 @@ class CartController extends Controller
             'catatan'        => 'nullable|string|max:200',
         ]);
 
-        $menu = Menu::findOrFail($request->menu_id);
+        $menu = Menu::with('tenant')->findOrFail($request->menu_id);
         
         $cart = session()->get('cart', []);
+
+        if (!empty($cart)) {
+            $firstCartKey = array_key_first($cart);
+            $firstCartItem = $cart[$firstCartKey];
+            
+            $existingTenantId = $firstCartItem['tenant_id'] ?? null;
+            if (!$existingTenantId) {
+                // For older session items that don't have tenant_id
+                $existingMenu = \App\Models\Menu::find($firstCartItem['menu_id']);
+                $existingTenantId = $existingMenu ? $existingMenu->tenant_id : null;
+            }
+            
+            $existingTenant = \App\Models\Tenant::find($existingTenantId);
+            
+            if ($existingTenant && $existingTenant->kantin_id != $menu->tenant->kantin_id) {
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Maaf, Anda hanya bisa memesan dari satu kantin dalam satu pesanan. Selesaikan atau kosongkan keranjang Anda terlebih dahulu.'
+                    ], 400);
+                }
+                return redirect()->back()->with('error', 'Maaf, Anda hanya bisa memesan dari satu kantin dalam satu pesanan.');
+            }
+        }
 
         $selectedOptions = [];
         $extraPrice = 0;
@@ -135,6 +179,46 @@ class CartController extends Controller
         return redirect()->back();
     }
 
+    public function updateNote(Request $request)
+    {
+        $request->validate([
+            'cart_key' => 'required|string',
+            'catatan' => 'nullable|string|max:200'
+        ]);
+
+        $cart = session()->get('cart', []);
+        
+        if (isset($cart[$request->cart_key])) {
+            $item = $cart[$request->cart_key];
+            $oldKey = $request->cart_key;
+            
+            // Generate new key based on updated catatan
+            $newKey = $item['menu_id'] . '-' . md5(json_encode($item['selected_options'] ?? []) . ($request->catatan ?? ''));
+            
+            $item['catatan'] = $request->catatan;
+            
+            if ($newKey !== $oldKey) {
+                if (isset($cart[$newKey])) {
+                    // Merge quantities if the new key (same menu, same options, same note) already exists
+                    $cart[$newKey]['quantity'] += $item['quantity'];
+                } else {
+                    $cart[$newKey] = $item;
+                }
+                unset($cart[$oldKey]);
+            } else {
+                $cart[$oldKey] = $item;
+            }
+            
+            session()->put('cart', $cart);
+        }
+
+        if ($request->wantsJson()) {
+            return $this->getCartResponse();
+        }
+
+        return redirect()->back();
+    }
+
     public function remove(Request $request)
     {
         $request->validate([
@@ -180,7 +264,8 @@ class CartController extends Controller
             'totalQty' => $totalQty,
             'totalPrice' => $totalPrice,
             'itemNames' => implode(', ', array_unique($itemNames)),
-            'menuQty' => (object) $menuQty // casting to object ensures it parses as JSON object even if empty
+            'menuQty' => (object) $menuQty, // casting to object ensures it parses as JSON object even if empty
+            'cart' => (object) $cart
         ]);
     }
 }

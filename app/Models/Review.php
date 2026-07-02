@@ -2,14 +2,20 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class Order extends Model
+class Review extends Model
 {
     use HasFactory;
-    
-    protected $guarded = [];
+
+    protected $fillable = [
+        'user_id',
+        'tenant_id',
+        'order_id',
+        'rating',
+        'comment',
+    ];
 
     public function user()
     {
@@ -21,13 +27,8 @@ class Order extends Model
         return $this->belongsTo(Tenant::class);
     }
 
-    public function items()
+    public function order()
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    public function review()
-    {
-        return $this->hasOne(Review::class);
+        return $this->belongsTo(Order::class);
     }
 }

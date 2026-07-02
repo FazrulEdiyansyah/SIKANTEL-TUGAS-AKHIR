@@ -27,6 +27,27 @@ class OrderController extends Controller
         return view('pelanggan.orders.show', compact('order'));
     }
 
+    public function updateTable(Request $request, $id)
+    {
+        $order = Order::where('user_id', auth()->id())->findOrFail($id);
+
+        if ($request->action == 'takeaway') {
+            $order->update([
+                'order_type' => 'takeaway',
+                'table_number' => null
+            ]);
+            return back()->with('success', 'Pesanan berhasil diubah menjadi Bawa Pulang / Ambil Sendiri.');
+        } else {
+            $request->validate([
+                'table_number' => 'required|string|max:50'
+            ]);
+            $order->update([
+                'table_number' => $request->table_number
+            ]);
+            return back()->with('success', 'Nomor meja berhasil disimpan.');
+        }
+    }
+
     public function cancel($id)
     {
         $order = Order::where('user_id', auth()->id())
@@ -45,8 +66,49 @@ class OrderController extends Controller
             \Illuminate\Support\Facades\Log::error('Midtrans cancel error: ' . $e->getMessage());
         }
 
-        $order->update(['payment_status' => 'failed']);
+        // Cancel ALL orders that share this transaction ID
+        Order::where('order_id', $order->order_id)->update(['payment_status' => 'failed']);
 
         return back()->with('success', 'Pesanan berhasil dibatalkan.');
+    }
+
+    public function statusAPI($id)
+    {
+        $order = Order::where('user_id', auth()->id())->findOrFail($id);
+        return response()->json([
+            'order_status' => $order->order_status,
+            'payment_status' => $order->payment_status
+        ]);
+    }
+
+    public function reorder($id)
+    {
+        $order = Order::with('items.menu')->where('user_id', auth()->id())->findOrFail($id);
+        
+        $cart = session()->get('cart', []);
+        
+        // Cek tenant_id di keranjang. Jika beda tenant, bisa saja kita replace atau tolak, 
+        // tapi sesuai logika sebelumnya (satu kantin), kita abaikan saja pengecekan kompleks untuk demo
+        // atau kita langsung replace keranjang dengan isi pesanan ini.
+        session()->forget('cart');
+        $cart = [];
+
+        foreach ($order->items as $item) {
+            $cartKey = $item->menu_id; // Sederhananya, jika ada varian bisa lebih spesifik
+            $cart[$cartKey] = [
+                'menu_id' => $item->menu_id,
+                'tenant_id' => $order->tenant_id,
+                'nama_menu' => $item->nama_menu,
+                'harga' => $item->harga,
+                'quantity' => $item->quantity,
+                'foto' => $item->menu ? $item->menu->foto : null,
+                'selected_options' => json_decode($item->selected_options, true),
+                'catatan' => $item->catatan,
+            ];
+        }
+        
+        session()->put('cart', $cart);
+
+        return redirect()->route('pelanggan.checkout')->with('success', 'Keranjang berhasil diperbarui dari pesanan sebelumnya!');
     }
 }

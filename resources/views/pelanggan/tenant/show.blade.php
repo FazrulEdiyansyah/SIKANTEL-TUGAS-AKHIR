@@ -7,12 +7,17 @@
 
     <!-- Breadcrumb -->
     <div class="max-w-[1400px] mx-auto mt-6 px-6 lg:px-16 mb-4">
-        <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
-            <a href="{{ route('pelanggan.dashboard') }}" class="hover:text-[#E31E24] transition-colors">Kantin</a>
-            <span>></span>
-            <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="hover:text-[#E31E24] transition-colors">{{ $tenant->kantin->nama_kantin ?? 'Kantin' }}</a>
-            <span>></span>
-            <span class="text-gray-900 font-bold">{{ $tenant->nama_tenant }}</span>
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+                <i class="ph-bold ph-arrow-left text-sm"></i>
+            </a>
+            <div class="flex items-center space-x-2 text-[13px] text-gray-500 font-medium">
+                <a href="{{ route('pelanggan.dashboard') }}" class="hidden sm:inline hover:text-[#E31E24] transition-colors">Kantin</a>
+                <span class="hidden sm:inline">></span>
+                <a href="{{ route('pelanggan.kantin.show', $tenant->kantin_id) }}" class="hidden sm:inline hover:text-[#E31E24] transition-colors">{{ $tenant->kantin->nama_kantin ?? 'Kantin' }}</a>
+                <span class="hidden sm:inline">></span>
+                <span class="text-gray-900 font-bold truncate">{{ $tenant->nama_tenant }}</span>
+            </div>
         </div>
     </div>
 
@@ -52,16 +57,19 @@
 
                 <!-- Text Info -->
                 <div class="flex-1 flex flex-col justify-center">
-                    <h1 class="text-3xl md:text-5xl font-bold mb-2 tracking-tight">{{ $tenant->nama_tenant }}</h1>
+                    <div class="flex flex-wrap items-center gap-3 mb-2">
+                        <h1 class="text-3xl md:text-5xl font-bold tracking-tight">{{ $tenant->nama_tenant }}</h1>
+                        @if($tenant->reviews_count > 0)
+                            <div class="flex items-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1 text-yellow-400 text-sm font-bold shadow-sm">
+                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }} <span class="text-white/80 font-medium ml-1.5">{{ $tenant->reviews_count }} Ulasan</span>
+                            </div>
+                        @endif
+                    </div>
                     
-                    <div class="flex items-center text-white/90 text-sm md:text-base font-medium mb-3">
+                    <div class="flex items-center text-white/90 text-sm md:text-base font-medium mb-5">
                         <i class="ph ph-map-pin mr-2"></i>
                         {{ $tenant->kantin->nama_kantin ?? 'Lokasi tidak diketahui' }}
                     </div>
-
-                    <p class="text-sm md:text-base text-white/80 mb-6 max-w-lg leading-relaxed line-clamp-2">
-                        {{ $tenant->jenis_makanan ?? 'Menyediakan aneka makanan dan minuman yang lezat.' }}
-                    </p>
 
                     <div class="flex items-center space-x-3">
                         @if($tenant->is_open)
@@ -83,14 +91,14 @@
 
         <!-- Floating Search Bar -->
         <div class="absolute -bottom-7 left-1/2 -translate-x-1/2 w-[90%] max-w-[800px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-30 flex items-center">
-            <form action="{{ route('pelanggan.tenant.show', $tenant->id) }}" method="GET" class="flex flex-row w-full items-center">
+            <form id="search-form" action="{{ route('pelanggan.tenant.show', $tenant->id) }}" method="GET" class="flex flex-row w-full items-center">
                 
                 <div class="flex items-center shrink-0 w-24 pl-4 border-r border-gray-100">
                     <i class="ph ph-magnifying-glass text-gray-400 text-lg mr-2 shrink-0"></i>
                     <span class="text-[11px] font-bold text-gray-900 uppercase">Cari menu</span>
                 </div>
                 <div class="flex items-center flex-1 px-4">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Masukkan nama menu" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
+                    <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Masukkan nama menu" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
                 </div>
                 
                 <button type="submit" class="hidden"></button>
@@ -107,7 +115,7 @@
         </div>
 
         <!-- Grid Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @forelse($menus as $menu)
                 <!-- Menu Card -->
                 <div class="bg-white rounded-[24px] shadow-sm hover:shadow-md overflow-hidden flex flex-col transition-all group" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'border-y border-r border-gray-100 border-l-[6px] border-l-[#E31E24]' : 'border border-gray-100'">
@@ -168,7 +176,7 @@
                                 <template x-if="(cart.menuQty[{{ $menu->id }}] || 0) === 0">
                                     <div class="w-full">
                                         @if($menu->is_customizable && !empty($menu->customizations))
-                                            <button type="button" @click="activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden';" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
+                                            <button type="button" @click="if(canAddMenu()) { activeModal = {{ $menu->id }}; document.body.style.overflow = 'hidden'; }" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-[13px] px-5 py-2.5 rounded-xl transition-colors shadow-sm cursor-pointer">
                                                 Tambah
                                             </button>
                                         @else
@@ -300,62 +308,97 @@
         </div>
     </div>
 
-    <!-- Floating Cart Banner -->
-    @php
-        $cartItems = session('cart') ?: [];
-        $totalQty = 0;
-        $totalPrice = 0;
-        $itemNames = [];
-        $menuQtyData = [];
-        foreach($cartItems as $item) {
-            $totalQty += $item['quantity'];
-            $totalPrice += ($item['quantity'] * $item['harga']);
-            $itemNames[] = $item['nama_menu'];
-            
-            if(!isset($menuQtyData[$item['menu_id']])) $menuQtyData[$item['menu_id']] = 0;
-            $menuQtyData[$item['menu_id']] += $item['quantity'];
-        }
-        $itemNamesStr = implode(', ', array_unique($itemNames));
-    @endphp
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('search-input');
+            const searchForm = document.getElementById('search-form');
+            const gridContainer = document.getElementById('menu-grid');
 
-    <template x-if="cart.totalQty > 0">
-        <div class="fixed bottom-0 inset-x-0 p-4 z-40 flex justify-center pointer-events-none">
-            <div x-transition:enter="transition ease-out duration-300 transform"
-                 x-transition:enter-start="translate-y-full opacity-0"
-                 x-transition:enter-end="translate-y-0 opacity-100"
-                 x-transition:leave="transition ease-in duration-300 transform"
-                 x-transition:leave-start="translate-y-0 opacity-100"
-                 x-transition:leave-end="translate-y-full opacity-0"
-                 class="bg-[#E31E24] w-full max-w-3xl rounded-2xl shadow-2xl p-4 flex items-center justify-between text-white pointer-events-auto">
-                <div class="flex-1 flex flex-col">
-                    <span class="font-bold text-sm mb-0.5"><span x-text="cart.totalQty"></span> item</span>
-                    <span class="text-xs text-white/80 font-medium truncate pr-4" x-text="cart.itemNames"></span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <span class="font-bold text-lg">Rp <span x-text="formatPrice(cart.totalPrice)"></span></span>
-                    <a href="{{ route('pelanggan.checkout') }}" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
-                        Keranjang
-                    </a>
-                </div>
-            </div>
-        </div>
-    </template>
+            const performSearch = () => {
+                const url = new URL(searchForm.action);
+                if (searchInput.value) {
+                    url.searchParams.set('search', searchInput.value);
+                }
+
+                let loadingTimeout;
+                if (gridContainer) {
+                    loadingTimeout = setTimeout(() => {
+                        gridContainer.style.transition = 'opacity 0.2s';
+                        gridContainer.style.opacity = '0.5';
+                    }, 250); // Muncul animasi jika loading lebih dari 250ms
+                }
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    clearTimeout(loadingTimeout);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newGrid = doc.getElementById('menu-grid');
+                    
+                    if (newGrid && gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                        gridContainer.innerHTML = newGrid.innerHTML;
+                    }
+                    
+                    // Update URL tanpa reload
+                    window.history.pushState({}, '', url);
+                })
+                .catch(error => {
+                    clearTimeout(loadingTimeout);
+                    if (gridContainer) {
+                        gridContainer.style.transition = 'none';
+                        gridContainer.style.opacity = '1';
+                    }
+                    console.error('Error:', error);
+                });
+            };
+
+            if (searchForm) {
+                searchForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+        });
+    </script>
 
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('tenantMenu', () => ({
                 activeModal: null,
                 requestSequence: 0,
-                cart: {
-                    totalQty: {{ $totalQty }},
-                    totalPrice: {{ $totalPrice }},
-                    itemNames: `{!! addslashes($itemNamesStr) !!}`,
-                    menuQty: {!! json_encode($menuQtyData) !!}
+                tenantKantinId: {{ $tenant->kantin_id }},
+                canAddMenu() {
+                    if (this.cart.totalQty > 0 && this.cart.kantinId !== null && this.cart.kantinId !== this.tenantKantinId) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Beda Kantin',
+                            text: 'Maaf, Anda hanya bisa memesan dari satu kantin dalam satu pesanan. Selesaikan atau kosongkan keranjang Anda terlebih dahulu.',
+                            confirmButtonColor: '#E31E24'
+                        });
+                        return false;
+                    }
+                    return true;
+                },
+                get cart() {
+                    return this.$store.cart;
                 },
                 formatPrice(price) {
                     return new Intl.NumberFormat('id-ID').format(price);
                 },
                 async addToCart(menuId, price) {
+                    if (!this.canAddMenu()) return;
+                    
+                    if (this.cart.totalQty === 0) {
+                        this.cart.kantinId = this.tenantKantinId;
+                    }
+                    
                     // Optimistic UI Update for instant feedback
                     this.cart.totalQty++;
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + 1;
@@ -383,9 +426,32 @@
                             this.cart.totalPrice = data.totalPrice;
                             this.cart.menuQty = data.menuQty;
                             this.cart.itemNames = data.itemNames;
+                        } else if (!data.success) {
+                            // Rollback optimistic update
+                            this.cart.totalQty--;
+                            this.cart.menuQty[menuId]--;
+                            if(price) this.cart.totalPrice -= price;
+                            
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                confirmButtonColor: '#E31E24'
+                            });
                         }
                     } catch (error) {
                         console.error('Error adding to cart:', error);
+                        // Rollback optimistic update on error
+                        this.cart.totalQty--;
+                        this.cart.menuQty[menuId]--;
+                        if(price) this.cart.totalPrice -= price;
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Jaringan',
+                            text: 'Gagal menghubungi server. Silakan coba lagi.',
+                            confirmButtonColor: '#E31E24'
+                        });
                     }
                 },
                 async decreaseCart(menuId) {
@@ -422,9 +488,15 @@
                     }
                 },
                 async submitModalForm(event, menuId, basePrice) {
+                    if (!this.canAddMenu()) return;
+                    
                     const form = event.target;
                     const formData = new FormData(form);
                     const qty = parseInt(formData.get('quantity')) || 1;
+                    
+                    if (this.cart.totalQty === 0) {
+                        this.cart.kantinId = this.tenantKantinId;
+                    }
                     
                     // Optimistic feedback
                     this.activeModal = null;
@@ -452,9 +524,34 @@
                             this.cart.menuQty = data.menuQty;
                             this.cart.itemNames = data.itemNames;
                             form.reset();
+                        } else if (!data.success) {
+                            // Rollback optimistic update
+                            this.cart.totalQty -= qty;
+                            this.cart.totalPrice -= (basePrice * qty);
+                            this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
+                            if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
+                            
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                confirmButtonColor: '#E31E24'
+                            });
                         }
                     } catch (error) {
                         console.error('Error submitting form:', error);
+                        // Rollback optimistic update
+                        this.cart.totalQty -= qty;
+                        this.cart.totalPrice -= (basePrice * qty);
+                        this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
+                        if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
+                        
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Kesalahan Jaringan',
+                            text: 'Gagal menghubungi server. Silakan coba lagi.',
+                            confirmButtonColor: '#E31E24'
+                        });
                     }
                 }
             }));

@@ -15,14 +15,14 @@
 
         <!-- Tabs -->
         <div class="flex gap-8 border-b border-gray-200 mb-6">
-            <button @click="activeTab = 'aktif'" 
+            <button @click="activeTab = 'aktif'; statusFilter = 'all'" 
                     class="pb-4 text-sm font-bold transition-colors relative"
                     :class="activeTab === 'aktif' ? 'text-telkom-red' : 'text-gray-500 hover:text-gray-700'">
                 Pesanan Aktif
                 <div class="absolute bottom-0 left-0 w-full h-1 bg-telkom-red rounded-t-md transition-opacity"
                      x-show="activeTab === 'aktif'"></div>
             </button>
-            <button @click="activeTab = 'riwayat'" 
+            <button @click="activeTab = 'riwayat'; statusFilter = 'all'" 
                     class="pb-4 text-sm font-bold transition-colors relative"
                     :class="activeTab === 'riwayat' ? 'text-telkom-red' : 'text-gray-500 hover:text-gray-700'">
                 Riwayat Pesanan
@@ -38,13 +38,12 @@
                 <input type="text" x-model="searchQuery" placeholder="Cari tenant atau nama pesanan" 
                        class="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all">
             </div>
-            <!-- Untuk kemudahan, kita skip dropdown status asli dan biarkan desainnya saja -->
             <div class="relative w-full sm:w-[200px]">
                 <select x-model="statusFilter" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 rounded-xl text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red cursor-pointer">
                     <option value="all">Semua Status</option>
-                    <option value="pending">Menunggu Pembayaran</option>
-                    <option value="diproses">Sedang Diproses</option>
-                    <option value="failed">Gagal/Dibatalkan</option>
+                    <template x-for="status in availableStatuses" :key="status.value">
+                        <option :value="status.value" x-text="status.label"></option>
+                    </template>
                 </select>
                 <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
             </div>
@@ -103,7 +102,7 @@
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
                                           :class="getStatusClass(getUnifiedStatus(order))">
                                         <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
-                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
+                                        <span x-text="getStatusText(getUnifiedStatus(order), order.order_type, order.table_number)"></span>
                                     </span>
                                 </div>
                                 
@@ -139,6 +138,22 @@
                 searchQuery: '',
                 statusFilter: 'all',
                 orders: {!! json_encode($orders) !!},
+
+                get availableStatuses() {
+                    if (this.activeTab === 'aktif') {
+                        return [
+                            { value: 'pending', label: 'Menunggu Pembayaran' },
+                            { value: 'belum_diproses', label: 'Pesanan Diterima' },
+                            { value: 'diproses', label: 'Sedang Diproses' },
+                            { value: 'siap_diambil', label: 'Siap Diambil/Diantar' }
+                        ];
+                    } else {
+                        return [
+                            { value: 'selesai', label: 'Selesai' },
+                            { value: 'failed', label: 'Gagal / Dibatalkan' }
+                        ];
+                    }
+                },
 
                 get filteredOrders() {
                     return this.orders.filter(order => {
@@ -194,12 +209,16 @@
                     return order.payment_status;
                 },
 
-                getStatusText(status) {
+                getStatusText(status, orderType, tableNumber) {
                     switch (status) {
                         case 'pending': return 'Menunggu Pembayaran';
                         case 'belum_diproses': return 'Pesanan Diterima';
                         case 'diproses': return 'Sedang Disiapkan';
-                        case 'siap_diambil': return 'Siap Diambil';
+                        case 'siap_diambil': 
+                            if (orderType === 'dine-in') {
+                                return tableNumber ? 'Sedang Diantar' : 'Ambil Sendiri';
+                            }
+                            return 'Siap Diambil';
                         case 'selesai': return 'Selesai';
                         case 'failed': return 'Gagal / Dibatalkan';
                         default: return status;

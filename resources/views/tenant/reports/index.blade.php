@@ -17,10 +17,10 @@
         </div>
         
         <div class="flex items-center gap-3">
-            <a href="{{ route('tenant.reports.export-excel') }}" class="px-4 py-2 bg-white border border-green-200 text-green-700 hover:bg-green-50 rounded-xl font-bold text-sm transition-colors flex items-center shadow-sm">
+            <a href="{{ route('tenant.reports.export-excel', ['filter' => $filter]) }}" class="px-4 py-2 bg-white border border-green-200 text-green-700 hover:bg-green-50 rounded-xl font-bold text-sm transition-colors flex items-center shadow-sm">
                 <i class="ph-bold ph-microsoft-excel mr-2 text-lg"></i> Export Excel
             </a>
-            <a href="{{ route('tenant.reports.export-pdf') }}" class="px-4 py-2 bg-white border border-red-200 text-telkom-red hover:bg-red-50 rounded-xl font-bold text-sm transition-colors flex items-center shadow-sm">
+            <a href="{{ route('tenant.reports.export-pdf', ['filter' => $filter]) }}" class="px-4 py-2 bg-white border border-red-200 text-telkom-red hover:bg-red-50 rounded-xl font-bold text-sm transition-colors flex items-center shadow-sm">
                 <i class="ph-bold ph-file-pdf mr-2 text-lg"></i> Export PDF
             </a>
         </div>
@@ -28,20 +28,27 @@
 
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="bg-gradient-to-br from-red-50 to-white rounded-[20px] p-6 border border-red-100 shadow-sm flex items-center gap-5">
-            <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-telkom-red">
+        <div class="bg-gradient-to-br from-red-50 to-white rounded-[20px] p-6 border border-red-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 opacity-5">
+                <i class="ph-fill ph-money text-8xl"></i>
+            </div>
+            <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-telkom-red shrink-0 z-10">
                 <i class="ph-fill ph-money text-3xl"></i>
             </div>
-            <div>
-                <p class="text-sm font-bold text-gray-500 mb-1">Total Pendapatan</p>
-                <h3 class="text-3xl font-black text-gray-900">Rp{{ number_format($totalPendapatan, 0, ',', '.') }}</h3>
+            <div class="z-10">
+                <p class="text-sm font-bold text-gray-500 mb-1">Pendapatan Bersih (70%)</p>
+                <h3 class="text-3xl font-black text-gray-900 mb-1">Rp{{ number_format($totalPendapatanBersih, 0, ',', '.') }}</h3>
+                <p class="text-[11px] font-semibold text-gray-400">Total Kotor: Rp{{ number_format($totalPendapatanKotor, 0, ',', '.') }}</p>
             </div>
         </div>
-        <div class="bg-gradient-to-br from-blue-50 to-white rounded-[20px] p-6 border border-blue-100 shadow-sm flex items-center gap-5">
-            <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-blue-600">
+        <div class="bg-gradient-to-br from-blue-50 to-white rounded-[20px] p-6 border border-blue-100 shadow-sm flex items-center gap-5 relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 opacity-5">
+                <i class="ph-fill ph-check-circle text-8xl"></i>
+            </div>
+            <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-sm text-blue-600 shrink-0 z-10">
                 <i class="ph-fill ph-check-circle text-3xl"></i>
             </div>
-            <div>
+            <div class="z-10">
                 <p class="text-sm font-bold text-gray-500 mb-1">Total Pesanan Selesai</p>
                 <h3 class="text-3xl font-black text-gray-900">{{ $pesananSelesai }} <span class="text-base font-bold text-gray-500">pesanan</span></h3>
             </div>
@@ -50,12 +57,14 @@
 
     <!-- Chart Section -->
     <div class="bg-white rounded-[20px] p-6 border border-gray-100 shadow-sm mb-8">
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h3 class="text-lg font-bold text-gray-900">Grafik Pendapatan</h3>
             
-            <div class="flex bg-gray-50 p-1 rounded-xl border border-gray-200">
-                <a href="{{ route('tenant.reports.index', ['filter' => 'mingguan']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'mingguan' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">7 Hari Terakhir</a>
-                <a href="{{ route('tenant.reports.index', ['filter' => 'bulanan']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'bulanan' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">30 Hari Terakhir</a>
+            <div class="flex flex-wrap gap-1 bg-gray-50 p-1 rounded-xl border border-gray-200">
+                <a href="{{ route('tenant.reports.index', ['filter' => 'hari_ini']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'hari_ini' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Hari Ini</a>
+                <a href="{{ route('tenant.reports.index', ['filter' => 'minggu_ini']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'minggu_ini' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">7 Hari</a>
+                <a href="{{ route('tenant.reports.index', ['filter' => 'bulan_ini']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'bulan_ini' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">30 Hari</a>
+                <a href="{{ route('tenant.reports.index', ['filter' => 'semua']) }}" class="px-4 py-1.5 rounded-lg text-sm font-bold transition-colors {{ $filter == 'semua' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-900' }}">Semua Waktu</a>
             </div>
         </div>
         

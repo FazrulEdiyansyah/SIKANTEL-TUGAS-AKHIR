@@ -22,7 +22,94 @@
 
     @stack('styles')
 </head>
-<body class="font-primary bg-[#F8F9FA] text-gray-800 antialiased overflow-x-hidden flex h-screen" x-data="{ sidebarOpen: false }">
+<body class="font-primary bg-[#F8F9FA] text-gray-800 antialiased overflow-hidden flex flex-col h-screen" x-data="{ sidebarOpen: false, desktopSidebarOpen: true }">
+    
+    <!-- Top Navbar -->
+    <header class="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-6 lg:px-10 shrink-0 relative z-50 w-full">
+        
+        <!-- Left: Mobile Toggle, Desktop Toggle & Logo -->
+        <div class="flex items-center gap-4">
+            <!-- Mobile Toggle -->
+            <button @click="sidebarOpen = true" class="p-2 -ml-2 text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                <i class="ph ph-list text-[24px]"></i>
+            </button>
+            
+            <!-- Desktop Toggle -->
+            <button @click="desktopSidebarOpen = !desktopSidebarOpen" class="hidden lg:block p-2 -ml-2 text-gray-500 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-colors">
+                <i class="ph ph-list text-[24px]"></i>
+            </button>
+
+            <!-- Logo in Navbar -->
+            <a href="#" class="flex items-center shrink-0">
+                <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-8 object-contain">
+            </a>
+        </div>
+
+        <!-- Right: Icons & Profile -->
+        <div class="flex items-center space-x-3 lg:space-x-5">
+            <!-- Search Icon -->
+            <button class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
+                <i class="ph ph-magnifying-glass text-[22px]"></i>
+            </button>
+
+            <!-- Notification -->
+            <button class="relative p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors mr-2">
+                <i class="ph ph-bell text-[22px]"></i>
+                <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-telkom-red rounded-full ring-2 ring-white"></span>
+            </button>
+
+            <!-- Profile Dropdown -->
+            <div x-data="{ profileOpen: false }" class="relative">
+                <div @click="profileOpen = !profileOpen" @click.away="profileOpen = false" class="flex items-center pl-3 lg:pl-4 border-l border-gray-200 cursor-pointer">
+                    <!-- User Avatar -->
+                    <div class="w-10 h-10 rounded-full bg-red-100 text-telkom-red flex items-center justify-center font-bold text-lg ring-2 ring-white shadow-sm mr-3">
+                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                    </div>
+                    <!-- User Name & Role -->
+                    <div class="flex flex-col items-start mr-3 hidden sm:flex">
+                        <span class="text-sm font-bold text-gray-800 leading-tight truncate max-w-[120px]">{{ Auth::user()->name }}</span>
+                        <span class="text-[12px] font-medium text-gray-500 capitalize">{{ Auth::user()->role }}</span>
+                    </div>
+                    <i class="ph ph-caret-down text-gray-400 text-sm"></i>
+                </div>
+
+                <!-- Dropdown Menu -->
+                <div x-show="profileOpen" 
+                     x-transition.opacity.duration.200ms
+                     class="absolute top-full right-0 mt-3 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50" style="display: none;">
+                    <div class="px-4 py-2 border-b border-gray-50 mb-2 sm:hidden">
+                        <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->name }}</p>
+                        <p class="text-[12px] text-gray-500 capitalize">{{ Auth::user()->role }}</p>
+                    </div>
+
+                    @php
+                        $role = Auth::user()->role;
+                        $profileRoute = '';
+                        if ($role === 'tenant') $profileRoute = route('tenant.profile.index');
+                        elseif ($role === 'pengelola') $profileRoute = route('pengelola.profile.index');
+                        elseif ($role === 'kaur') $profileRoute = route('kaur.profile.index');
+                        elseif ($role === 'kabag') $profileRoute = route('kabag.profile.index');
+                    @endphp
+                    
+                    @if($profileRoute)
+                        <a href="{{ $profileRoute }}" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 font-medium transition-colors flex items-center">
+                            <i class="ph ph-user-circle mr-2 text-lg text-gray-400"></i> Profil Saya
+                        </a>
+                    @endif
+
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-telkom-red hover:bg-red-50 font-semibold transition-colors flex items-center">
+                            <i class="ph ph-sign-out mr-2 text-lg"></i> Keluar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Wrapper (Content below Navbar) -->
+    <div class="flex-1 flex overflow-hidden">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="sidebarOpen" 
@@ -36,78 +123,27 @@
          @click="sidebarOpen = false"></div>
 
     <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-100 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+    <aside :class="{ 
+            'translate-x-0': sidebarOpen, 
+            '-translate-x-full': !sidebarOpen,
+            'w-64': desktopSidebarOpen,
+            'w-20': !desktopSidebarOpen
+        }" class="fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-100 flex flex-col transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
         
-        <!-- Logo -->
-        <div class="h-20 flex items-center px-8 border-b border-gray-50/50 shrink-0">
-            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-8 object-contain">
-        </div>
+
 
         <!-- Navigation Menu (Dynamic depending on role) -->
         <nav class="flex-1 overflow-y-auto px-4 py-6 space-y-1.5 scrollbar-hide">
             @yield('sidebar_menu')
         </nav>
 
-        <!-- Logout Button -->
-        <div class="p-4 border-t border-gray-50/50">
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="flex items-center w-full px-4 py-3 text-[15px] font-bold text-telkom-red hover:bg-red-50 rounded-xl transition-colors">
-                    <i class="ph ph-sign-out text-[22px] mr-3"></i>
-                    Keluar
-                </button>
-            </form>
-        </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden lg:ml-0 transition-all duration-300">
-        
-        <!-- Top Navbar -->
-        <header class="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-6 lg:px-10 shrink-0 sticky top-0 z-30">
-            
-            <!-- Left: Mobile Toggle -->
-            <div class="flex items-center">
-                <button @click="sidebarOpen = true" class="p-2 mr-3 -ml-2 text-gray-500 rounded-lg lg:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
-                    <i class="ph ph-list text-[24px]"></i>
-                </button>
-            </div>
-
-            <!-- Right: Icons & Profile -->
-            <div class="flex items-center space-x-3 lg:space-x-5">
-                <!-- Search Icon -->
-                <button class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
-                    <i class="ph ph-magnifying-glass text-[22px]"></i>
-                </button>
-
-                <!-- Notification -->
-                <button class="relative p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors mr-2">
-                    <i class="ph ph-bell text-[22px]"></i>
-                    <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-telkom-red rounded-full ring-2 ring-white"></span>
-                </button>
-
-                <!-- Profile Dropdown -->
-                <div class="flex items-center pl-3 lg:pl-4 border-l border-gray-200 cursor-pointer">
-                    <!-- User Avatar -->
-                    <div class="w-10 h-10 rounded-full bg-red-100 text-telkom-red flex items-center justify-center font-bold text-lg ring-2 ring-white shadow-sm mr-3">
-                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                    </div>
-                    <!-- User Name & Role -->
-                    <div class="flex flex-col items-start mr-3 hidden sm:flex">
-                        <span class="text-sm font-bold text-gray-800 leading-tight truncate max-w-[120px]">{{ Auth::user()->name }}</span>
-                        <span class="text-[12px] font-medium text-gray-500 capitalize">{{ Auth::user()->role }}</span>
-                    </div>
-                    <i class="ph ph-caret-down text-gray-400 text-sm"></i>
-                </div>
-            </div>
-        </header>
-
-        <!-- Page Content -->
-        <div class="flex-1 p-6 lg:p-10 pt-4 overflow-y-auto bg-[#F8F9FA]">
+        <!-- Main Content Area -->
+        <main class="flex-1 p-6 lg:p-10 overflow-y-auto bg-[#F8F9FA]">
             @yield('content')
-        </div>
-
-    </main>
+        </main>
+    </div>
 
     @stack('scripts')
 </body>
