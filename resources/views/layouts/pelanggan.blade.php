@@ -92,10 +92,10 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-8 mt-12 pb-24">
+    <footer class="bg-white border-t border-gray-100 py-4 mt-8 pb-10">
         <div class="container mx-auto px-6 lg:px-16 text-center">
-            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-6 object-contain mx-auto mb-4 opacity-50 grayscale">
-            <p class="text-[13px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
+            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-5 object-contain mx-auto mb-2 opacity-50 grayscale">
+            <p class="text-[12px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
         </div>
     </footer>
 

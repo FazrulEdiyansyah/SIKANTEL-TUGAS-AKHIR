@@ -156,11 +156,6 @@
                                     <i class="ph-fill ph-x-circle"></i> Tutup
                                 </span>
                             @endif
-
-                            @if($tenant->reviews_count > 0)
-                                <span>•</span>
-                                <span>{{ $tenant->reviews_count }} ulasan</span>
-                            @endif
                         </div>
                     </div>
                 </a>

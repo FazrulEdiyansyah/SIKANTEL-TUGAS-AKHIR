@@ -75,7 +75,7 @@ class DummySeeder extends Seeder
             'user_id' => $userTenant1->id,
             'kantin_id' => $kantinFTE->id,
             'nama_tenant' => 'Ayam Geprek Bensu',
-            'jenis_makanan' => 'Ayam & Nasi',
+            'jenis_makanan' => 'Makanan Berat',
             'no_telepon' => '081234567890',
             'status' => 'aktif'
         ]);
@@ -88,7 +88,7 @@ class DummySeeder extends Seeder
             'user_id' => $userTenant2->id,
             'kantin_id' => $kantinFRI->id,
             'nama_tenant' => 'Soto Ayam Lamongan',
-            'jenis_makanan' => 'Berkuah',
+            'jenis_makanan' => 'Makanan Berat',
             'no_telepon' => '081298765432',
             'status' => 'aktif'
         ]);

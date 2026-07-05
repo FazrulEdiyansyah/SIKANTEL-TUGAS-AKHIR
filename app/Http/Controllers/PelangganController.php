@@ -39,6 +39,7 @@ class PelangganController extends Controller
                 }
                 return $query;
             })
+            ->orderBy('is_open', 'desc')
             ->get();
 
         return view('pelanggan.kantin.show', compact('kantin', 'tenants'));
@@ -56,6 +57,7 @@ class PelangganController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where('nama_menu', 'ilike', "%{$search}%");
             })
+            ->orderByRaw("CASE WHEN status = 'tersedia' THEN 1 ELSE 0 END DESC")
             ->get();
 
         return view('pelanggan.tenant.show', compact('tenant', 'menus'));
