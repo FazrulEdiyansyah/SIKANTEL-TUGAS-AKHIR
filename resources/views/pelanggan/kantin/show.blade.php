@@ -9,17 +9,14 @@
         <!-- Banner Container -->
         <div class="relative w-full h-[360px] bg-[#E31E24] rounded-[32px] overflow-hidden flex text-white z-0">
             
-            <!-- Background Image Area (Right) -->
-            <div class="absolute inset-y-0 right-0 w-2/3 md:w-3/4 pointer-events-none">
-                <!-- Gradient Masking for smooth transition -->
-                <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/80 to-transparent z-10"></div>
-                
-                @if($kantin->foto)
+            @if($kantin->foto)
+                <!-- Background Image Area (Right) -->
+                <div class="absolute inset-y-0 right-0 w-2/3 md:w-3/4 pointer-events-none">
+                    <!-- Gradient Masking for smooth transition -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/80 to-transparent z-10"></div>
                     <img src="{{ asset('storage/' . $kantin->foto) }}" class="w-full h-full object-cover">
-                @else
-                    <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
-                @endif
-            </div>
+                </div>
+            @endif
 
             <!-- Content Area (Left) -->
             <div class="relative z-20 w-full h-full p-8 md:p-12 flex flex-col justify-center">
@@ -108,61 +105,65 @@
         </div>
 
         <!-- Grid Cards -->
-        <div id="tenant-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div id="tenant-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             @forelse($tenants as $tenant)
                 <!-- Tenant Card -->
-                <div class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 p-6 flex flex-col transition-all group">
-                    <div class="flex items-start gap-4 mb-6">
-                        <!-- Initials Box -->
-                        @php
-                            // Generate initials (2 characters max)
-                            $words = explode(' ', $tenant->nama_tenant);
-                            $initials = '';
-                            foreach($words as $w) {
-                                $initials .= strtoupper(substr($w, 0, 1));
-                                if(strlen($initials) >= 2) break;
-                            }
-                            // Generate random consistent color based on ID
-                            $colors = ['bg-red-100 text-red-600', 'bg-yellow-100 text-yellow-600', 'bg-orange-100 text-orange-600', 'bg-green-100 text-green-600', 'bg-blue-100 text-blue-600', 'bg-purple-100 text-purple-600', 'bg-pink-100 text-pink-600'];
-                            $colorClass = $colors[$tenant->id % count($colors)];
-                        @endphp
-                        
-                        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-xl font-black shrink-0 {{ $colorClass }}">
-                            {{ $initials }}
-                        </div>
-
-                        <!-- Content -->
-                        <div class="flex-1 min-h-[64px] flex flex-col justify-center">
-                            <h3 class="text-lg font-bold text-gray-900 leading-tight mb-1">{{ $tenant->nama_tenant }}</h3>
-                            @if($tenant->reviews_count > 0)
-                                <div class="flex items-center text-yellow-500 text-[12px] font-bold mb-1">
-                                    <i class="ph-fill ph-star mr-1"></i> {{ number_format($tenant->reviews_avg_rating, 1) }}
-                                </div>
-                            @endif
-                            
-                            @if($tenant->is_open)
-                                <span class="text-[13px] font-bold text-gray-900 mt-auto">Buka</span>
-                            @else
-                                <span class="text-[13px] font-bold text-gray-500 flex items-center mt-auto">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span> Tutup
-                                </span>
-                            @endif
-                        </div>
-                    </div>
+                <a href="{{ $tenant->is_open ? route('pelanggan.tenant.show', $tenant->id) : '#' }}" 
+                   class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-row sm:flex-col hover:shadow-lg transition-all duration-300 group {{ !$tenant->is_open ? 'opacity-75 cursor-not-allowed' : '' }}"
+                   @if(!$tenant->is_open) onclick="event.preventDefault()" @endif>
                     
-                    <!-- Action Button -->
-                    <div class="mt-auto pt-2">
-                        @if($tenant->is_open)
-                            <a href="{{ route('pelanggan.tenant.show', $tenant->id) }}" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-sm">
-                                Lihat Menu
-                            </a>
+                    <!-- Photo Area -->
+                    <div class="relative w-[110px] sm:w-full shrink-0 sm:aspect-[4/3] h-auto bg-gray-100 overflow-hidden">
+                        @if($tenant->foto)
+                            <img src="{{ asset('storage/' . $tenant->foto) }}" 
+                                 alt="{{ $tenant->nama_tenant }}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
-                            <button disabled class="w-full block text-center bg-white border border-red-200 text-[#E31E24] font-bold text-sm py-3 rounded-xl cursor-not-allowed opacity-80">
-                                Tutup
-                            </button>
+                            <div class="w-full h-full flex items-center justify-center">
+                                <i class="ph ph-storefront text-4xl sm:text-5xl text-gray-300"></i>
+                            </div>
+                        @endif
+
+                        <!-- Rating Badge -->
+                        @if($tenant->reviews_count > 0)
+                            <div class="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 bg-white rounded-full px-2 sm:px-2.5 py-0.5 sm:py-1 flex items-center gap-1 shadow-sm">
+                                <i class="ph-fill ph-star text-yellow-400 text-[10px] sm:text-xs"></i>
+                                <span class="text-[11px] sm:text-xs font-bold text-gray-900">{{ number_format($tenant->reviews_avg_rating, 1) }}</span>
+                            </div>
+                        @endif
+
+                        <!-- Status Badge (Tutup) -->
+                        @if(!$tenant->is_open)
+                            <div class="absolute inset-0 bg-white/50 backdrop-blur-[2px] flex items-center justify-center">
+                                <span class="bg-white text-gray-800 font-bold text-[10px] sm:text-sm px-2 sm:px-4 py-1 sm:py-2 rounded-full shadow-sm border border-gray-100 text-center leading-tight">Tutup</span>
+                            </div>
                         @endif
                     </div>
-                </div>
+
+                    <!-- Content Area -->
+                    <div class="p-3 sm:p-4 flex flex-col flex-1 justify-center sm:justify-start">
+                        <h3 class="text-[15px] font-bold text-gray-900 leading-tight mb-1 line-clamp-2 group-hover:text-telkom-red transition-colors">{{ $tenant->nama_tenant }}</h3>
+                        
+                        <p class="text-[13px] text-gray-500 mb-3 line-clamp-1">{{ $tenant->jenis_makanan ?? 'Aneka makanan' }}</p>
+
+                        <div class="mt-auto flex items-center text-[13px] font-medium text-gray-500 gap-2">
+                            @if($tenant->is_open)
+                                <span class="flex items-center gap-1 text-green-600 font-semibold">
+                                    <i class="ph-fill ph-check-circle"></i> Buka
+                                </span>
+                            @else
+                                <span class="flex items-center gap-1 text-gray-400 font-semibold">
+                                    <i class="ph-fill ph-x-circle"></i> Tutup
+                                </span>
+                            @endif
+
+                            @if($tenant->reviews_count > 0)
+                                <span>•</span>
+                                <span>{{ $tenant->reviews_count }} ulasan</span>
+                            @endif
+                        </div>
+                    </div>
+                </a>
             @empty
                 <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 border-dashed">
                     <i class="ph ph-storefront text-5xl text-gray-300 mb-4 inline-block"></i>

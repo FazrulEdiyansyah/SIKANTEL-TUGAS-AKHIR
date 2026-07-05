@@ -141,10 +141,12 @@
 
         <!-- Main Content Area -->
         <main class="flex-1 p-6 lg:p-10 overflow-y-auto bg-[#F8F9FA]">
+            <x-alert-toast />
             @yield('content')
         </main>
     </div>
 
+    <x-form-loading />
     @stack('scripts')
 </body>
 </html>

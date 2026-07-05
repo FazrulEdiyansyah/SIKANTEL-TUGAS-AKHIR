@@ -7,14 +7,6 @@
 @endsection
 
 @section('content')
-    <!-- Flash Message -->
-    @if(session('success'))
-        <div class="mb-6 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center shadow-sm">
-            <i class="ph-fill ph-check-circle text-xl mr-3"></i>
-            <span class="font-medium text-[14px]">{{ session('success') }}</span>
-        </div>
-    @endif
-
     <!-- Header Page -->
     <div class="flex flex-col md:flex-row justify-between md:items-center gap-6 mb-8">
         <div>

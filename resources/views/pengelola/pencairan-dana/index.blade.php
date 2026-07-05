@@ -13,13 +13,6 @@
         <p class="text-[15px] text-gray-500 font-medium">Kelola riwayat laporan pencairan dana tenant.</p>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl font-medium text-sm flex items-center">
-            <i class="ph-fill ph-check-circle text-xl mr-2"></i>
-            {{ session('success') }}
-        </div>
-    @endif
-
     <!-- Tabs and Action Button -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div class="flex rounded-xl overflow-hidden border border-gray-200 bg-white">

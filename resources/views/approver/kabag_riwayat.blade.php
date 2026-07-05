@@ -12,17 +12,6 @@
         <p class="text-[15px] text-gray-500 font-medium">Daftar riwayat laporan pencairan dana yang telah diproses oleh Kabag.</p>
     </div>
 
-    @if(session('success'))
-        <div class="mb-6 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-sm" role="alert">
-            <p>{{ session('success') }}</p>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm" role="alert">
-            <p>{{ session('error') }}</p>
-        </div>
-    @endif
-
     <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">

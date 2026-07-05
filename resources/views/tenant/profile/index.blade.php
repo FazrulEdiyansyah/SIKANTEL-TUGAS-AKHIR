@@ -15,12 +15,6 @@
             <p class="text-gray-500 text-sm">Kelola informasi pribadi akun Anda.</p>
         </div>
 
-        @if(session('success'))
-        <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center gap-2">
-            <i class="ph-bold ph-check-circle"></i> {{ session('success') }}
-        </div>
-        @endif
-
         <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8">
             <form action="{{ route('tenant.profile.update') }}" method="POST">
                 @csrf
