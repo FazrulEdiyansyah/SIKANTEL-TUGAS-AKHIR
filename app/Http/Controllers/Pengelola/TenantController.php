@@ -14,10 +14,27 @@ use Illuminate\Support\Str;
 
 class TenantController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tenants = Tenant::with(['kantin', 'user'])->get();
-        return view('pengelola.tenant.index', compact('tenants'));
+        $query = Tenant::with(['kantin', 'user']);
+
+        if ($request->filled('search')) {
+            $searchTerm = strtolower($request->search);
+            $query->whereRaw('LOWER(nama_tenant) LIKE ?', ['%' . $searchTerm . '%']);
+        }
+
+        if ($request->filled('kantin_id')) {
+            $query->where('kantin_id', $request->kantin_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $tenants = $query->paginate(10)->withQueryString();
+        $kantins = Kantin::where('status', 'aktif')->get();
+
+        return view('pengelola.tenant.index', compact('tenants', 'kantins'));
     }
 
     public function create()

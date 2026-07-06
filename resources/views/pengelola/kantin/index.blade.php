@@ -148,19 +148,8 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="text-[13px] font-medium text-gray-500">Menampilkan {{ $kantins->count() }} data kantin</span>
-            <div class="flex items-center space-x-1.5">
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-left font-bold"></i>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-telkom-red text-white font-bold text-[13px] shadow-sm">
-                    1
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-right font-bold"></i>
-                </button>
-            </div>
+        <div class="px-6 py-5 border-t border-gray-100">
+            {{ $kantins->links() }}
         </div>
 
     </div>

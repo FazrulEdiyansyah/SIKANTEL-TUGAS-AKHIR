@@ -198,42 +198,9 @@
         </div>
 
         <!-- Pagination -->
-        @if($menus->hasPages() || $menus->count() > 0)
-        <div class="px-6 py-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="text-[13px] font-medium text-gray-500">Menampilkan {{ $menus->firstItem() ?? 0 }} - {{ $menus->lastItem() ?? 0 }} dari {{ $menus->total() }} menu</span>
-            <div class="flex items-center space-x-1.5">
-                @if ($menus->onFirstPage())
-                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                        <i class="ph ph-caret-left font-bold"></i>
-                    </button>
-                @else
-                    <a href="{{ $menus->previousPageUrl() }}" class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-telkom-red transition-colors">
-                        <i class="ph ph-caret-left font-bold"></i>
-                    </a>
-                @endif
-
-                @foreach ($menus->getUrlRange(max(1, $menus->currentPage() - 1), min($menus->lastPage(), $menus->currentPage() + 1)) as $page => $url)
-                    @if ($page == $menus->currentPage())
-                        <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-telkom-red text-white font-bold text-[13px] shadow-sm">
-                            {{ $page }}
-                        </button>
-                    @else
-                        <a href="{{ $url }}" class="w-8 h-8 flex items-center justify-center rounded-lg border border-transparent text-gray-500 font-medium text-[13px] hover:bg-gray-50 hover:text-telkom-red transition-colors">
-                            {{ $page }}
-                        </a>
-                    @endif
-                @endforeach
-
-                @if ($menus->hasMorePages())
-                    <a href="{{ $menus->nextPageUrl() }}" class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-telkom-red transition-colors">
-                        <i class="ph ph-caret-right font-bold"></i>
-                    </a>
-                @else
-                    <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                        <i class="ph ph-caret-right font-bold"></i>
-                    </button>
-                @endif
-            </div>
+        @if($menus->hasPages())
+        <div class="px-6 py-5 border-t border-gray-100">
+            {{ $menus->links() }}
         </div>
         @endif
 

@@ -32,7 +32,7 @@
                 <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
                     
                     <div class="relative w-full md:w-40">
-                        <select name="period" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all appearance-none cursor-pointer">
+                        <select name="period" onchange="if(this.value !== 'custom') { this.form.start_date.value=''; this.form.end_date.value=''; }" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all appearance-none cursor-pointer">
                             <option value="all" {{ request('period') == 'all' ? 'selected' : '' }}>Semua Waktu</option>
                             <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Hari Ini</option>
                             <option value="this_week" {{ request('period') == 'this_week' ? 'selected' : '' }}>Minggu Ini</option>
@@ -44,9 +44,9 @@
 
                     <!-- Custom Date Range -->
                     <div class="flex items-center gap-2 w-full md:w-auto">
-                        <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Mulai">
+                        <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.period.value='custom'" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Mulai">
                         <span class="text-gray-400">-</span>
-                        <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Akhir">
+                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.period.value='custom'" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Akhir">
                     </div>
 
                     <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center">
@@ -122,19 +122,8 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="text-[13px] font-medium text-gray-500">Menampilkan {{ $kantins->count() }} data kantin</span>
-            <div class="flex items-center space-x-1.5">
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-left font-bold"></i>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-telkom-red text-white font-bold text-[13px] shadow-sm">
-                    1
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-right font-bold"></i>
-                </button>
-            </div>
+        <div class="px-6 py-5 border-t border-gray-100">
+            {{ $kantins->links() }}
         </div>
 
     </div>

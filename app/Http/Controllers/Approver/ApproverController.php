@@ -22,7 +22,7 @@ class ApproverController extends Controller
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
             
         return view('approver.kaur_dashboard', compact('pencairans'));
     }
@@ -67,7 +67,7 @@ class ApproverController extends Controller
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
             
         return view('approver.kaur_riwayat', compact('pencairans'));
     }
@@ -83,7 +83,7 @@ class ApproverController extends Controller
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
             
         return view('approver.kabag_dashboard', compact('pencairans'));
     }
@@ -128,7 +128,7 @@ class ApproverController extends Controller
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
-            ->paginate(15);
+            ->paginate(10);
             
         return view('approver.kabag_riwayat', compact('pencairans'));
     }
@@ -182,7 +182,7 @@ class ApproverController extends Controller
 
     public function orders()
     {
-        $orders = Order::with('tenant', 'user', 'items')->latest()->paginate(15);
+        $orders = Order::with('tenant', 'user', 'items')->latest()->paginate(10);
         return view('approver.orders', compact('orders'));
     }
 }

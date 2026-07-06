@@ -17,23 +17,45 @@ class PencairanDanaController extends Controller
         $status = $request->query('status', 'draft'); // Default tab is draft
 
         $pencairan_danas = PencairanDana::with(['pengelola'])
-            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
-            ->when($status == 'proposed', function ($q) {
-                return $q->whereIn('status', ['proposed', 'approved_kaur']);
+            ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->when($request->filled('search'), function ($q) use ($request) {
+                return $q->where(function($query) use ($request) {
+                    $searchTerm = strtolower($request->search);
+                    $query->whereRaw('LOWER(batch_id) LIKE ?', ['%' . $searchTerm . '%'])
+                          ->orWhereRaw('LOWER(keterangan) LIKE ?', ['%' . $searchTerm . '%']);
+                });
             })
-            ->when($status == 'rejected', function ($q) {
-                return $q->whereIn('status', ['rejected_kaur', 'rejected_kabag']);
+            ->when($request->filled('start_date'), function ($q) use ($request) {
+                return $q->whereDate('start_date', '>=', $request->start_date);
             })
-            ->when(!in_array($status, ['proposed', 'rejected']), function ($q) use ($status) {
-                return $q->where('status', $status);
+            ->when($request->filled('end_date'), function ($q) use ($request) {
+                return $q->whereDate('end_date', '<=', $request->end_date);
             })
             ->whereNotNull('batch_id')
+            ->where('pengelola_id', auth()->id())
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->appends(['status' => $status]);
+            ->get();
 
-        return view('pengelola.pencairan-dana.index', compact('pencairan_danas', 'status'));
+        $batchIds = $pencairan_danas->pluck('batch_id')->toArray();
+        $batchKantins = PencairanDana::whereIn('batch_id', $batchIds)
+            ->join('tenants', 'pencairan_danas.tenant_id', '=', 'tenants.id')
+            ->join('kantins', 'tenants.kantin_id', '=', 'kantins.id')
+            ->select('pencairan_danas.batch_id', 'kantins.nama_kantin')
+            ->distinct()
+            ->get()
+            ->groupBy('batch_id');
+
+        foreach ($pencairan_danas as $pencairan) {
+            $kantins = $batchKantins->get($pencairan->batch_id);
+            if ($kantins && $kantins->count() == 1) {
+                $pencairan->keterangan_kantin = $kantins->first()->nama_kantin;
+            } else {
+                $pencairan->keterangan_kantin = 'Berbagai Kantin';
+            }
+        }
+
+        return view('pengelola.pencairan-dana.index', compact('pencairan_danas'));
     }
 
     public function create()
@@ -97,6 +119,7 @@ class PencairanDanaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'judul' => 'required|string|max:255',
             'tenant_ids' => 'required|array',
             'tenant_ids.*' => 'exists:tenants,id',
             'approver_1_name' => 'required|string',
@@ -110,65 +133,76 @@ class PencairanDanaController extends Controller
         $endDate = \Carbon\Carbon::parse($request->end_date)->endOfDay();
 
         $status = $request->input('action', 'draft') === 'draft' ? 'draft' : 'proposed';
-
-        $hasError = false;
-        $errorMessages = [];
-        $createdCount = 0;
         $batchId = 'REQ-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(6));
+        $approverNameCombined = $request->approver_1_name . ' (Kaur) & ' . $request->approver_2_name . ' (Kabag)';
+        
+        $createdCount = 0;
 
-        foreach ($request->tenant_ids as $tenantId) {
-            // Kalkulasi
-            $orders = Order::with('items')
-                ->where('tenant_id', $tenantId)
-                ->where('payment_status', 'success')
-                ->where('order_status', 'selesai')
-                ->whereBetween('created_at', [$startDate, $endDate])
-                ->get();
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($request, $startDate, $endDate, $status, $batchId, $approverNameCombined, &$createdCount) {
+                $allDetailsToInsert = [];
+                $timestamp = now();
 
-            $totalPenjualan = $orders->sum('total_price');
+                foreach ($request->tenant_ids as $tenantId) {
+                    $orders = Order::where('tenant_id', $tenantId)
+                        ->where('payment_status', 'success')
+                        ->where('order_status', 'selesai')
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->get();
 
-            $danaTenant = $totalPenjualan * 0.70;
-            $danaTelu = $totalPenjualan * 0.30;
-            
-            $approverNameCombined = $request->approver_1_name . ' (Kaur) & ' . $request->approver_2_name . ' (Kabag)';
+                    if ($orders->isEmpty()) continue; // Jangan buat laporan kalau tidak ada transaksi
 
-            $pencairan = PencairanDana::create([
-                'batch_id' => $batchId,
-                'tenant_id' => $tenantId,
-                'pengelola_id' => auth()->id(),
-                'approver_name' => $approverNameCombined,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'total_penjualan' => $totalPenjualan,
-                'dana_tenant' => $danaTenant,
-                'dana_telu' => $danaTelu,
-                'keterangan' => $request->keterangan,
-                'status' => $status
-            ]);
+                    $totalPenjualan = $orders->sum('total_price');
+                    $danaTenant = $totalPenjualan * 0.70;
+                    $danaTelu = $totalPenjualan * 0.30;
 
-            // Simpan detail
-            foreach ($orders as $order) {
-                \App\Models\PencairanDanaDetail::create([
-                    'pencairan_dana_id' => $pencairan->id,
-                    'order_id' => $order->id,
-                    'total_price' => $order->total_price,
-                    'dana_tenant' => $order->total_price * 0.70,
-                    'dana_telu' => $order->total_price * 0.30,
-                ]);
-            }
-            $createdCount++;
+                    $pencairan = PencairanDana::create([
+                        'batch_id' => $batchId,
+                        'judul' => $request->judul,
+                        'tenant_id' => $tenantId,
+                        'pengelola_id' => auth()->id(),
+                        'approver_name' => $approverNameCombined,
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'total_penjualan' => $totalPenjualan,
+                        'dana_tenant' => $danaTenant,
+                        'dana_telu' => $danaTelu,
+                        'keterangan' => $request->keterangan,
+                        'status' => $status
+                    ]);
+
+                    foreach ($orders as $order) {
+                        $allDetailsToInsert[] = [
+                            'pencairan_dana_id' => $pencairan->id,
+                            'order_id' => $order->id,
+                            'total_price' => $order->total_price,
+                            'dana_tenant' => $order->total_price * 0.70,
+                            'dana_telu' => $order->total_price * 0.30,
+                            'created_at' => $timestamp,
+                            'updated_at' => $timestamp,
+                        ];
+                    }
+                    
+                    $createdCount++;
+                }
+
+                // Bulk insert details (chunked per 1000 items to avoid query limits)
+                $chunks = array_chunk($allDetailsToInsert, 1000);
+                foreach ($chunks as $chunk) {
+                    \App\Models\PencairanDanaDetail::insert($chunk);
+                }
+            });
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage())->withInput();
         }
 
-        if ($hasError && $createdCount === 0) {
-            return back()->withErrors(['tenant_ids' => implode(' ', $errorMessages)])->withInput();
+        if ($createdCount === 0) {
+            return back()->with('error', 'Tidak ada data transaksi sukses untuk tenant dan periode yang dipilih.')->withInput();
         }
 
         $message = $status === 'draft' ? "{$createdCount} Laporan berhasil disimpan sebagai Draft." : "{$createdCount} Laporan berhasil diajukan ke Approver.";
-        if ($hasError) {
-            $message .= " Beberapa tenant gagal diproses: " . implode(' ', $errorMessages);
-        }
-
-        return redirect()->route('pengelola.pencairan_dana.index', ['status' => $status])->with($hasError ? 'warning' : 'success', $message);
+        return redirect()->route('pengelola.pencairan_dana.index', ['status' => $status])->with('success', $message);
     }
 
     public function propose($id)
@@ -228,6 +262,7 @@ class PencairanDanaController extends Controller
     {
         $pencairan_danas = PencairanDana::with(['tenant.kantin', 'pengelola'])
             ->where('batch_id', $batch_id)
+            ->where('pengelola_id', auth()->id())
             ->get();
             
         if ($pencairan_danas->isEmpty()) {
