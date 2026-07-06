@@ -14,15 +14,15 @@ class PencairanDanaController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->query('status', 'draft'); // Default tab is draft
+        $status = $request->query('status', 'all');
 
-        $pencairan_danas = PencairanDana::with(['pengelola'])
+        $query = PencairanDana::with(['pengelola'])
             ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
             ->when($request->filled('search'), function ($q) use ($request) {
                 return $q->where(function($query) use ($request) {
                     $searchTerm = strtolower($request->search);
                     $query->whereRaw('LOWER(batch_id) LIKE ?', ['%' . $searchTerm . '%'])
-                          ->orWhereRaw('LOWER(keterangan) LIKE ?', ['%' . $searchTerm . '%']);
+                          ->orWhereRaw('LOWER(judul) LIKE ?', ['%' . $searchTerm . '%']);
                 });
             })
             ->when($request->filled('start_date'), function ($q) use ($request) {
@@ -31,12 +31,22 @@ class PencairanDanaController extends Controller
             ->when($request->filled('end_date'), function ($q) use ($request) {
                 return $q->whereDate('end_date', '<=', $request->end_date);
             })
+            ->when($status !== 'all', function ($q) use ($status) {
+                if ($status === 'proposed') {
+                    return $q->whereIn('status', ['proposed', 'approved_kaur']);
+                } elseif ($status === 'rejected') {
+                    return $q->whereIn('status', ['rejected_kaur', 'rejected_kabag']);
+                }
+                return $q->where('status', $status);
+            })
             ->whereNotNull('batch_id')
             ->where('pengelola_id', auth()->id())
             ->groupBy('batch_id', 'status')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->orderBy('created_at', 'desc');
 
+        $pencairan_danas = $query->paginate(10)->withQueryString();
+
+        // Get kantin info for each batch
         $batchIds = $pencairan_danas->pluck('batch_id')->toArray();
         $batchKantins = PencairanDana::whereIn('batch_id', $batchIds)
             ->join('tenants', 'pencairan_danas.tenant_id', '=', 'tenants.id')
@@ -55,7 +65,17 @@ class PencairanDanaController extends Controller
             }
         }
 
-        return view('pengelola.pencairan-dana.index', compact('pencairan_danas'));
+        // Count for tabs
+        $baseQuery = PencairanDana::whereNotNull('batch_id')->where('pengelola_id', auth()->id());
+        $statusCounts = [
+            'all'      => (clone $baseQuery)->distinct('batch_id')->count('batch_id'),
+            'draft'    => (clone $baseQuery)->where('status', 'draft')->distinct('batch_id')->count('batch_id'),
+            'proposed' => (clone $baseQuery)->whereIn('status', ['proposed', 'approved_kaur'])->distinct('batch_id')->count('batch_id'),
+            'approved' => (clone $baseQuery)->where('status', 'approved')->distinct('batch_id')->count('batch_id'),
+            'rejected' => (clone $baseQuery)->whereIn('status', ['rejected_kaur', 'rejected_kabag'])->distinct('batch_id')->count('batch_id'),
+        ];
+
+        return view('pengelola.pencairan-dana.index', compact('pencairan_danas', 'status', 'statusCounts'));
     }
 
     public function create()

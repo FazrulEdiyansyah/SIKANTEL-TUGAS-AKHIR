@@ -13,68 +13,92 @@ use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $totalKantin = Cache::remember('pengelola_total_kantin', 300, fn() => Kantin::count());
-        $totalTenant = Cache::remember('pengelola_total_tenant', 300, fn() => Tenant::count());
+        $kantinId = $request->query('kantin_id');
+
+        $totalKantin = Kantin::count();
+        $totalTenant = Tenant::count();
         
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
 
-        $penjualanBulanIni = Cache::remember("pengelola_penjualan_{$currentMonth}_{$currentYear}", 300, function () use ($currentMonth, $currentYear) {
-            return Order::where('payment_status', 'success')
-                ->where('order_status', 'selesai')
-                ->whereMonth('created_at', $currentMonth)
-                ->whereYear('created_at', $currentYear)
-                ->sum('total_price');
-        });
-
-        // Data for Chart (Last 30 days)
-        $chartData = Cache::remember('pengelola_chart_data_30days', 300, function () {
-            $labels = [];
-            $data = [];
-            for ($i = 29; $i >= 0; $i--) {
-                $date = Carbon::today()->subDays($i);
-                $labels[] = $date->format('d M');
-                
-                $dailyTotal = Order::whereDate('created_at', $date)
-                    ->where('payment_status', 'success')
-                    ->where('order_status', 'selesai')
-                    ->sum('total_price');
-                    
-                $data[] = $dailyTotal;
-            }
-            return ['labels' => $labels, 'data' => $data];
-        });
+        $penjualanBulanIniQuery = Order::where('payment_status', 'success')
+            ->where('order_status', 'selesai')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear);
+            
+        if ($kantinId) {
+            $penjualanBulanIniQuery->whereHas('tenant', function ($q) use ($kantinId) {
+                $q->where('kantin_id', $kantinId);
+            });
+        }
         
-        $labels = $chartData['labels'];
-        $data = $chartData['data'];
+        $penjualanBulanIni = $penjualanBulanIniQuery->sum('total_price');
+
+        // Data for Chart (Last 30 days) - Optimized to single query
+        $startDate = Carbon::today()->subDays(29);
+        $endDate = Carbon::today()->endOfDay();
+
+        $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai');
+
+        if ($kantinId) {
+            $chartQuery->whereHas('tenant', function ($q) use ($kantinId) {
+                $q->where('kantin_id', $kantinId);
+            });
+        }
+
+        $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+            ->groupBy('date')
+            ->pluck('total', 'date');
+
+        $labels = [];
+        $data = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = Carbon::today()->subDays($i);
+            $dateStr = $date->format('Y-m-d');
+            $labels[] = $date->format('d M');
+            $data[] = $salesData->get($dateStr, 0);
+        }
 
         // Top 5 Tenants by Sales
-        $topTenants = Cache::remember('pengelola_top_tenants', 300, function () {
-            return Tenant::with('kantin')
-                ->withSum(['orders' => function ($query) {
-                    $query->where('orders.payment_status', 'success')
-                          ->where('orders.order_status', 'selesai');
-                }], 'total_price')
-                ->withCount(['orders' => function ($query) {
-                    $query->where('orders.payment_status', 'success')
-                          ->where('orders.order_status', 'selesai');
-                }])
-                ->orderByDesc('orders_sum_total_price')
-                ->take(5)
-                ->get();
-        });
+        $topTenantsQuery = Tenant::with('kantin')
+            ->withSum(['orders' => function ($query) {
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
+            }], 'total_price')
+            ->withCount(['orders' => function ($query) {
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
+            }]);
 
-        // Kantin Teramai (by completed orders)
-        $kantinTeramai = Cache::remember('pengelola_kantin_teramai', 300, function () {
-            return Kantin::withCount(['orders' => function ($query) {
-                    $query->where('orders.payment_status', 'success')
-                          ->where('orders.order_status', 'selesai');
-                }])
-                ->orderByDesc('orders_count')
-                ->first();
-        });
+        if ($kantinId) {
+            $topTenantsQuery->where('kantin_id', $kantinId);
+        }
+
+        $topTenants = $topTenantsQuery
+            ->orderByRaw('"orders_sum_total_price" DESC NULLS LAST')
+            ->take(5)
+            ->get();
+
+        // Kantin Teramai (by total sales amount instead of order count)
+        $kantinTeramaiQuery = Kantin::withSum(['orders' => function ($query) {
+                $query->where('orders.payment_status', 'success')
+                      ->where('orders.order_status', 'selesai');
+            }], 'total_price');
+            
+        if ($kantinId) {
+            $kantinTeramaiQuery->where('id', $kantinId);
+        }
+
+        $kantinTeramai = $kantinTeramaiQuery
+            ->orderByRaw('"orders_sum_total_price" DESC NULLS LAST')
+            ->first();
+            
+        // Get all kantins for the filter dropdown
+        $allKantins = Kantin::orderBy('nama_kantin')->get();
 
         return view('pengelola.dashboard', compact(
             'totalKantin', 
@@ -83,7 +107,9 @@ class DashboardController extends Controller
             'labels',
             'data',
             'topTenants',
-            'kantinTeramai'
+            'kantinTeramai',
+            'allKantins',
+            'kantinId'
         ));
     }
 

@@ -18,23 +18,26 @@ class TenantController extends Controller
     {
         $query = Tenant::with(['kantin', 'user']);
 
-        if ($request->filled('search')) {
+        $query->when($request->filled('search'), function ($q) use ($request) {
             $searchTerm = strtolower($request->search);
-            $query->whereRaw('LOWER(nama_tenant) LIKE ?', ['%' . $searchTerm . '%']);
-        }
+            $q->whereRaw('LOWER(nama_tenant) LIKE ?', ['%' . $searchTerm . '%']);
+        });
 
-        if ($request->filled('kantin_id')) {
-            $query->where('kantin_id', $request->kantin_id);
-        }
+        $query->when($request->filled('kantin_id'), function ($q) use ($request) {
+            $q->where('kantin_id', $request->kantin_id);
+        });
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        $query->when($request->filled('status'), function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
 
         $tenants = $query->paginate(10)->withQueryString();
         $kantins = Kantin::where('status', 'aktif')->get();
+        
+        $totalTenant = Tenant::count();
+        $totalTenantAktif = Tenant::where('status', 'aktif')->count();
 
-        return view('pengelola.tenant.index', compact('tenants', 'kantins'));
+        return view('pengelola.tenant.index', compact('tenants', 'kantins', 'totalTenant', 'totalTenantAktif'));
     }
 
     public function create()

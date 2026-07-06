@@ -30,8 +30,10 @@
             </div>
             <div>
                 <p class="text-[14px] font-semibold text-gray-500 mb-0.5">Total Tenant</p>
-                <h3 class="text-[34px] font-bold text-gray-900 leading-none mb-1">{{ $tenants->count() }}</h3>
-                <p class="text-[13px] font-medium text-gray-400">Tenant</p>
+                <div class="flex items-end">
+                    <h3 class="text-[34px] font-bold text-gray-900 leading-none mr-2">{{ $totalTenant }}</h3>
+                    <span class="text-[13px] font-medium text-gray-400 mb-0.5">Tenant</span>
+                </div>
             </div>
         </div>
 
@@ -42,8 +44,10 @@
             </div>
             <div>
                 <p class="text-[14px] font-semibold text-gray-500 mb-0.5">Tenant Aktif</p>
-                <h3 class="text-[34px] font-bold text-gray-900 leading-none mb-1">{{ $tenants->where('status', 'aktif')->count() }}</h3>
-                <p class="text-[13px] font-medium text-gray-400">Tenant</p>
+                <div class="flex items-end">
+                    <h3 class="text-[34px] font-bold text-gray-900 leading-none mr-2">{{ $totalTenantAktif }}</h3>
+                    <span class="text-[13px] font-medium text-gray-400 mb-0.5">Tenant</span>
+                </div>
             </div>
         </div>
     </div>
@@ -96,13 +100,13 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50/50 border-b border-gray-100">
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">No</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Nama Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Nama Kantin</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Jenis Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">No. Telepon</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Status</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Aksi</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Nama Tenant</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Nama Kantin</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Jenis Tenant</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No. Telepon</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -128,37 +132,22 @@
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->jenis_makanan }}</td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->no_telepon }}</td>
                             <td class="py-4 px-6">
-                                @if($tenant->status === 'aktif')
-                                    <span class="inline-flex items-center justify-center w-24 py-1.5 rounded-full text-[12px] font-bold bg-green-50 text-green-600 border border-green-100">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                                        Aktif
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center justify-center w-24 py-1.5 rounded-full text-[12px] font-bold bg-gray-50 text-gray-500 border border-gray-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
-                                        Nonaktif
-                                    </span>
-                                @endif
+                                <x-status-badge :status="$tenant->status" />
                             </td>
-                            <td class="py-4 px-6 flex items-center space-x-2">
-                                <a href="{{ route('pengelola.tenant.show', $tenant->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 border border-telkom-red text-telkom-red hover:bg-red-50 text-[13px] font-bold rounded-lg transition-colors">
-                                    <i class="ph ph-eye mr-1.5"></i>
-                                    Detail
-                                </a>
-                                <a href="{{ route('pengelola.tenant.edit', $tenant->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg transition-colors" title="Edit Tenant">
-                                    <i class="ph ph-pencil-simple text-sm"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-12 text-center">
-                                <div class="flex flex-col items-center justify-center">
-                                    <i class="ph ph-users text-4xl text-gray-200 mb-3"></i>
-                                    <p class="text-sm font-medium text-gray-400">Belum ada data tenant</p>
+                            <td class="py-4 px-6">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('pengelola.tenant.show', $tenant->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 border border-telkom-red text-telkom-red hover:bg-red-50 text-[13px] font-bold rounded-lg transition-colors">
+                                        <i class="ph ph-eye mr-1.5"></i>
+                                        Detail
+                                    </a>
+                                    <a href="{{ route('pengelola.tenant.edit', $tenant->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg transition-colors" title="Edit Tenant">
+                                        <i class="ph ph-pencil-simple text-sm"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
+                    @empty
+                    <x-empty-state icon="ph ph-users" title="Belum ada data tenant" message="Silakan tambah data tenant baru." :colspan="7" />
                     @endforelse
                 </tbody>
             </table>
@@ -171,95 +160,4 @@
 
     </div>
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('tenant-container');
-            if (!container) return;
-            
-            // Intercept form submission
-            container.addEventListener('submit', function(e) {
-                if (e.target.tagName === 'FORM') {
-                    e.preventDefault();
-                    const url = new URL(e.target.action);
-                    const formData = new FormData(e.target);
-                    const searchParams = new URLSearchParams(formData);
-                    url.search = searchParams.toString();
-                    fetchData(url.toString());
-                    window.history.pushState({}, '', url.toString());
-                }
-            });
-
-            // Intercept pagination, filter changes, and refresh button clicks
-            container.addEventListener('change', function(e) {
-                if (e.target.tagName === 'SELECT') {
-                    const form = e.target.closest('form');
-                    if (form) {
-                        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                    }
-                }
-            });
-
-            container.addEventListener('click', function(e) {
-                const link = e.target.closest('a');
-                if (link && link.href && !link.href.includes('#')) {
-                    // Only intercept links for this page (pagination & refresh)
-                    if (link.href.includes('/pengelola/tenant') && !link.href.includes('create') && !link.href.includes('edit') && !link.href.includes('show')) {
-                        e.preventDefault();
-                        fetchData(link.href);
-                        window.history.pushState({}, '', link.href);
-                    }
-                }
-            });
-
-            function fetchData(url) {
-                let loadingTimeout;
-                if (container) {
-                    loadingTimeout = setTimeout(() => {
-                        container.style.transition = 'opacity 0.2s';
-                        container.style.opacity = '0.5';
-                    }, 250);
-                }
-
-                fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    clearTimeout(loadingTimeout);
-                    if (container) {
-                        container.style.transition = 'none';
-                        container.style.opacity = '1';
-                    }
-
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContainer = doc.getElementById('tenant-container');
-                    if (newContainer) {
-                        container.innerHTML = newContainer.innerHTML;
-                        
-                        // Re-attach submit handlers to the new form if needed
-                        const newForm = container.querySelector('form');
-                        if (newForm) {
-                            newForm.onsubmit = function(e) { e.preventDefault(); };
-                        }
-                    }
-                })
-                .catch(error => {
-                    clearTimeout(loadingTimeout);
-                    if (container) {
-                        container.style.transition = 'none';
-                        container.style.opacity = '1';
-                    }
-                });
-            }
-
-            window.addEventListener('popstate', function() {
-                fetchData(window.location.href);
-            });
-        });
-    </script>
-    @endpush
 @endsection

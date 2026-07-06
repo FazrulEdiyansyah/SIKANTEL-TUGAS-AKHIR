@@ -78,17 +78,7 @@
             <div>
                 <p class="text-sm font-medium text-gray-500 mb-1">Status Laporan</p>
                 <div>
-                    @if($batchInfo->status == 'draft')
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-yellow-50 text-yellow-600 border border-yellow-200">Draft</span>
-                    @elseif($batchInfo->status == 'proposed')
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200">Diproses (Kaur)</span>
-                    @elseif($batchInfo->status == 'approved_kaur')
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-200">Diproses (Kabag)</span>
-                    @elseif($batchInfo->status == 'approved')
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-green-50 text-green-600 border border-green-200">Selesai (Disetujui)</span>
-                    @elseif(in_array($batchInfo->status, ['rejected_kaur', 'rejected_kabag']))
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-red-50 text-red-600 border border-red-200">Ditolak</span>
-                    @endif
+                    <x-status-badge :status="$batchInfo->status" />
                 </div>
             </div>
             <div>

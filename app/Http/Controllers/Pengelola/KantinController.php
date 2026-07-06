@@ -9,9 +9,23 @@ use Illuminate\Support\Facades\Storage;
 
 class KantinController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kantins = Kantin::withCount('tenants')->paginate(10);
+        $query = Kantin::withCount('tenants');
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = strtolower($request->search);
+            $q->where(function ($sub) use ($search) {
+                $sub->whereRaw('LOWER(nama_kantin) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(lokasi) LIKE ?', ["%{$search}%"]);
+            });
+        });
+
+        $query->when($request->filled('status') && $request->status !== 'all', function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+
+        $kantins = $query->latest()->paginate(10)->withQueryString();
         return view('pengelola.kantin.index', compact('kantins'));
     }
 

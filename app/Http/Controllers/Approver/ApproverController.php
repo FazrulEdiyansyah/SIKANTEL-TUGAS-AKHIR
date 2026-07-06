@@ -168,21 +168,60 @@ class ApproverController extends Controller
     // ==========================================
     // READ-ONLY DATA VIEWS
     // ==========================================
-    public function kantin()
+    public function kantin(Request $request)
     {
-        $kantins = Kantin::latest()->paginate(10);
+        $query = Kantin::withCount('tenants')->latest();
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = strtolower($request->search);
+            $q->where(function ($sub) use ($search) {
+                $sub->whereRaw('LOWER(nama_kantin) LIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('LOWER(lokasi) LIKE ?', ["%{$search}%"]);
+            });
+        });
+
+        $kantins = $query->paginate(10)->withQueryString();
         return view('approver.kantin', compact('kantins'));
     }
 
-    public function tenant()
+    public function tenant(Request $request)
     {
-        $tenants = Tenant::with('kantin', 'user')->latest()->paginate(10);
+        $query = Tenant::with('kantin', 'user')->latest();
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = strtolower($request->search);
+            $q->where(function ($sub) use ($search) {
+                $sub->whereRaw('LOWER(nama_tenant) LIKE ?', ["%{$search}%"]);
+            });
+        });
+
+        $query->when($request->filled('status') && $request->status !== 'all', function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+
+        $tenants = $query->paginate(10)->withQueryString();
         return view('approver.tenant', compact('tenants'));
     }
 
-    public function orders()
+    public function orders(Request $request)
     {
-        $orders = Order::with('tenant', 'user', 'items')->latest()->paginate(10);
+        $query = Order::with('tenant', 'user', 'items')->latest();
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = strtolower($request->search);
+            $q->where(function ($sub) use ($search) {
+                $sub->whereRaw('LOWER(order_id) LIKE ?', ["%{$search}%"])
+                    ->orWhereHas('user', function($q) use ($search) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+                    });
+            });
+        });
+
+        $query->when($request->filled('status') && $request->status !== 'all', function ($q) use ($request) {
+            $q->where('order_status', $request->status);
+        });
+
+        $orders = $query->paginate(10)->withQueryString();
         return view('approver.orders', compact('orders'));
     }
 }
