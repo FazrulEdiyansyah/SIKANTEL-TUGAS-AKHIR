@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pengelola;
 
+use App\Http\Controllers\Controller;
 use App\Models\Tenant;
 use App\Models\Kantin;
 use App\Models\User;

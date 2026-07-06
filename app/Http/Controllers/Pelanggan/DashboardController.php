@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pelanggan;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kantin;
 use App\Models\Tenant;
 
-class PelangganController extends Controller
+class DashboardController extends Controller
 {
     public function dashboard(Request $request)
     {

@@ -29,10 +29,10 @@
             
             @if($tenant->foto)
                 <!-- Background Image Area (Right) -->
-                <div class="absolute inset-y-0 right-0 w-2/3 md:w-1/2 pointer-events-none">
+                <div class="absolute inset-y-0 right-0 w-full md:w-2/3 pointer-events-none">
                     <!-- Gradient Masking for smooth transition -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/90 to-transparent z-10"></div>
-                    <img src="{{ asset('storage/' . $tenant->foto) }}" class="w-full h-full object-cover opacity-90">
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/80 to-transparent z-10"></div>
+                    <img src="{{ asset('storage/' . $tenant->foto) }}" class="w-full h-full object-cover object-center">
                 </div>
             @endif
 
@@ -58,7 +58,7 @@
                         <h1 class="text-3xl md:text-5xl font-bold tracking-tight">{{ $tenant->nama_tenant }}</h1>
                         @if($tenant->reviews_count > 0)
                             <div class="flex items-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1 text-yellow-400 text-sm font-bold shadow-sm">
-                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }} <span class="text-white/80 font-medium ml-1.5">{{ $tenant->reviews_count }} Ulasan</span>
+                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }}
                             </div>
                         @endif
                     </div>

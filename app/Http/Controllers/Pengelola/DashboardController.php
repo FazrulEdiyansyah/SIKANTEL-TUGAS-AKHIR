@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pengelola;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kantin;
 use App\Models\Tenant;
@@ -9,7 +10,7 @@ use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class PengelolaController extends Controller
+class DashboardController extends Controller
 {
     public function dashboard()
     {
