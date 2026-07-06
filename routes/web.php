@@ -107,6 +107,8 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
     Route::get('/pengelola/kantin/create', [\App\Http\Controllers\Pengelola\KantinController::class, 'create'])->name('pengelola.kantin.create');
     Route::post('/pengelola/kantin', [\App\Http\Controllers\Pengelola\KantinController::class, 'store'])->name('pengelola.kantin.store');
     Route::get('/pengelola/kantin/{kantin}', [\App\Http\Controllers\Pengelola\KantinController::class, 'show'])->name('pengelola.kantin.show');
+    Route::get('/pengelola/kantin/{kantin}/edit', [\App\Http\Controllers\Pengelola\KantinController::class, 'edit'])->name('pengelola.kantin.edit');
+    Route::put('/pengelola/kantin/{kantin}', [\App\Http\Controllers\Pengelola\KantinController::class, 'update'])->name('pengelola.kantin.update');
     
     // Laporan Pencairan Dana
     Route::prefix('pengelola/pencairan-dana')->name('pengelola.pencairan_dana.')->group(function () {
@@ -132,6 +134,8 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
     // Rute Rekap Penjualan
     Route::get('/pengelola/rekap-penjualan', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'index'])->name('pengelola.rekap.index');
     Route::get('/pengelola/rekap-penjualan/{kantin}', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'show'])->name('pengelola.rekap.show');
+    Route::get('/pengelola/rekap-penjualan/{kantin}/export/excel', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportExcel'])->name('pengelola.rekap.export-excel');
+    Route::get('/pengelola/rekap-penjualan/{kantin}/export/pdf', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportPdf'])->name('pengelola.rekap.export-pdf');
     
     // Profil
     Route::get('/pengelola/profile', [\App\Http\Controllers\Pengelola\ProfileController::class, 'index'])->name('pengelola.profile.index');

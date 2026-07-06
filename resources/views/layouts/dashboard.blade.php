@@ -47,16 +47,6 @@
 
         <!-- Right: Icons & Profile -->
         <div class="flex items-center space-x-3 lg:space-x-5">
-            <!-- Search Icon -->
-            <button class="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors hidden sm:block">
-                <i class="ph ph-magnifying-glass text-[22px]"></i>
-            </button>
-
-            <!-- Notification -->
-            <button class="relative p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors mr-2">
-                <i class="ph ph-bell text-[22px]"></i>
-                <span class="absolute top-2.5 right-2.5 w-2 h-2 bg-telkom-red rounded-full ring-2 ring-white"></span>
-            </button>
 
             <!-- Profile Dropdown -->
             <div x-data="{ profileOpen: false }" class="relative">

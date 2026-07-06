@@ -33,6 +33,12 @@
     <form action="{{ route('pengelola.pencairan_dana.store') }}" method="POST" id="disbursementForm">
         @csrf
         <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8">
+            <!-- Judul Laporan -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Judul Laporan <span class="text-red-500">*</span></label>
+                <input type="text" name="judul" required placeholder="Contoh: Pencairan Dana Kantin TULT Periode Juni 2026" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all">
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Periode Laporan -->
                 <div>
@@ -330,6 +336,49 @@
                 document.getElementById('btnDraft').disabled = true;
                 document.getElementById('btnProposed').disabled = true;
             }
+        }
+
+        // ==========================================
+        // PROTEKSI DOUBLE SUBMIT & LOADING STATE
+        // ==========================================
+        const form = document.getElementById('disbursementForm');
+        const btnDraft = document.getElementById('btnDraft');
+        const btnProposed = document.getElementById('btnProposed');
+
+        btnDraft.addEventListener('click', function(e) {
+            handleFormSubmit(e, 'draft', btnDraft, btnProposed);
+        });
+
+        btnProposed.addEventListener('click', function(e) {
+            handleFormSubmit(e, 'proposed', btnProposed, btnDraft);
+        });
+
+        function handleFormSubmit(e, actionValue, clickedBtn, otherBtn) {
+            if(!form.checkValidity()) {
+                // Biarkan HTML5 validation berjalan jika ada field yg belum diisi
+                return;
+            }
+            
+            // Cegah submit bawaan agar kita bisa disable tombol dulu
+            e.preventDefault();
+
+            // Sisipkan hidden input agar nilai 'action' tetap terkirim ke controller
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'action';
+            hiddenInput.value = actionValue;
+            form.appendChild(hiddenInput);
+
+            // Ubah tampilan tombol yang diklik menjadi loading
+            clickedBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Memproses...';
+            clickedBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            // Nonaktifkan kedua tombol secara mutlak
+            clickedBtn.disabled = true;
+            otherBtn.disabled = true;
+
+            // Lanjutkan pengiriman form
+            form.submit();
         }
     });
 </script>

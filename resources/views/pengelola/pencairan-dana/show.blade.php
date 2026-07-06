@@ -28,8 +28,8 @@
     <!-- Header Page -->
     <div class="mb-6 flex justify-between items-center">
         <div>
-            <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Detail Laporan Pencairan Dana</h1>
-            <p class="text-[15px] text-gray-500 font-medium">Informasi rincian pengajuan pencairan dana ke tenant.</p>
+            <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">{{ $batchInfo->judul ?? 'Laporan Pencairan Dana' }}</h1>
+            <p class="text-[15px] text-gray-500 font-medium">Referensi: {{ $batchInfo->batch_id }}</p>
         </div>
         <a href="{{ $role === 'pengelola' ? route('pengelola.pencairan_dana.index') : route($role.'.dashboard') }}" class="inline-flex items-center text-sm font-bold text-telkom-red hover:text-red-700 transition-colors">
             <i class="ph-bold ph-arrow-left mr-2"></i> Kembali

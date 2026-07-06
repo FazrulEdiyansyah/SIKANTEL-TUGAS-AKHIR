@@ -62,7 +62,7 @@ class MenuController extends Controller
             $query->where('status', $request->status);
         }
 
-        $menus = $query->latest()->paginate(8)->withQueryString();
+        $menus = $query->latest()->paginate(10)->withQueryString();
         
         $totalMenu = Menu::where('tenant_id', $tenant->id)->count();
         $menuTersedia = Menu::where('tenant_id', $tenant->id)->where('status', 'tersedia')->count();

@@ -21,10 +21,10 @@
                 <i class="ph ph-arrow-left font-bold text-lg mr-2"></i>
                 Kembali
             </a>
-            <button class="inline-flex items-center justify-center px-5 py-2.5 bg-telkom-red hover:bg-telkom-maroon text-white font-semibold rounded-xl shadow-sm transition-colors">
+            <a href="{{ route('pengelola.kantin.edit', $kantin->id) }}" class="inline-flex items-center justify-center px-5 py-2.5 bg-telkom-red hover:bg-telkom-maroon text-white font-semibold rounded-xl shadow-sm transition-colors">
                 <i class="ph ph-pencil-simple font-bold text-lg mr-2"></i>
                 Edit Kantin
-            </button>
+            </a>
         </div>
     </div>
 

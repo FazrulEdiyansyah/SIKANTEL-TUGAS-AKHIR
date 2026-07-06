@@ -16,7 +16,7 @@ class OrderController extends Controller
             ->where('tenant_id', $tenantId)
             ->where('payment_status', 'success')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
         return view('tenant.orders.index', compact('orders'));
     }

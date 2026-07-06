@@ -187,6 +187,13 @@
                 </div>
             </template>
 
+            <!-- Pagination -->
+            @if($orders->hasPages())
+            <div class="mt-6 bg-white p-4 rounded-xl border border-gray-100">
+                {{ $orders->links() }}
+            </div>
+            @endif
+
         </div>
     </div>
 
@@ -195,7 +202,7 @@
             Alpine.data('tenantOrders', () => ({
                 activeTab: 'belum_diproses', // default tab
                 searchQuery: '',
-                orders: {!! json_encode($orders) !!},
+                orders: {!! json_encode($orders->items()) !!},
 
                 get counts() {
                     return {

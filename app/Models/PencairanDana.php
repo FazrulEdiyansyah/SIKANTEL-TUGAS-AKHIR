@@ -11,6 +11,7 @@ class PencairanDana extends Model
 
     protected $fillable = [
         'batch_id',
+        'judul',
         'pengelola_id',
         'tenant_id',
         'approver_name',

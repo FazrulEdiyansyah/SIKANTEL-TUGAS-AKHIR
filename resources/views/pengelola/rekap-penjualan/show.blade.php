@@ -19,10 +19,35 @@
             <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Detail Rekap Penjualan – {{ $kantin->nama_kantin }}</h1>
             <p class="text-[15px] text-gray-500 font-medium">Ringkasan penjualan seluruh tenant pada {{ $kantin->nama_kantin }}.</p>
         </div>
-        <button class="inline-flex items-center justify-center px-5 py-2.5 border border-telkom-red text-telkom-red hover:bg-red-50 font-semibold rounded-xl transition-colors">
-            <i class="ph ph-download-simple font-bold text-lg mr-2"></i>
-            Export Laporan
-        </button>
+        <!-- Export Dropdown Menu -->
+        <div class="relative" x-data="{ openExport: false }" @click.away="openExport = false">
+            <button @click="openExport = !openExport" class="inline-flex items-center justify-center px-5 py-2.5 border border-telkom-red text-telkom-red hover:bg-red-50 font-semibold rounded-xl transition-colors">
+                <i class="ph ph-download-simple font-bold text-lg mr-2"></i>
+                Export Laporan
+                <i class="ph ph-caret-down ml-2"></i>
+            </button>
+            
+            <div x-show="openExport" 
+                 x-transition:enter="transition ease-out duration-100"
+                 x-transition:enter-start="transform opacity-0 scale-95"
+                 x-transition:enter-end="transform opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-75"
+                 x-transition:leave-start="transform opacity-100 scale-100"
+                 x-transition:leave-end="transform opacity-0 scale-95"
+                 class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden" 
+                 style="display: none;">
+                <div class="py-1">
+                    <a href="{{ route('pengelola.rekap.export-pdf', ['kantin' => $kantin->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
+                        <i class="ph ph-file-pdf text-lg mr-2"></i>
+                        Export sebagai PDF
+                    </a>
+                    <a href="{{ route('pengelola.rekap.export-excel', ['kantin' => $kantin->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
+                        <i class="ph ph-file-xls text-lg mr-2"></i>
+                        Export sebagai Excel
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Main Content Box (Table Section) -->
@@ -43,7 +68,7 @@
                 <div class="flex flex-col md:flex-row items-center gap-3 w-full xl:w-auto">
                     
                     <div class="relative w-full md:w-40">
-                        <select name="period" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all appearance-none cursor-pointer">
+                        <select name="period" onchange="if(this.value !== 'custom') { this.form.start_date.value=''; this.form.end_date.value=''; }" class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all appearance-none cursor-pointer">
                             <option value="all" {{ request('period') == 'all' ? 'selected' : '' }}>Semua Waktu</option>
                             <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Hari Ini</option>
                             <option value="this_week" {{ request('period') == 'this_week' ? 'selected' : '' }}>Minggu Ini</option>
@@ -55,9 +80,9 @@
 
                     <!-- Custom Date Range -->
                     <div class="flex items-center gap-2 w-full md:w-auto">
-                        <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Mulai">
+                        <input type="date" name="start_date" value="{{ $startDate }}" onchange="this.form.period.value='custom'" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Mulai">
                         <span class="text-gray-400">-</span>
-                        <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Akhir">
+                        <input type="date" name="end_date" value="{{ $endDate }}" onchange="this.form.period.value='custom'" class="w-full md:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all" title="Tanggal Akhir">
                     </div>
 
                     <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm flex items-center justify-center">
@@ -131,19 +156,8 @@
         </div>
 
         <!-- Pagination -->
-        <div class="px-6 py-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span class="text-[13px] font-medium text-gray-500">Menampilkan {{ $tenants->count() }} data tenant</span>
-            <div class="flex items-center space-x-1.5">
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-left font-bold"></i>
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-telkom-red text-white font-bold text-[13px] shadow-sm">
-                    1
-                </button>
-                <button class="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 transition-colors cursor-not-allowed" disabled>
-                    <i class="ph ph-caret-right font-bold"></i>
-                </button>
-            </div>
+        <div class="px-6 py-5 border-t border-gray-100">
+            {{ $tenants->links() }}
         </div>
 
     </div>
