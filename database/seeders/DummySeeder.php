@@ -68,7 +68,7 @@ class DummySeeder extends Seeder
 
         // 3. Tenants
         $userTenant1 = User::firstOrCreate(
-            ['email' => 'ayam_geprek@tenant.com'],
+            ['email' => 'ayam_geprek@tenant.sikantel.ac.id'],
             ['name' => 'Ayam Geprek Bensu', 'password' => Hash::make('password'), 'role' => 'tenant']
         );
         $tenant1 = Tenant::create([
@@ -81,7 +81,7 @@ class DummySeeder extends Seeder
         ]);
 
         $userTenant2 = User::firstOrCreate(
-            ['email' => 'soto_lamongan@tenant.com'],
+            ['email' => 'soto_lamongan@tenant.sikantel.ac.id'],
             ['name' => 'Soto Ayam Lamongan', 'password' => Hash::make('password'), 'role' => 'tenant']
         );
         $tenant2 = Tenant::create([

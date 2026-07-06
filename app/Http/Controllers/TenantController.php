@@ -78,12 +78,12 @@ class TenantController extends Controller
 
             // Username untuk login tanpa titik
             $uniqueName = str_replace('.', '', $cleanName);
-            $uniqueEmail = $cleanName . '@tenant.com';
+            $uniqueEmail = $cleanName . '@tenant.sikantel.ac.id';
 
             $counter = 1;
             while (User::where('email', $uniqueEmail)->orWhere('name', $uniqueName)->exists()) {
                 $uniqueName = $cleanName . $counter;
-                $uniqueEmail = $cleanName . $counter . '@tenant.com';
+                $uniqueEmail = $cleanName . $counter . '@tenant.sikantel.ac.id';
                 $counter++;
             }
 
