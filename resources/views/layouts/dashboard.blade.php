@@ -147,6 +147,43 @@
     </div>
 
     <x-form-loading />
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmFormSubmit(event, message, type = 'warning') {
+            event.preventDefault();
+            const form = event.target || event.currentTarget; // In case icon is clicked
+            // Ensure we get the form element
+            const formElement = form.closest ? form.closest('form') : form;
+            
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: message,
+                icon: type,
+                showCancelButton: true,
+                confirmButtonColor: '#E31E24',
+                cancelButtonColor: '#9CA3AF',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-6 py-2.5 font-bold',
+                    cancelButton: 'rounded-xl px-6 py-2.5 font-bold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (formElement && typeof formElement.submit === 'function') {
+                        formElement.submit();
+                    } else if (formElement && typeof formElement.submit === 'object') {
+                        // Workaround for some cases where submit is overridden by a button with name="submit"
+                        HTMLFormElement.prototype.submit.call(formElement);
+                    }
+                }
+            });
+        }
+    </script>
+    
     @stack('scripts')
 </body>
 </html>

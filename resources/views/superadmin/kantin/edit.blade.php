@@ -79,7 +79,7 @@
     </form>
     
     <div class="px-6 pb-6 mt-[-1rem]">
-        <form action="{{ route('superadmin.kantin.destroy', $kantin->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Apakah Anda yakin ingin menghapus kantin ini? Pastikan tidak ada tenant aktif di kantin ini.');">
+        <form action="{{ route('superadmin.kantin.destroy', $kantin->id) }}" method="POST" class="inline-block" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus kantin ini? Pastikan tidak ada tenant aktif di kantin ini.')">
             @csrf
             @method('DELETE')
             <button type="submit" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center">

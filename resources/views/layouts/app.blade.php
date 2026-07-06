@@ -21,5 +21,33 @@
     <!-- Tempat di mana konten halaman spesifik (yang belum kita buat) akan ditampilkan -->
     @yield('content')
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmFormSubmit(event, message, type = 'warning') {
+            event.preventDefault();
+            const form = event.target;
+            
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: message,
+                icon: type,
+                showCancelButton: true,
+                confirmButtonColor: '#E31E24',
+                cancelButtonColor: '#9CA3AF',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-6 py-2.5 font-bold',
+                    cancelButton: 'rounded-xl px-6 py-2.5 font-bold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
 </body>
 </html>
