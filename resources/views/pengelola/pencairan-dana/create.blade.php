@@ -233,13 +233,13 @@
             }
 
             if(!startDate || !endDate) {
-                alert("Mohon isi Periode Laporan (Mulai & Selesai) agar sistem dapat menghitung total penjualan tenant.");
+                Swal.fire('Perhatian', "Mohon isi Periode Laporan (Mulai & Selesai) agar sistem dapat menghitung total penjualan tenant.", 'warning');
                 hideResult();
                 return;
             }
 
             if(new Date(startDate) > new Date(endDate)) {
-                alert("Tanggal 'Selesai' tidak boleh lebih kecil dari tanggal 'Mulai'.");
+                Swal.fire('Perhatian', "Tanggal 'Selesai' tidak boleh lebih kecil dari tanggal 'Mulai'.", 'warning');
                 hideResult();
                 return;
             }

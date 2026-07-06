@@ -7,14 +7,14 @@
     <!-- Hero Section -->
     <div class="relative max-w-[1400px] mx-auto mt-6 px-6 lg:px-16">
         <!-- Banner Container -->
-        <div class="relative w-full h-[360px] bg-[#E31E24] rounded-[32px] overflow-hidden flex text-white z-0">
+        <div class="relative w-full min-h-[420px] md:h-[360px] bg-[#E31E24] rounded-[32px] overflow-hidden flex text-white z-0">
             
             @if($kantin->foto)
                 <!-- Background Image Area (Right) -->
                 <div class="absolute inset-y-0 right-0 w-2/3 md:w-3/4 pointer-events-none">
                     <!-- Gradient Masking for smooth transition -->
                     <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/80 to-transparent z-10"></div>
-                    <img src="{{ asset('storage/' . $kantin->foto) }}" class="w-full h-full object-cover">
+                    <img src="{{ asset('storage/' . $kantin->foto) }}" loading="lazy" class="w-full h-full object-cover">
                 </div>
             @endif
 
@@ -42,7 +42,7 @@
                 <p class="text-sm md:text-base text-white/80 mb-8 max-w-lg">Pilih tenant untuk melihat menu yang tersedia.</p>
 
                 <!-- Info Cards -->
-                <div class="flex flex-col sm:flex-row gap-4 mt-auto">
+                <div class="flex flex-col sm:flex-row gap-4 mt-auto pb-12 md:pb-0">
                     <!-- Status Card -->
                     <div class="bg-white rounded-2xl p-4 flex items-center space-x-4 shrink-0 shadow-lg">
                         <div class="w-10 h-10 rounded-full bg-red-50 text-telkom-red flex items-center justify-center shrink-0">
@@ -117,6 +117,7 @@
                         @if($tenant->foto)
                             <img src="{{ asset('storage/' . $tenant->foto) }}" 
                                  alt="{{ $tenant->nama_tenant }}" 
+                                 loading="lazy"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
                             <div class="w-full h-full flex items-center justify-center">

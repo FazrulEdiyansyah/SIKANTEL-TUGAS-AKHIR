@@ -208,7 +208,7 @@
                 @if($role === 'pengelola' && $batchInfo->status == 'draft')
                     <form action="{{ route('pengelola.pencairan_dana.propose', $batchInfo->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="px-5 py-2.5 bg-green-500 text-white text-sm font-bold rounded-lg hover:bg-green-600 transition-colors shadow-sm flex items-center" onclick="return confirm('Ajukan laporan ini ke Kaur?')">
+                        <button type="submit" class="px-5 py-2.5 bg-green-500 text-white text-sm font-bold rounded-lg hover:bg-green-600 transition-colors shadow-sm flex items-center" onclick="confirmFormSubmit(event, 'Ajukan laporan ini ke Kaur?')">
                             <i class="fa-solid fa-paper-plane mr-2"></i> Ajukan Laporan
                         </button>
                     </form>
@@ -217,7 +217,7 @@
                 @if($role === 'pengelola' && in_array($batchInfo->status, ['rejected_kaur', 'rejected_kabag']))
                     <form action="{{ route('pengelola.pencairan_dana.duplicate', $batch_id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="px-5 py-2.5 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm flex items-center" onclick="return confirm('Tindakan ini akan menyalin seluruh data laporan ini menjadi Draft baru. Anda yakin ingin melanjutkan?')">
+                        <button type="submit" class="px-5 py-2.5 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm flex items-center" onclick="confirmFormSubmit(event, 'Tindakan ini akan menyalin seluruh data laporan ini menjadi Draft baru. Anda yakin ingin melanjutkan?')">
                             <i class="ph-bold ph-copy mr-2 text-lg"></i> Buat Ulang Laporan (Draft Baru)
                         </button>
                     </form>

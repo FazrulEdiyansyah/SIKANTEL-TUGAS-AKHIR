@@ -308,7 +308,7 @@
                             Lanjutkan Pembayaran
                         </button>
                         
-                        <form action="{{ route('pelanggan.orders.cancel', $order->id) }}" method="POST" class="mt-3" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
+                        <form action="{{ route('pelanggan.orders.cancel', $order->id) }}" method="POST" class="mt-3" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin membatalkan pesanan ini?')">
                             @csrf
                             <button type="submit" class="w-full py-3.5 bg-white border-2 border-gray-200 hover:border-red-500 hover:text-red-600 text-gray-500 font-bold rounded-xl transition-colors flex items-center justify-center gap-2">
                                 Batalkan Pesanan

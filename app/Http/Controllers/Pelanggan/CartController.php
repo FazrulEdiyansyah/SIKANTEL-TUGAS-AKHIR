@@ -13,8 +13,8 @@ class CartController extends Controller
         $cart = session()->get('cart', []);
         
         $tenantId = null;
-        $estMin = 5;
-        $estMax = 10;
+        $estMin = 10;
+        $estMax = 15;
         $estStartStr = '';
         $estEndStr = '';
         $activeOrders = 0;
@@ -28,9 +28,16 @@ class CartController extends Controller
                     ->whereIn('order_status', ['belum_diproses', 'diproses'])
                     ->count();
                 
-                $batchCount = floor($activeOrders / 3);
-                $estMin = 5 + ($batchCount * 5);
-                $estMax = 10 + ($batchCount * 5);
+                // Batching: setiap 10 pesanan menambah waktu tunggu 5 menit
+                $batchCount = floor($activeOrders / 10);
+                $estMin = 10 + ($batchCount * 5);
+                $estMax = 15 + ($batchCount * 5);
+                
+                // Batas maksimal waktu tunggu (cap)
+                if ($estMax > 45) {
+                    $estMax = 45;
+                    $estMin = 40;
+                }
                 
                 $now = \Carbon\Carbon::now();
                 $estStartStr = $now->copy()->addMinutes($estMin)->format('H:i');

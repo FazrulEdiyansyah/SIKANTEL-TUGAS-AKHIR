@@ -164,7 +164,7 @@
                                         <div x-show="open" 
                                              x-transition.opacity.duration.200ms
                                              class="absolute right-0 mt-2 w-36 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-10" style="display: none;">
-                                            <form action="{{ route('tenant.menu.destroy', $menu->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus menu ini?');">
+                                            <form action="{{ route('tenant.menu.destroy', $menu->id) }}" method="POST" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus menu ini?')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="w-full text-left px-4 py-2 text-sm text-telkom-red hover:bg-red-50 font-medium transition-colors flex items-center">

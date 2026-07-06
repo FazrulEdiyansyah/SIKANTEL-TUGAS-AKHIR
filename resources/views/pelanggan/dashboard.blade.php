@@ -7,27 +7,18 @@
     <!-- Hero Section -->
     <div class="relative max-w-[1400px] mx-auto mt-6 px-6 lg:px-16">
         <!-- The Red Banner -->
-        <div class="relative w-full h-[320px] bg-[#E31E24] rounded-[32px] overflow-visible flex items-center justify-center text-center text-white z-0">
-            <!-- Background Elements & Food Images -->
-            <!-- Left Shrimp Bowl -->
-            <div class="absolute -left-12 -top-10 w-[380px] h-[380px] rounded-full border-8 border-white bg-white shadow-2xl overflow-hidden z-10 hidden md:block">
-                <img src="{{ asset('images/makanan-1.png') }}" class="w-full h-full object-cover">
-            </div>
-
-            <!-- Right Top Small Bowl (Chili) -->
-            <div class="absolute right-32 top-6 w-24 h-24 rounded-full border-4 border-white bg-white shadow-xl overflow-hidden z-10 hidden lg:block">
-                <img src="{{ asset('images/makanan-1.png') }}" class="w-full h-full object-cover scale-150 origin-center">
-            </div>
-
-            <!-- Right Bottom Meatball Bowl -->
-            <div class="absolute -right-16 top-28 w-[340px] h-[340px] rounded-full border-8 border-white bg-white shadow-2xl overflow-hidden z-10 hidden md:block">
-                <img src="{{ asset('images/makanan-1.png') }}" class="w-full h-full object-cover">
+        <div class="relative w-full h-[320px] rounded-[32px] overflow-visible flex items-center justify-center text-center text-white z-0">
+            <!-- Background Image Banner -->
+            <div class="absolute inset-0 w-full h-full rounded-[32px] shadow-sm overflow-hidden z-0 bg-[#E31E24]">
+                <img src="{{ asset('images/FOTO BANNER KANTIN.png') }}" alt="Banner Kantin" class="w-full h-full object-cover object-center">
+                <!-- Overlay tipis untuk memastikan teks tetap terbaca -->
+                <div class="absolute inset-0 bg-black/10"></div>
             </div>
 
             <!-- Text Content -->
-            <div class="relative z-20 max-w-2xl px-4">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight">Pilih Kantin</h1>
-                <p class="text-white/90 text-sm md:text-base font-medium leading-relaxed">
+            <div class="relative z-20 max-w-2xl px-4 drop-shadow-lg">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-tight text-white drop-shadow-md">Pilih Kantin</h1>
+                <p class="text-white/95 text-sm md:text-base font-medium leading-relaxed drop-shadow-sm">
                     Temukan tenant dan menu makanan yang<br class="hidden md:block">
                     tersedia di kantin Universitas Telkom.
                 </p>
@@ -66,9 +57,9 @@
                     <!-- Image -->
                     <div class="w-32 sm:w-full h-auto sm:h-48 bg-gray-100 relative overflow-hidden shrink-0">
                         @if($kantin->foto)
-                            <img src="{{ asset('storage/' . $kantin->foto) }}" alt="{{ $kantin->nama_kantin }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('storage/' . $kantin->foto) }}" alt="{{ $kantin->nama_kantin }}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
-                            <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" alt="no image">
+                            <img src="{{ asset('images/no-image.png') }}" loading="lazy" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500" alt="no image">
                         @endif
                     </div>
                     

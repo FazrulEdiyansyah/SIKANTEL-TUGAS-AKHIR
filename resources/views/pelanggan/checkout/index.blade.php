@@ -245,20 +245,20 @@
                             $iconClass = 'ph-check-circle text-green-600';
                             $estTitle = 'Antrean Sepi';
                             
-                            if ($activeOrders >= 3 && $activeOrders <= 8) {
+                            if ($activeOrders > 10 && $activeOrders <= 25) {
                                 $bgClass = 'bg-yellow-50';
                                 $borderClass = 'border-yellow-200';
                                 $iconBgClass = 'bg-yellow-100';
                                 $textClass = 'text-yellow-600';
                                 $iconClass = 'ph-timer text-yellow-600';
                                 $estTitle = 'Antrean Normal';
-                            } else if ($activeOrders > 8) {
+                            } else if ($activeOrders > 25) {
                                 $bgClass = 'bg-red-50';
                                 $borderClass = 'border-red-200';
                                 $iconBgClass = 'bg-red-100';
                                 $textClass = 'text-[#E31E24]';
                                 $iconClass = 'ph-warning-circle text-[#E31E24]';
-                                $estTitle = 'Antrean Ramai';
+                                $estTitle = 'Antrean Sangat Padat';
                             }
                         @endphp
                         
@@ -316,7 +316,7 @@
                 get totalQty() {
                     let total = 0;
                     for (const key in this.cartItems) {
-                        total += this.cartItems[key].quantity;
+                        total += parseInt(this.cartItems[key].quantity, 10) || 0;
                     }
                     return total;
                 },
@@ -324,7 +324,7 @@
                 get totalPrice() {
                     let total = 0;
                     for (const key in this.cartItems) {
-                        total += (this.cartItems[key].harga * this.cartItems[key].quantity);
+                        total += (parseFloat(this.cartItems[key].harga) * parseInt(this.cartItems[key].quantity, 10));
                     }
                     return total;
                 },
@@ -414,26 +414,42 @@
                 },
                 
                 async removeItem(cartKey) {
-                    if(!confirm('Apakah Anda yakin ingin menghapus pesanan ini?')) return;
-                    
-                    // Optimistic
-                    delete this.cartItems[cartKey];
-                    
-                    try {
-                        const response = await fetch('{{ route("pelanggan.cart.remove") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                cart_key: cartKey
-                            })
-                        });
-                    } catch (error) {
-                        console.error('Error removing item:', error);
-                    }
+                    Swal.fire({
+                        title: 'Konfirmasi',
+                        text: 'Apakah Anda yakin ingin menghapus pesanan ini?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#E31E24',
+                        cancelButtonColor: '#9CA3AF',
+                        confirmButtonText: 'Ya, Lanjutkan',
+                        cancelButtonText: 'Batal',
+                        customClass: {
+                            popup: 'rounded-3xl',
+                            confirmButton: 'rounded-xl px-6 py-2.5 font-bold',
+                            cancelButton: 'rounded-xl px-6 py-2.5 font-bold'
+                        }
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            // Optimistic
+                            delete this.cartItems[cartKey];
+                            
+                            try {
+                                const response = await fetch('{{ route("pelanggan.cart.remove") }}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json',
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                    },
+                                    body: JSON.stringify({
+                                        cart_key: cartKey
+                                    })
+                                });
+                            } catch (error) {
+                                console.error('Error removing item:', error);
+                            }
+                        }
+                    });
                 },
                 
                 async proceedToPayment() {
@@ -480,29 +496,29 @@
                                     } catch (e) {
                                         console.error(e);
                                     }
-                                    alert('Pembayaran sukses!');
+                                    Swal.fire('Berhasil', 'Pembayaran sukses!', 'success').then(() => window.location.href = "{{ route('pelanggan.orders.index') }}");
                                     window.location.href = '/pelanggan/orders';
                                 },
                                 onPending: function(result){
-                                    alert('Menunggu pembayaran Anda!');
+                                    Swal.fire('Menunggu', 'Menunggu pembayaran Anda!', 'info').then(() => window.location.href = "{{ route('pelanggan.orders.index') }}");
                                     window.location.href = '/pelanggan/orders';
                                 },
                                 onError: function(result){
-                                    alert('Pembayaran gagal!');
+                                    Swal.fire('Gagal', 'Pembayaran gagal!', 'error');
                                     window.location.reload();
                                 },
                                 onClose: function() {
-                                    alert('Anda menutup popup tanpa menyelesaikan pembayaran');
+                                    Swal.fire('Dibatalkan', 'Anda menutup popup tanpa menyelesaikan pembayaran', 'warning');
                                     window.location.href = '/pelanggan/orders';
                                 }
                             });
                         } else {
-                            alert(data.message || 'Terjadi kesalahan saat memproses pesanan.');
+                            Swal.fire('Gagal', data.message || 'Terjadi kesalahan saat memproses pesanan.', 'error');
                             this.isProcessingPayment = false;
                         }
                     } catch (error) {
                         console.error('Checkout error:', error);
-                        alert('Terjadi kesalahan koneksi.');
+                        Swal.fire('Error', 'Terjadi kesalahan koneksi.', 'error');
                         this.isProcessingPayment = false;
                     }
                 }

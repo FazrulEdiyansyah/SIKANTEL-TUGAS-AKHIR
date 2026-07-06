@@ -132,7 +132,7 @@
                         </button>
                     </form>
 
-                    <form action="{{ route('superadmin.pencairan.reject', $pencairan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menolak laporan ini?');">
+                    <form action="{{ route('superadmin.pencairan.reject', $pencairan->id) }}" method="POST" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menolak laporan ini?')">
                         @csrf
                         <button type="submit" class="w-full bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-2.5 rounded-lg text-sm transition-colors">
                             <i class="fa-solid fa-xmark mr-2"></i> Tolak Laporan
@@ -140,7 +140,7 @@
                     </form>
                 @endif
 
-                <form action="{{ route('superadmin.pencairan.destroy', $pencairan->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan.');">
+                <form action="{{ route('superadmin.pencairan.destroy', $pencairan->id) }}" method="POST" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan.')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 rounded-lg text-sm transition-colors border border-red-200">

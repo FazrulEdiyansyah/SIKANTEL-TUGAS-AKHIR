@@ -48,10 +48,7 @@
 
         <!-- Right: Actions -->
         <div class="flex items-center space-x-4">
-            <!-- Search -->
-            <button class="w-10 h-10 flex items-center justify-center rounded-full text-gray-400 hover:bg-gray-50 hover:text-gray-900 transition-colors">
-                <i class="ph ph-magnifying-glass text-xl"></i>
-            </button>
+            <!-- Search removed -->
 
             <!-- Profile Dropdown -->
             <div x-data="{ open: false }" class="relative">
@@ -175,5 +172,36 @@
     <x-alert-toast />
     <x-form-loading />
 
+    <script>
+        function confirmFormSubmit(event, message, type = 'warning') {
+            event.preventDefault();
+            const form = event.target || event.currentTarget; 
+            const formElement = form.closest ? form.closest('form') : form;
+            
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: message,
+                icon: type,
+                showCancelButton: true,
+                confirmButtonColor: '#E31E24',
+                cancelButtonColor: '#9CA3AF',
+                confirmButtonText: 'Ya, Lanjutkan',
+                cancelButtonText: 'Batal',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-6 py-2.5 font-bold',
+                    cancelButton: 'rounded-xl px-6 py-2.5 font-bold'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if (formElement && typeof formElement.submit === 'function') {
+                        formElement.submit();
+                    } else if (formElement && typeof formElement.submit === 'object') {
+                        HTMLFormElement.prototype.submit.call(formElement);
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
