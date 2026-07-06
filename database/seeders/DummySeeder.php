@@ -68,27 +68,27 @@ class DummySeeder extends Seeder
 
         // 3. Tenants
         $userTenant1 = User::firstOrCreate(
-            ['email' => 'ayam_geprek@tenant.com'],
+            ['email' => 'ayam_geprek@tenant.sikantel.ac.id'],
             ['name' => 'Ayam Geprek Bensu', 'password' => Hash::make('password'), 'role' => 'tenant']
         );
         $tenant1 = Tenant::create([
             'user_id' => $userTenant1->id,
             'kantin_id' => $kantinFTE->id,
             'nama_tenant' => 'Ayam Geprek Bensu',
-            'jenis_makanan' => 'Ayam & Nasi',
+            'jenis_makanan' => 'Makanan Berat',
             'no_telepon' => '081234567890',
             'status' => 'aktif'
         ]);
 
         $userTenant2 = User::firstOrCreate(
-            ['email' => 'soto_lamongan@tenant.com'],
+            ['email' => 'soto_lamongan@tenant.sikantel.ac.id'],
             ['name' => 'Soto Ayam Lamongan', 'password' => Hash::make('password'), 'role' => 'tenant']
         );
         $tenant2 = Tenant::create([
             'user_id' => $userTenant2->id,
             'kantin_id' => $kantinFRI->id,
             'nama_tenant' => 'Soto Ayam Lamongan',
-            'jenis_makanan' => 'Berkuah',
+            'jenis_makanan' => 'Makanan Berat',
             'no_telepon' => '081298765432',
             'status' => 'aktif'
         ]);

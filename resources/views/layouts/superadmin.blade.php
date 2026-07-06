@@ -13,6 +13,9 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Phosphor Icons (for global components) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- AlpineJS -->
@@ -180,17 +183,7 @@
                 @endif
             </div>
 
-            @if(session('success'))
-            <div class="mb-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-sm" role="alert">
-                <p>{{ session('success') }}</p>
-            </div>
-            @endif
-
-            @if(session('error'))
-            <div class="mb-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded shadow-sm" role="alert">
-                <p>{{ session('error') }}</p>
-            </div>
-            @endif
+            <x-alert-toast />
 
             <!-- Main Yield -->
             @yield('content')
@@ -198,6 +191,7 @@
         </main>
     </div>
 
+    <x-form-loading />
     @stack('scripts')
 </body>
 </html>

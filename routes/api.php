@@ -7,4 +7,4 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/midtrans-callback', [\App\Http\Controllers\CheckoutController::class, 'callback']);
+Route::post('/midtrans-callback', [\App\Http\Controllers\Pelanggan\CheckoutController::class, 'callback']);

@@ -27,17 +27,14 @@
         <!-- Banner Container -->
         <div class="relative w-full h-[280px] md:h-[320px] bg-[#E31E24] rounded-[32px] overflow-hidden flex text-white z-0">
             
-            <!-- Background Image Area (Right) -->
-            <div class="absolute inset-y-0 right-0 w-2/3 md:w-1/2 pointer-events-none">
-                <!-- Gradient Masking for smooth transition -->
-                <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/90 to-transparent z-10"></div>
-                
-                @if($tenant->foto)
-                    <img src="{{ asset('storage/' . $tenant->foto) }}" class="w-full h-full object-cover opacity-90">
-                @else
-                    <img src="{{ asset('images/makanan-1.png') }}" class="w-full h-full object-cover opacity-90">
-                @endif
-            </div>
+            @if($tenant->foto)
+                <!-- Background Image Area (Right) -->
+                <div class="absolute inset-y-0 right-0 w-full md:w-2/3 pointer-events-none">
+                    <!-- Gradient Masking for smooth transition -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#E31E24] via-[#E31E24]/80 to-transparent z-10"></div>
+                    <img src="{{ asset('storage/' . $tenant->foto) }}" class="w-full h-full object-cover object-center">
+                </div>
+            @endif
 
             <!-- Content Area (Left) -->
             <div class="relative z-20 w-full h-full p-8 md:p-12 flex items-center">
@@ -61,7 +58,7 @@
                         <h1 class="text-3xl md:text-5xl font-bold tracking-tight">{{ $tenant->nama_tenant }}</h1>
                         @if($tenant->reviews_count > 0)
                             <div class="flex items-center bg-white/20 backdrop-blur-sm border border-white/30 rounded-full px-4 py-1 text-yellow-400 text-sm font-bold shadow-sm">
-                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }} <span class="text-white/80 font-medium ml-1.5">{{ $tenant->reviews_count }} Ulasan</span>
+                                <i class="ph-fill ph-star mr-1.5"></i> {{ number_format($tenant->reviews_avg_rating, 1) }}
                             </div>
                         @endif
                     </div>
@@ -115,12 +112,12 @@
         </div>
 
         <!-- Grid Cards -->
-        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
             @forelse($menus as $menu)
                 <!-- Menu Card -->
-                <div class="bg-white rounded-[24px] shadow-sm hover:shadow-md overflow-hidden flex flex-col transition-all group" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'border-y border-r border-gray-100 border-l-[6px] border-l-[#E31E24]' : 'border border-gray-100'">
+                <div class="bg-white rounded-[20px] sm:rounded-[24px] shadow-sm hover:shadow-md overflow-hidden flex flex-row sm:flex-col transition-all group" :class="(cart.menuQty[{{ $menu->id }}] || 0) > 0 ? 'border-y border-r border-gray-100 border-l-[4px] sm:border-l-[6px] border-l-[#E31E24]' : 'border border-gray-100'">
                     <!-- Image -->
-                    <div class="w-full h-48 bg-gray-100 relative overflow-hidden shrink-0">
+                    <div class="w-[110px] h-[110px] sm:w-full sm:h-48 bg-gray-100 relative overflow-hidden shrink-0 m-2 sm:m-0 rounded-xl sm:rounded-none">
                         @if($menu->foto)
                             <img src="{{ asset('storage/' . $menu->foto) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
@@ -129,15 +126,15 @@
                     </div>
                     
                     <!-- Content -->
-                    <div class="p-5 flex-1 flex flex-col">
-                        <h3 class="text-[15px] font-bold text-gray-900 leading-tight mb-2">{{ $menu->nama_menu }}</h3>
-                        <p class="text-[14px] text-gray-700 font-semibold mb-4 flex-1">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
+                    <div class="p-3 sm:p-5 flex-1 flex flex-col justify-center sm:justify-start">
+                        <h3 class="text-[14px] sm:text-[15px] font-bold text-gray-900 leading-tight mb-1 sm:mb-2 line-clamp-2">{{ $menu->nama_menu }}</h3>
+                        <p class="text-[13px] sm:text-[14px] text-gray-700 font-semibold mb-2 sm:mb-4 flex-1">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
                         
                         <!-- Status Label -->
                         @if($menu->status === 'tersedia')
-                            <span class="text-[11px] font-bold text-gray-900 mb-3 block">Tersedia</span>
+                            <span class="text-[11px] font-bold text-gray-900 mb-2 sm:mb-3 hidden sm:block">Tersedia</span>
                         @else
-                            <span class="text-[11px] font-bold text-gray-400 mb-3 block flex items-center">
+                            <span class="text-[11px] font-bold text-gray-400 mb-2 sm:mb-3 block flex items-center">
                                 <span class="w-1.5 h-1.5 rounded-full bg-gray-300 mr-1.5"></span> Habis
                             </span>
                         @endif

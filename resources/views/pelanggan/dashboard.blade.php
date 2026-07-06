@@ -59,12 +59,12 @@
         </div>
 
         <!-- Grid Cards -->
-        <div id="kantin-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div id="kantin-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
             @forelse($kantins as $kantin)
                 <!-- Kantin Card -->
-                <div class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-col transition-all group">
+                <a href="{{ route('pelanggan.kantin.show', $kantin->id) }}" class="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 overflow-hidden flex flex-row sm:flex-col transition-all group">
                     <!-- Image -->
-                    <div class="w-full h-48 bg-gray-100 relative overflow-hidden">
+                    <div class="w-32 sm:w-full h-auto sm:h-48 bg-gray-100 relative overflow-hidden shrink-0">
                         @if($kantin->foto)
                             <img src="{{ asset('storage/' . $kantin->foto) }}" alt="{{ $kantin->nama_kantin }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                         @else
@@ -73,16 +73,16 @@
                     </div>
                     
                     <!-- Content -->
-                    <div class="p-6 flex-1 flex flex-col">
-                        <h3 class="text-lg font-bold text-gray-900 mb-1">{{ $kantin->nama_kantin }}</h3>
-                        <p class="text-[13px] text-gray-500 mb-6 flex-1">{{ $kantin->lokasi ?? 'Kantin area Telkom University' }}</p>
+                    <div class="p-4 sm:p-6 flex-1 flex flex-col justify-center">
+                        <h3 class="text-[15px] sm:text-lg font-bold text-gray-900 mb-1 leading-tight group-hover:text-telkom-red transition-colors">{{ $kantin->nama_kantin }}</h3>
+                        <p class="text-[12px] sm:text-[13px] text-gray-500 mb-0 sm:mb-6 flex-1 line-clamp-2">{{ $kantin->lokasi ?? 'Kantin area Telkom University' }}</p>
                         
-                        <!-- Action Button -->
-                        <a href="{{ route('pelanggan.kantin.show', $kantin->id) }}" class="w-full block text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-sm">
+                        <!-- Action Button (Desktop Only) -->
+                        <div class="hidden sm:block w-full text-center bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm py-3 rounded-xl transition-colors shadow-sm mt-auto">
                             Lihat Tenant
-                        </a>
+                        </div>
                     </div>
-                </div>
+                </a>
             @empty
                 <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-gray-100 border-dashed">
                     <i class="ph ph-storefront text-5xl text-gray-300 mb-4 inline-block"></i>

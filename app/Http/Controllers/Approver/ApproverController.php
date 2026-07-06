@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Approver;
 
+use App\Http\Controllers\Controller;
 use App\Models\PencairanDana;
 use App\Models\Kantin;
 use App\Models\Tenant;

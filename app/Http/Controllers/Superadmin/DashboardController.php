@@ -21,6 +21,9 @@ class DashboardController extends Controller
         $totalTenant = Tenant::count();
         $totalPencairan = PencairanDana::count();
         
-        return view('superadmin.dashboard', compact('totalUsers', 'totalOrders', 'totalKantin', 'totalTenant', 'totalPencairan'));
+        $recentUsers = User::orderBy('created_at', 'desc')->take(5)->get();
+        $recentOrders = Order::with(['user', 'tenant'])->orderBy('created_at', 'desc')->take(5)->get();
+        
+        return view('superadmin.dashboard', compact('totalUsers', 'totalOrders', 'totalKantin', 'totalTenant', 'totalPencairan', 'recentUsers', 'recentOrders'));
     }
 }

@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pelanggan;
 
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Kantin;
 use App\Models\Tenant;
 
-class PelangganController extends Controller
+class DashboardController extends Controller
 {
     public function dashboard(Request $request)
     {
@@ -39,6 +40,7 @@ class PelangganController extends Controller
                 }
                 return $query;
             })
+            ->orderBy('is_open', 'desc')
             ->get();
 
         return view('pelanggan.kantin.show', compact('kantin', 'tenants'));
@@ -56,6 +58,7 @@ class PelangganController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where('nama_menu', 'ilike', "%{$search}%");
             })
+            ->orderByRaw("CASE WHEN status = 'tersedia' THEN 1 ELSE 0 END DESC")
             ->get();
 
         return view('pelanggan.tenant.show', compact('tenant', 'menus'));

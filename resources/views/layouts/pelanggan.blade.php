@@ -36,12 +36,12 @@
         </a>
 
         <!-- Center: Nav Links -->
-        <nav class="hidden lg:flex items-center space-x-12 h-full">
-            <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.dashboard') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
+        <nav class="flex items-center space-x-6 lg:space-x-12 h-full">
+            <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-xs lg:text-sm font-bold {{ request()->routeIs('pelanggan.dashboard') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Beranda
             </a>
 
-            <a href="{{ route('pelanggan.orders.index') }}" class="h-full flex items-center text-sm font-bold {{ request()->routeIs('pelanggan.orders.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
+            <a href="{{ route('pelanggan.orders.index') }}" class="h-full flex items-center text-xs lg:text-sm font-bold {{ request()->routeIs('pelanggan.orders.*') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Pesanan Saya
             </a>
         </nav>
@@ -83,10 +83,6 @@
                 </div>
             </div>
 
-            <!-- Mobile Menu Toggle -->
-            <button class="lg:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors">
-                <i class="ph ph-list text-2xl"></i>
-            </button>
         </div>
     </header>
 
@@ -96,10 +92,10 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-8 mt-12 pb-24">
+    <footer class="bg-white border-t border-gray-100 py-4 mt-8 pb-10">
         <div class="container mx-auto px-6 lg:px-16 text-center">
-            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-6 object-contain mx-auto mb-4 opacity-50 grayscale">
-            <p class="text-[13px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
+            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-5 object-contain mx-auto mb-2 opacity-50 grayscale">
+            <p class="text-[12px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
         </div>
     </footer>
 
@@ -176,43 +172,8 @@
         </template>
     @endif
 
-    <!-- Global Toast Notification (CSS Only) -->
-    @if(session('success_cart'))
-        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
-            <div class="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
-                <i class="ph-fill ph-check-circle text-xl mr-2"></i>
-                {{ session('success_cart') }}
-            </div>
-        </div>
-        <style>
-            @keyframes fadeInDown {
-                0% { opacity: 0; transform: translate(-50%, -20px); }
-                10%, 90% { opacity: 1; transform: translate(-50%, 0); }
-                100% { opacity: 0; transform: translate(-50%, -20px); }
-            }
-            .animate-fade-in-down {
-                animation: fadeInDown 3s ease-in-out forwards;
-            }
-        </style>
-    @endif
-
-    @if(session('success'))
-        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
-            <div class="bg-green-500 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
-                <i class="ph-fill ph-check-circle text-xl mr-2"></i>
-                {{ session('success') }}
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-fade-in-down pointer-events-none">
-            <div class="bg-[#E31E24] text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm flex items-center">
-                <i class="ph-fill ph-warning-circle text-xl mr-2"></i>
-                {{ session('error') }}
-            </div>
-        </div>
-    @endif
+    <x-alert-toast />
+    <x-form-loading />
 
 </body>
 </html>

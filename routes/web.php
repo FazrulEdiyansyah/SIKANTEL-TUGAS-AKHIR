@@ -2,16 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\PengelolaController;
-use App\Http\Controllers\KantinController;
-use App\Http\Controllers\TenantController;
-use App\Http\Controllers\RekapPenjualanController;
-use App\Http\Controllers\PelangganController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\Pengelola\PencairanDanaController;
-use App\Http\Controllers\ApproverController;
 Route::get('/', function () {
     if (auth()->check()) {
         $role = auth()->user()->role;
@@ -77,16 +67,16 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
 // Rute Kaur
 Route::middleware(['auth', 'role:kaur'])->prefix('kaur')->name('kaur.')->group(function () {
-    Route::get('/dashboard', [ApproverController::class, 'dashboardKaur'])->name('dashboard');
-    Route::get('/riwayat', [ApproverController::class, 'riwayatKaur'])->name('riwayat');
-    Route::get('/pencairan/{batch_id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{batch_id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
-    Route::post('/pencairan/{batch_id}/approve', [ApproverController::class, 'approveKaur'])->name('pencairan.approve');
-    Route::post('/pencairan/{batch_id}/reject', [ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
+    Route::get('/dashboard', [\App\Http\Controllers\Approver\ApproverController::class, 'dashboardKaur'])->name('dashboard');
+    Route::get('/riwayat', [\App\Http\Controllers\Approver\ApproverController::class, 'riwayatKaur'])->name('riwayat');
+    Route::get('/pencairan/{batch_id}', [\App\Http\Controllers\Approver\ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{batch_id}/pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{batch_id}/approve', [\App\Http\Controllers\Approver\ApproverController::class, 'approveKaur'])->name('pencairan.approve');
+    Route::post('/pencairan/{batch_id}/reject', [\App\Http\Controllers\Approver\ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
     
-    Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
-    Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
-    Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+    Route::get('/kantin', [\App\Http\Controllers\Approver\ApproverController::class, 'kantin'])->name('kantin.index');
+    Route::get('/tenant', [\App\Http\Controllers\Approver\ApproverController::class, 'tenant'])->name('tenant.index');
+    Route::get('/orders', [\App\Http\Controllers\Approver\ApproverController::class, 'orders'])->name('orders.index');
     
     // Profil
     Route::get('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'index'])->name('profile.index');
@@ -95,16 +85,16 @@ Route::middleware(['auth', 'role:kaur'])->prefix('kaur')->name('kaur.')->group(f
 
 // Rute Kabag
 Route::middleware(['auth', 'role:kabag'])->prefix('kabag')->name('kabag.')->group(function () {
-    Route::get('/dashboard', [ApproverController::class, 'dashboardKabag'])->name('dashboard');
-    Route::get('/riwayat', [ApproverController::class, 'riwayatKabag'])->name('riwayat');
-    Route::get('/pencairan/{batch_id}', [ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{batch_id}/pdf', [ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
-    Route::post('/pencairan/{batch_id}/approve', [ApproverController::class, 'approveKabag'])->name('pencairan.approve');
-    Route::post('/pencairan/{batch_id}/reject', [ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
+    Route::get('/dashboard', [\App\Http\Controllers\Approver\ApproverController::class, 'dashboardKabag'])->name('dashboard');
+    Route::get('/riwayat', [\App\Http\Controllers\Approver\ApproverController::class, 'riwayatKabag'])->name('riwayat');
+    Route::get('/pencairan/{batch_id}', [\App\Http\Controllers\Approver\ApproverController::class, 'showPencairan'])->name('pencairan.show');
+    Route::get('/pencairan/{batch_id}/pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::post('/pencairan/{batch_id}/approve', [\App\Http\Controllers\Approver\ApproverController::class, 'approveKabag'])->name('pencairan.approve');
+    Route::post('/pencairan/{batch_id}/reject', [\App\Http\Controllers\Approver\ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
 
-    Route::get('/kantin', [ApproverController::class, 'kantin'])->name('kantin.index');
-    Route::get('/tenant', [ApproverController::class, 'tenant'])->name('tenant.index');
-    Route::get('/orders', [ApproverController::class, 'orders'])->name('orders.index');
+    Route::get('/kantin', [\App\Http\Controllers\Approver\ApproverController::class, 'kantin'])->name('kantin.index');
+    Route::get('/tenant', [\App\Http\Controllers\Approver\ApproverController::class, 'tenant'])->name('tenant.index');
+    Route::get('/orders', [\App\Http\Controllers\Approver\ApproverController::class, 'orders'])->name('orders.index');
     
     // Profil
     Route::get('/profile', [\App\Http\Controllers\Approver\ProfileController::class, 'index'])->name('profile.index');
@@ -112,36 +102,36 @@ Route::middleware(['auth', 'role:kabag'])->prefix('kabag')->name('kabag.')->grou
 });
 
 Route::middleware(['auth', 'role:pengelola'])->group(function () {
-    Route::get('/pengelola/dashboard', [PengelolaController::class, 'dashboard'])->name('pengelola.dashboard');
-    Route::get('/pengelola/kantin', [KantinController::class, 'index'])->name('pengelola.kantin.index');
-    Route::get('/pengelola/kantin/create', [KantinController::class, 'create'])->name('pengelola.kantin.create');
-    Route::post('/pengelola/kantin', [KantinController::class, 'store'])->name('pengelola.kantin.store');
-    Route::get('/pengelola/kantin/{kantin}', [KantinController::class, 'show'])->name('pengelola.kantin.show');
+    Route::get('/pengelola/dashboard', [\App\Http\Controllers\Pengelola\DashboardController::class, 'dashboard'])->name('pengelola.dashboard');
+    Route::get('/pengelola/kantin', [\App\Http\Controllers\Pengelola\KantinController::class, 'index'])->name('pengelola.kantin.index');
+    Route::get('/pengelola/kantin/create', [\App\Http\Controllers\Pengelola\KantinController::class, 'create'])->name('pengelola.kantin.create');
+    Route::post('/pengelola/kantin', [\App\Http\Controllers\Pengelola\KantinController::class, 'store'])->name('pengelola.kantin.store');
+    Route::get('/pengelola/kantin/{kantin}', [\App\Http\Controllers\Pengelola\KantinController::class, 'show'])->name('pengelola.kantin.show');
     
     // Laporan Pencairan Dana
     Route::prefix('pengelola/pencairan-dana')->name('pengelola.pencairan_dana.')->group(function () {
-        Route::get('/', [PencairanDanaController::class, 'index'])->name('index');
-        Route::get('/create', [PencairanDanaController::class, 'create'])->name('create');
-        Route::post('/', [PencairanDanaController::class, 'store'])->name('store');
-        Route::post('/calculate', [PencairanDanaController::class, 'calculateSales'])->name('calculate');
-        Route::post('/{id}/propose', [PencairanDanaController::class, 'propose'])->name('propose');
-        Route::post('/batch/{batch_id}/duplicate', [PencairanDanaController::class, 'duplicateBatch'])->name('duplicate');
-        Route::get('/preview-pdf/{id}', [PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
-        Route::get('/batch/{batch_id}', [PencairanDanaController::class, 'show'])->name('show');
-        Route::get('/batch/{batch_id}/pdf', [PencairanDanaController::class, 'generateBatchPdf'])->name('batch_pdf');
+        Route::get('/', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'store'])->name('store');
+        Route::post('/calculate', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'calculateSales'])->name('calculate');
+        Route::post('/{id}/propose', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'propose'])->name('propose');
+        Route::post('/batch/{batch_id}/duplicate', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'duplicateBatch'])->name('duplicate');
+        Route::get('/preview-pdf/{id}', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
+        Route::get('/batch/{batch_id}', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'show'])->name('show');
+        Route::get('/batch/{batch_id}/pdf', [\App\Http\Controllers\Pengelola\PencairanDanaController::class, 'generateBatchPdf'])->name('batch_pdf');
     });
     
     // Rute Pengelola Tenant
-    Route::get('/pengelola/tenant', [TenantController::class, 'index'])->name('pengelola.tenant.index');
-    Route::get('/pengelola/tenant/create', [TenantController::class, 'create'])->name('pengelola.tenant.create');
-    Route::post('/pengelola/tenant', [TenantController::class, 'store'])->name('pengelola.tenant.store');
-    Route::get('/pengelola/tenant/{tenant}', [TenantController::class, 'show'])->name('pengelola.tenant.show');
-    Route::get('/pengelola/tenant/{tenant}/edit', [TenantController::class, 'edit'])->name('pengelola.tenant.edit');
-    Route::put('/pengelola/tenant/{tenant}', [TenantController::class, 'update'])->name('pengelola.tenant.update');
+    Route::get('/pengelola/tenant', [\App\Http\Controllers\Pengelola\TenantController::class, 'index'])->name('pengelola.tenant.index');
+    Route::get('/pengelola/tenant/create', [\App\Http\Controllers\Pengelola\TenantController::class, 'create'])->name('pengelola.tenant.create');
+    Route::post('/pengelola/tenant', [\App\Http\Controllers\Pengelola\TenantController::class, 'store'])->name('pengelola.tenant.store');
+    Route::get('/pengelola/tenant/{tenant}', [\App\Http\Controllers\Pengelola\TenantController::class, 'show'])->name('pengelola.tenant.show');
+    Route::get('/pengelola/tenant/{tenant}/edit', [\App\Http\Controllers\Pengelola\TenantController::class, 'edit'])->name('pengelola.tenant.edit');
+    Route::put('/pengelola/tenant/{tenant}', [\App\Http\Controllers\Pengelola\TenantController::class, 'update'])->name('pengelola.tenant.update');
 
     // Rute Rekap Penjualan
-    Route::get('/pengelola/rekap-penjualan', [RekapPenjualanController::class, 'index'])->name('pengelola.rekap.index');
-    Route::get('/pengelola/rekap-penjualan/{kantin}', [RekapPenjualanController::class, 'show'])->name('pengelola.rekap.show');
+    Route::get('/pengelola/rekap-penjualan', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'index'])->name('pengelola.rekap.index');
+    Route::get('/pengelola/rekap-penjualan/{kantin}', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'show'])->name('pengelola.rekap.show');
     
     // Profil
     Route::get('/pengelola/profile', [\App\Http\Controllers\Pengelola\ProfileController::class, 'index'])->name('pengelola.profile.index');
@@ -175,21 +165,21 @@ Route::middleware(['auth', 'role:tenant'])->group(function () {
 });
 
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
-    Route::get('/pelanggan/dashboard', [\App\Http\Controllers\PelangganController::class, 'dashboard'])->name('pelanggan.dashboard');
-    Route::get('/pelanggan/kantin/{kantin}', [\App\Http\Controllers\PelangganController::class, 'showKantin'])->name('pelanggan.kantin.show');
-    Route::get('/pelanggan/tenant/{tenant}', [\App\Http\Controllers\PelangganController::class, 'showTenant'])->name('pelanggan.tenant.show');
+    Route::get('/pelanggan/dashboard', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'dashboard'])->name('pelanggan.dashboard');
+    Route::get('/pelanggan/kantin/{kantin}', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'showKantin'])->name('pelanggan.kantin.show');
+    Route::get('/pelanggan/tenant/{tenant}', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'showTenant'])->name('pelanggan.tenant.show');
     
     // Rute Keranjang & Checkout
-    Route::get('/pelanggan/checkout', [CartController::class, 'index'])->name('pelanggan.checkout');
-    Route::post('/pelanggan/cart/add', [CartController::class, 'add'])->name('pelanggan.cart.add');
-    Route::post('/pelanggan/cart/decrease', [CartController::class, 'decrease'])->name('pelanggan.cart.decrease');
-    Route::post('/pelanggan/cart/update', [CartController::class, 'updateQuantity'])->name('pelanggan.cart.update');
-    Route::post('/pelanggan/cart/update-note', [CartController::class, 'updateNote'])->name('pelanggan.cart.update-note');
-    Route::post('/pelanggan/cart/remove', [CartController::class, 'remove'])->name('pelanggan.cart.remove');
+    Route::get('/pelanggan/checkout', [\App\Http\Controllers\Pelanggan\CartController::class, 'index'])->name('pelanggan.checkout');
+    Route::post('/pelanggan/cart/add', [\App\Http\Controllers\Pelanggan\CartController::class, 'add'])->name('pelanggan.cart.add');
+    Route::post('/pelanggan/cart/decrease', [\App\Http\Controllers\Pelanggan\CartController::class, 'decrease'])->name('pelanggan.cart.decrease');
+    Route::post('/pelanggan/cart/update', [\App\Http\Controllers\Pelanggan\CartController::class, 'updateQuantity'])->name('pelanggan.cart.update');
+    Route::post('/pelanggan/cart/update-note', [\App\Http\Controllers\Pelanggan\CartController::class, 'updateNote'])->name('pelanggan.cart.update-note');
+    Route::post('/pelanggan/cart/remove', [\App\Http\Controllers\Pelanggan\CartController::class, 'remove'])->name('pelanggan.cart.remove');
     
     // Checkout & Midtrans
-    Route::post('/pelanggan/checkout/process', [CheckoutController::class, 'process'])->name('pelanggan.checkout.process');
-    Route::post('/pelanggan/checkout/success-local', [CheckoutController::class, 'successLocal'])->name('pelanggan.checkout.success-local');
+    Route::post('/pelanggan/checkout/process', [\App\Http\Controllers\Pelanggan\CheckoutController::class, 'process'])->name('pelanggan.checkout.process');
+    Route::post('/pelanggan/checkout/success-local', [\App\Http\Controllers\Pelanggan\CheckoutController::class, 'successLocal'])->name('pelanggan.checkout.success-local');
     
     // Pesanan Saya
     Route::get('/pelanggan/orders', [\App\Http\Controllers\Pelanggan\OrderController::class, 'index'])->name('pelanggan.orders.index');
