@@ -18,7 +18,9 @@
         
         <!-- Status Label -->
         @if($menu->status === 'tersedia')
-            <span class="text-[11px] font-bold text-gray-900 mb-2 sm:mb-3 hidden sm:block">Tersedia</span>
+            <span class="text-[11px] font-bold text-green-600 mb-2 sm:mb-3 hidden sm:flex items-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span> Tersedia
+            </span>
         @else
             <span class="text-[11px] font-bold text-gray-400 mb-2 sm:mb-3 block flex items-center">
                 <span class="w-1.5 h-1.5 rounded-full bg-gray-300 mr-1.5"></span> Habis

@@ -48,8 +48,10 @@
 
         <!-- Right: Actions -->
         <div class="flex items-center space-x-4">
-            <!-- Search removed -->
-
+            <!-- Global Search Icon -->
+            <a href="{{ route('pelanggan.search') }}" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-50 hover:bg-gray-100 border border-gray-100 text-gray-600 transition-colors shadow-sm">
+                <i class="ph-bold ph-magnifying-glass text-lg"></i>
+            </a>
             <!-- Profile Dropdown -->
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" @click.away="open = false" class="flex items-center space-x-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-full transition-colors">
@@ -89,10 +91,10 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-100 py-4 mt-8 pb-10">
+    <footer class="bg-white border-t border-gray-100 py-3 mt-4">
         <div class="container mx-auto px-6 lg:px-16 text-center">
-            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-5 object-contain mx-auto mb-2 opacity-50 grayscale">
-            <p class="text-[12px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
+            <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-4 object-contain mx-auto mb-1.5 opacity-50 grayscale">
+            <p class="text-[11px] font-medium text-gray-400">© {{ date('Y') }} SIKANTEL - Sistem Informasi Kantin Telkom University.</p>
         </div>
     </footer>
 

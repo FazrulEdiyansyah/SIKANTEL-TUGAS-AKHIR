@@ -170,6 +170,8 @@ Route::middleware(['auth', 'role:tenant'])->group(function () {
 
 Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     Route::get('/pelanggan/dashboard', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'dashboard'])->name('pelanggan.dashboard');
+    Route::get('/pelanggan/search', [\App\Http\Controllers\Pelanggan\SearchController::class, 'index'])->name('pelanggan.search');
+    Route::post('/pelanggan/search/remove-recent', [\App\Http\Controllers\Pelanggan\SearchController::class, 'removeRecent'])->name('pelanggan.search.remove_recent');
     Route::get('/pelanggan/kantin/{kantin}', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'showKantin'])->name('pelanggan.kantin.show');
     Route::get('/pelanggan/tenant/{tenant}', [\App\Http\Controllers\Pelanggan\DashboardController::class, 'showTenant'])->name('pelanggan.tenant.show');
     
