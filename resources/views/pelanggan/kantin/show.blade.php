@@ -70,28 +70,18 @@
         </div>
 
         <!-- Floating Search Bar -->
-        <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[800px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 z-30 flex items-center">
-            <form id="search-form" action="{{ route('pelanggan.kantin.show', $kantin->id) }}" method="GET" class="flex flex-col md:flex-row w-full items-center">
-                
-                <!-- Search Input -->
-                <div class="flex items-center flex-1 w-full pl-4 py-2 border-b md:border-b-0 border-gray-100">
-                    <div class="flex flex-col shrink-0 w-24">
-                        <span class="text-[11px] font-bold text-gray-900 uppercase">Cari Tenant</span>
-                    </div>
-                    <div class="flex items-center flex-1">
-                        <i class="ph ph-magnifying-glass text-gray-400 text-lg mx-3 shrink-0"></i>
-                        <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Masukkan nama tenant" class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
-                    </div>
+        <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-[640px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 z-30 flex items-center">
+            <form id="search-form" action="{{ route('pelanggan.kantin.show', $kantin->id) }}" method="GET" class="flex w-full items-center">
+                <div class="pl-4 flex items-center shrink-0 hidden sm:flex">
+                    <span class="text-gray-800 font-bold text-sm whitespace-nowrap">Cari Tenant</span>
                 </div>
-
-
-                
-                <!-- Submit Button for Mobile -->
-                <button type="submit" class="md:hidden mt-2 w-full bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm px-6 py-2 rounded-xl transition-colors">
+                <div class="h-8 w-px bg-gray-200 mx-4 hidden sm:block"></div>
+                <div class="sm:hidden pl-3"></div>
+                <i class="ph ph-magnifying-glass text-gray-400 text-lg mr-2 shrink-0"></i>
+                <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Cari tenant di kantin ini..." class="w-full bg-transparent border-none focus:outline-none text-sm text-gray-700 placeholder-gray-400">
+                <button type="submit" class="shrink-0 ml-2 bg-[#E31E24] hover:bg-red-700 text-white font-bold text-sm px-6 sm:px-8 py-3.5 rounded-xl transition-colors shadow-sm">
                     Cari
                 </button>
-                <!-- Hidden submit button for Enter key on Desktop -->
-                <button type="submit" class="hidden"></button>
             </form>
         </div>
     </div>

@@ -60,12 +60,15 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 space-y-4 sm:space-y-0">
                 <h2 class="text-[17px] font-bold text-gray-900">Grafik Penjualan</h2>
                 <div class="flex items-center space-x-3">
-                    <div class="flex items-center bg-gray-50 rounded-lg p-1">
+                    <form method="GET" action="{{ route('pengelola.dashboard') }}" class="flex items-center bg-gray-50 rounded-lg p-1">
                         <span class="text-xs font-medium text-gray-500 px-3 py-1.5">Pilih Kantin</span>
-                        <select class="text-xs font-semibold bg-white border border-gray-200 rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-telkom-red/20 cursor-pointer">
-                            <option>Semua Kantin</option>
+                        <select name="kantin_id" onchange="this.form.submit()" class="text-xs font-semibold bg-white border border-gray-200 rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-telkom-red/20 cursor-pointer">
+                            <option value="">Semua Kantin</option>
+                            @foreach($allKantins as $k)
+                                <option value="{{ $k->id }}" {{ request('kantin_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kantin }}</option>
+                            @endforeach
                         </select>
-                    </div>
+                    </form>
                     <div class="flex bg-gray-50 rounded-lg p-1">
                         <button class="text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Hari Ini</button>
                         <button class="text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Minggu Ini</button>
@@ -98,7 +101,7 @@
                     <div>
                         <h3 class="text-lg font-bold text-gray-900">{{ $kantinTeramai->nama_kantin }}</h3>
                         <p class="text-sm font-medium text-gray-500 mb-2">{{ $kantinTeramai->lokasi }}</p>
-                        <span class="inline-flex px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold">{{ $kantinTeramai->orders_count }} Transaksi Berhasil</span>
+                        <span class="inline-flex px-3 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-bold">Rp{{ number_format($kantinTeramai->orders_sum_total_price, 0, ',', '.') }}</span>
                     </div>
                 @else
                     <i class="ph ph-storefront text-4xl text-gray-200 mb-3"></i>
@@ -116,11 +119,14 @@
     <div class="bg-white rounded-[20px] p-6 shadow-sm border border-gray-100 mb-8">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-[17px] font-bold text-gray-900">Top 5 Tenant <span class="text-[13px] font-medium text-gray-400 font-normal ml-1">(Berdasarkan Penjualan)</span></h2>
-            <div class="flex items-center bg-white border border-gray-200 rounded-lg p-1.5 px-3">
-                <select class="text-[13px] font-semibold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-gray-700">
-                    <option>Semua Kantin</option>
+            <form method="GET" action="{{ route('pengelola.dashboard') }}" class="flex items-center bg-white border border-gray-200 rounded-lg p-1.5 px-3">
+                <select name="kantin_id" onchange="this.form.submit()" class="text-[13px] font-semibold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-gray-700">
+                    <option value="">Semua Kantin</option>
+                    @foreach($allKantins as $k)
+                        <option value="{{ $k->id }}" {{ request('kantin_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kantin }}</option>
+                    @endforeach
                 </select>
-            </div>
+            </form>
         </div>
 
         <div class="overflow-x-auto">

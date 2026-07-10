@@ -5,12 +5,20 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Menu;
+use App\Models\Cart;
+use App\Models\CartItem;
 
 class CartController extends Controller
 {
+    private function getCart()
+    {
+        return Cart::firstOrCreate(['user_id' => auth()->id()]);
+    }
+
     public function index()
     {
-        $cart = session()->get('cart', []);
+        $cartModel = Cart::with('items.tenant')->where('user_id', auth()->id())->first();
+        $cart = $cartModel ? $cartModel->items->keyBy('id') : collect();
         
         $tenantId = null;
         $estMin = 10;
@@ -19,9 +27,9 @@ class CartController extends Controller
         $estEndStr = '';
         $activeOrders = 0;
 
-        if (count($cart) > 0) {
-            $firstItem = reset($cart);
-            $tenantId = $firstItem['tenant_id'] ?? null;
+        if ($cart->count() > 0) {
+            $firstItem = $cart->first();
+            $tenantId = $firstItem->tenant_id ?? null;
 
             if ($tenantId) {
                 $activeOrders = \App\Models\Order::where('tenant_id', $tenantId)
@@ -58,22 +66,12 @@ class CartController extends Controller
         ]);
 
         $menu = Menu::with('tenant')->findOrFail($request->menu_id);
-        
-        $cart = session()->get('cart', []);
+        $cart = $this->getCart();
 
-        if (!empty($cart)) {
-            $firstCartKey = array_key_first($cart);
-            $firstCartItem = $cart[$firstCartKey];
-            
-            $existingTenantId = $firstCartItem['tenant_id'] ?? null;
-            if (!$existingTenantId) {
-                // For older session items that don't have tenant_id
-                $existingMenu = \App\Models\Menu::find($firstCartItem['menu_id']);
-                $existingTenantId = $existingMenu ? $existingMenu->tenant_id : null;
-            }
-            
-            $existingTenant = \App\Models\Tenant::find($existingTenantId);
-            
+        // Cek jika ada item dari kantin berbeda
+        $firstItem = $cart->items()->first();
+        if ($firstItem) {
+            $existingTenant = $firstItem->tenant;
             if ($existingTenant && $existingTenant->kantin_id != $menu->tenant->kantin_id) {
                 if ($request->wantsJson()) {
                     return response()->json([
@@ -103,25 +101,31 @@ class CartController extends Controller
             }
         }
 
-        // Generate a unique key based on customizations and notes
-        $cartKey = $menu->id . '-' . md5(json_encode($request->custom_options) . ($request->catatan ?? ''));
+        // Cari item yang sama (menu, opsi, catatan sama)
+        $existingItem = CartItem::where('cart_id', $cart->id)
+            ->where('menu_id', $menu->id)
+            ->where('catatan', $request->catatan)
+            ->get()
+            ->first(function ($item) use ($selectedOptions) {
+                return json_encode($item->selected_options) === json_encode($selectedOptions);
+            });
 
-        if (isset($cart[$cartKey])) {
-            $cart[$cartKey]['quantity'] += $request->quantity;
+        if ($existingItem) {
+            $existingItem->quantity += $request->quantity;
+            $existingItem->save();
         } else {
-            $cart[$cartKey] = [
+            CartItem::create([
+                'cart_id'          => $cart->id,
                 'menu_id'          => $menu->id,
+                'tenant_id'        => $menu->tenant_id,
                 'nama_menu'        => $menu->nama_menu,
                 'harga'            => $menu->harga + $extraPrice,
-                'foto'             => $menu->foto,
                 'quantity'         => $request->quantity,
+                'foto'             => $menu->foto,
                 'selected_options' => $selectedOptions,
                 'catatan'          => $request->catatan,
-                'tenant_id'        => $menu->tenant_id,
-            ];
+            ]);
         }
-
-        session()->put('cart', $cart);
 
         if ($request->wantsJson()) {
             return $this->getCartResponse();
@@ -136,20 +140,17 @@ class CartController extends Controller
             'menu_id' => 'required|exists:menus,id',
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCart();
+        $item = CartItem::where('cart_id', $cart->id)->where('menu_id', $request->menu_id)->first();
 
-        foreach ($cart as $key => $item) {
-            if ($item['menu_id'] == $request->menu_id) {
-                if ($cart[$key]['quantity'] > 1) {
-                    $cart[$key]['quantity'] -= 1;
-                } else {
-                    unset($cart[$key]);
-                }
-                break;
+        if ($item) {
+            if ($item->quantity > 1) {
+                $item->quantity -= 1;
+                $item->save();
+            } else {
+                $item->delete();
             }
         }
-
-        session()->put('cart', $cart);
 
         if ($request->wantsJson()) {
             return $this->getCartResponse();
@@ -161,23 +162,25 @@ class CartController extends Controller
     public function updateQuantity(Request $request)
     {
         $request->validate([
-            'cart_key' => 'required|string',
+            'cart_key' => 'required|integer|exists:cart_items,id',
             'action' => 'required|in:increase,decrease'
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCart();
+        $item = CartItem::where('cart_id', $cart->id)->where('id', $request->cart_key)->first();
         
-        if (isset($cart[$request->cart_key])) {
+        if ($item) {
             if ($request->action === 'increase') {
-                $cart[$request->cart_key]['quantity'] += 1;
+                $item->quantity += 1;
+                $item->save();
             } else {
-                if ($cart[$request->cart_key]['quantity'] > 1) {
-                    $cart[$request->cart_key]['quantity'] -= 1;
+                if ($item->quantity > 1) {
+                    $item->quantity -= 1;
+                    $item->save();
                 } else {
-                    unset($cart[$request->cart_key]);
+                    $item->delete();
                 }
             }
-            session()->put('cart', $cart);
         }
 
         if ($request->wantsJson()) {
@@ -190,34 +193,32 @@ class CartController extends Controller
     public function updateNote(Request $request)
     {
         $request->validate([
-            'cart_key' => 'required|string',
+            'cart_key' => 'required|integer|exists:cart_items,id',
             'catatan' => 'nullable|string|max:200'
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = $this->getCart();
+        $item = CartItem::where('cart_id', $cart->id)->where('id', $request->cart_key)->first();
         
-        if (isset($cart[$request->cart_key])) {
-            $item = $cart[$request->cart_key];
-            $oldKey = $request->cart_key;
-            
-            // Generate new key based on updated catatan
-            $newKey = $item['menu_id'] . '-' . md5(json_encode($item['selected_options'] ?? []) . ($request->catatan ?? ''));
-            
-            $item['catatan'] = $request->catatan;
-            
-            if ($newKey !== $oldKey) {
-                if (isset($cart[$newKey])) {
-                    // Merge quantities if the new key (same menu, same options, same note) already exists
-                    $cart[$newKey]['quantity'] += $item['quantity'];
-                } else {
-                    $cart[$newKey] = $item;
-                }
-                unset($cart[$oldKey]);
+        if ($item) {
+            // Check if there is another item with the same menu, options and new note
+            $existingItem = CartItem::where('cart_id', $cart->id)
+                ->where('menu_id', $item->menu_id)
+                ->where('id', '!=', $item->id)
+                ->where('catatan', $request->catatan)
+                ->get()
+                ->first(function ($otherItem) use ($item) {
+                    return json_encode($otherItem->selected_options) === json_encode($item->selected_options);
+                });
+
+            if ($existingItem) {
+                $existingItem->quantity += $item->quantity;
+                $existingItem->save();
+                $item->delete();
             } else {
-                $cart[$oldKey] = $item;
+                $item->catatan = $request->catatan;
+                $item->save();
             }
-            
-            session()->put('cart', $cart);
         }
 
         if ($request->wantsJson()) {
@@ -230,15 +231,11 @@ class CartController extends Controller
     public function remove(Request $request)
     {
         $request->validate([
-            'cart_key' => 'required|string'
+            'cart_key' => 'required|integer|exists:cart_items,id'
         ]);
 
-        $cart = session()->get('cart', []);
-        
-        if (isset($cart[$request->cart_key])) {
-            unset($cart[$request->cart_key]);
-            session()->put('cart', $cart);
-        }
+        $cart = $this->getCart();
+        CartItem::where('cart_id', $cart->id)->where('id', $request->cart_key)->delete();
 
         if ($request->wantsJson()) {
             return $this->getCartResponse();
@@ -249,22 +246,38 @@ class CartController extends Controller
 
     private function getCartResponse()
     {
-        $cart = session()->get('cart', []);
+        $cartModel = Cart::with('items')->where('user_id', auth()->id())->first();
+        $cartItems = $cartModel ? $cartModel->items : collect();
         
         $totalQty = 0;
         $totalPrice = 0;
         $menuQty = [];
         $itemNames = [];
+        
+        // Memformat kembali untuk JS yang sudah ada
+        $formattedCart = [];
 
-        foreach ($cart as $item) {
-            $totalQty += $item['quantity'];
-            $totalPrice += ($item['quantity'] * $item['harga']);
-            $itemNames[] = $item['nama_menu'];
+        foreach ($cartItems as $item) {
+            $totalQty += $item->quantity;
+            $totalPrice += ($item->quantity * $item->harga);
+            $itemNames[] = $item->nama_menu;
             
-            if (!isset($menuQty[$item['menu_id']])) {
-                $menuQty[$item['menu_id']] = 0;
+            if (!isset($menuQty[$item->menu_id])) {
+                $menuQty[$item->menu_id] = 0;
             }
-            $menuQty[$item['menu_id']] += $item['quantity'];
+            $menuQty[$item->menu_id] += $item->quantity;
+            
+            $formattedCart[$item->id] = [
+                'id' => $item->id, // map id to cart_key
+                'menu_id' => $item->menu_id,
+                'nama_menu' => $item->nama_menu,
+                'harga' => $item->harga,
+                'quantity' => $item->quantity,
+                'foto' => $item->foto,
+                'selected_options' => $item->selected_options,
+                'catatan' => $item->catatan,
+                'tenant_id' => $item->tenant_id,
+            ];
         }
 
         return response()->json([
@@ -272,8 +285,8 @@ class CartController extends Controller
             'totalQty' => $totalQty,
             'totalPrice' => $totalPrice,
             'itemNames' => implode(', ', array_unique($itemNames)),
-            'menuQty' => (object) $menuQty, // casting to object ensures it parses as JSON object even if empty
-            'cart' => (object) $cart
+            'menuQty' => (object) $menuQty, 
+            'cart' => (object) $formattedCart
         ]);
     }
 }

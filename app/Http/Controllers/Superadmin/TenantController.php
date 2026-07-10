@@ -54,6 +54,15 @@ class TenantController extends Controller
             'no_telepon'    => 'required|string|max:20',
             'status'        => 'required|in:aktif,nonaktif',
             'foto'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'nama_tenant.required'   => 'Nama Tenant wajib diisi.',
+            'nama_tenant.unique'     => 'Nama Tenant ini sudah digunakan.',
+            'kantin_id.required'     => 'Silakan pilih kantin.',
+            'jenis_makanan.required' => 'Jenis Tenant wajib dipilih.',
+            'jenis_makanan.in'       => 'Jenis Tenant tidak valid.',
+            'no_telepon.required'    => 'Nomor telepon wajib diisi.',
+            'foto.image'             => 'File harus berupa gambar.',
+            'foto.max'               => 'Ukuran foto maksimal 2MB.',
         ]);
 
         try {
@@ -147,6 +156,15 @@ class TenantController extends Controller
             'no_telepon'    => 'required|string|max:20',
             'status'        => 'required|in:aktif,nonaktif',
             'foto'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'nama_tenant.required'   => 'Nama Tenant wajib diisi.',
+            'nama_tenant.unique'     => 'Nama Tenant ini sudah digunakan.',
+            'kantin_id.required'     => 'Silakan pilih kantin.',
+            'jenis_makanan.required' => 'Jenis Tenant wajib dipilih.',
+            'jenis_makanan.in'       => 'Jenis Tenant tidak valid.',
+            'no_telepon.required'    => 'Nomor telepon wajib diisi.',
+            'foto.image'             => 'File harus berupa gambar.',
+            'foto.max'               => 'Ukuran foto maksimal 2MB.',
         ]);
 
         try {

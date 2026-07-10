@@ -119,6 +119,70 @@
                                 <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Tanggal Bergabung</td>
                                 <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->created_at->translatedFormat('d F Y') }}</td>
                             </tr>
+
+                            <!-- Data Tambahan (Personal & Bank) -->
+                            <tr class="bg-gray-50/50">
+                                <td colspan="2" class="py-3 px-6 text-[14px] font-bold text-gray-900 border-t border-gray-100">Informasi Pribadi & Bank</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">NIK</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->nik ?? '-' }}</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Alamat Lengkap</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->address ?? '-' }}</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Nama Bank</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->bank_name ?? '-' }}</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Nomor Rekening</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->bank_account_number ?? '-' }}</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Atas Nama Rekening</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">{{ $tenant->bank_account_name ?? '-' }}</td>
+                            </tr>
+
+                            <!-- Data Kontrak & Dokumen -->
+                            <tr class="bg-gray-50/50">
+                                <td colspan="2" class="py-3 px-6 text-[14px] font-bold text-gray-900 border-t border-gray-100">Kontrak & Dokumen</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Masa Kontrak</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">
+                                    @if($tenant->contract_start_date && $tenant->contract_end_date)
+                                        {{ $tenant->contract_start_date->translatedFormat('d F Y') }} s/d {{ $tenant->contract_end_date->translatedFormat('d F Y') }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Dokumen KTP</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">
+                                    @if($tenant->ktp_document)
+                                        <a href="{{ asset('storage/' . $tenant->ktp_document) }}" target="_blank" class="text-telkom-red hover:underline font-semibold flex items-center">
+                                            <i class="ph ph-file-pdf mr-2 text-lg"></i> Lihat KTP
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 px-6 text-[14px] font-semibold text-gray-500 w-1/3">Surat Perjanjian / Kontrak</td>
+                                <td class="py-4 px-6 text-[15px] font-medium text-gray-900">
+                                    @if($tenant->contract_document)
+                                        <a href="{{ asset('storage/' . $tenant->contract_document) }}" target="_blank" class="text-telkom-red hover:underline font-semibold flex items-center">
+                                            <i class="ph ph-file-pdf mr-2 text-lg"></i> Lihat Kontrak
+                                        </a>
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

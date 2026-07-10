@@ -119,79 +119,132 @@
                         Lihat Semua <i class="ph ph-caret-right ml-1"></i>
                     </a>
                 </div>
-                <div class="p-0 overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50/50 border-b border-gray-100">
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Pelanggan</th>
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Layanan</th>
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Menu</th>
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total</th>
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
-                                <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50">
-                            @forelse($pesananTerbaru as $pesanan)
-                                <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-3 px-6">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-8 h-8 rounded-full bg-red-50 text-telkom-red flex items-center justify-center font-bold text-xs shrink-0">
-                                                {{ substr($pesanan->user->name ?? 'G', 0, 1) }}
+                <div class="p-0">
+                    <!-- Desktop Table View -->
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50/50 border-b border-gray-100">
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Pelanggan</th>
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Layanan</th>
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Menu</th>
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total</th>
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
+                                    <th class="py-3 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                @forelse($pesananTerbaru as $pesanan)
+                                    <tr class="hover:bg-gray-50/50 transition-colors">
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-red-50 text-telkom-red flex items-center justify-center font-bold text-xs shrink-0">
+                                                    {{ substr($pesanan->user->name ?? 'G', 0, 1) }}
+                                                </div>
+                                                <div>
+                                                    <p class="text-[13px] font-bold text-gray-900">{{ $pesanan->user->name ?? 'Guest' }}</p>
+                                                    <p class="text-[11px] text-gray-500">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('H:i') }} WIB</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p class="text-[13px] font-bold text-gray-900">{{ $pesanan->user->name ?? 'Guest' }}</p>
-                                                <p class="text-[11px] text-gray-500">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('H:i') }} WIB</p>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <div class="flex items-center gap-1.5 text-[12px] font-medium text-gray-600">
+                                                <i class="ph-fill {{ $pesanan->order_type == 'dine-in' ? 'ph-armchair text-orange-500' : 'ph-bag text-blue-500' }}"></i>
+                                                {{ $pesanan->order_type == 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang' }}
                                             </div>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <p class="text-[12px] font-semibold text-gray-900">{{ count($pesanan->items) }} menu</p>
+                                            <p class="text-[11px] text-gray-500 line-clamp-1 w-32" title="{{ $pesanan->items->pluck('nama_menu')->join(', ') }}">
+                                                {{ $pesanan->items->pluck('nama_menu')->join(', ') }}
+                                            </p>
+                                        </td>
+                                        <td class="py-3 px-6">
+                                            <p class="text-[13px] font-bold text-telkom-red">Rp{{ number_format($pesanan->total_price, 0, ',', '.') }}</p>
+                                        </td>
+                                        <td class="py-3 px-6 text-center">
+                                            @if($pesanan->order_status == 'belum_diproses')
+                                                <span class="inline-flex px-2 py-1 bg-red-50 text-telkom-red border border-red-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Baru Masuk</span>
+                                            @elseif($pesanan->order_status == 'diproses')
+                                                <span class="inline-flex px-2 py-1 bg-yellow-50 text-yellow-600 border border-yellow-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Disiapkan</span>
+                                            @elseif($pesanan->order_status == 'siap_diambil')
+                                                <span class="inline-flex px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Siap Ambil</span>
+                                            @else
+                                                <span class="inline-flex px-2 py-1 bg-green-50 text-green-600 border border-green-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Selesai</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 px-6 text-center">
+                                            <a href="{{ route('tenant.orders.show', $pesanan->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-telkom-red hover:bg-red-50 transition-colors" title="Lihat Detail">
+                                                <i class="ph-bold ph-caret-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="py-12 text-center">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mb-4">
+                                                    <i class="ph ph-receipt text-3xl"></i>
+                                                </div>
+                                                <p class="text-sm font-semibold text-gray-900 mb-1">Belum Ada Pesanan</p>
+                                                <p class="text-xs font-medium text-gray-500">Pesanan yang masuk akan otomatis muncul di sini.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile Card View -->
+                    <div class="md:hidden flex flex-col divide-y divide-gray-100">
+                        @forelse($pesananTerbaru as $pesanan)
+                            <div class="p-5 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-red-50 text-telkom-red flex items-center justify-center font-bold text-sm shrink-0">
+                                            {{ substr($pesanan->user->name ?? 'G', 0, 1) }}
                                         </div>
-                                    </td>
-                                    <td class="py-3 px-6">
-                                        <div class="flex items-center gap-1.5 text-[12px] font-medium text-gray-600">
+                                        <div>
+                                            <p class="text-sm font-bold text-gray-900">{{ $pesanan->user->name ?? 'Guest' }}</p>
+                                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($pesanan->created_at)->format('H:i') }} WIB</p>
+                                        </div>
+                                    </div>
+                                    @if($pesanan->order_status == 'belum_diproses')
+                                        <span class="px-2 py-1 bg-red-50 text-telkom-red border border-red-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Baru</span>
+                                    @elseif($pesanan->order_status == 'diproses')
+                                        <span class="px-2 py-1 bg-yellow-50 text-yellow-600 border border-yellow-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Siap</span>
+                                    @elseif($pesanan->order_status == 'siap_diambil')
+                                        <span class="px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Ambil</span>
+                                    @else
+                                        <span class="px-2 py-1 bg-green-50 text-green-600 border border-green-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Selesai</span>
+                                    @endif
+                                </div>
+                                <div class="flex items-center justify-between mt-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-700 mb-0.5">{{ count($pesanan->items) }} menu</p>
+                                        <div class="flex items-center gap-1 text-[11px] font-medium text-gray-500">
                                             <i class="ph-fill {{ $pesanan->order_type == 'dine-in' ? 'ph-armchair text-orange-500' : 'ph-bag text-blue-500' }}"></i>
                                             {{ $pesanan->order_type == 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang' }}
                                         </div>
-                                    </td>
-                                    <td class="py-3 px-6">
-                                        <p class="text-[12px] font-semibold text-gray-900">{{ count($pesanan->items) }} menu</p>
-                                        <p class="text-[11px] text-gray-500 line-clamp-1 w-32" title="{{ $pesanan->items->pluck('nama_menu')->join(', ') }}">
-                                            {{ $pesanan->items->pluck('nama_menu')->join(', ') }}
-                                        </p>
-                                    </td>
-                                    <td class="py-3 px-6">
-                                        <p class="text-[13px] font-bold text-telkom-red">Rp{{ number_format($pesanan->total_price, 0, ',', '.') }}</p>
-                                    </td>
-                                    <td class="py-3 px-6 text-center">
-                                        @if($pesanan->status == 'success')
-                                            <span class="inline-flex px-2 py-1 bg-red-50 text-telkom-red border border-red-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Baru Masuk</span>
-                                        @elseif($pesanan->status == 'preparing')
-                                            <span class="inline-flex px-2 py-1 bg-yellow-50 text-yellow-600 border border-yellow-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Disiapkan</span>
-                                        @elseif($pesanan->status == 'ready')
-                                            <span class="inline-flex px-2 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Siap Ambil</span>
-                                        @else
-                                            <span class="inline-flex px-2 py-1 bg-green-50 text-green-600 border border-green-100 rounded-md text-[10px] font-bold uppercase tracking-wider">Selesai</span>
-                                        @endif
-                                    </td>
-                                    <td class="py-3 px-6 text-center">
-                                        <a href="{{ route('tenant.orders.show', $pesanan->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-telkom-red hover:bg-red-50 transition-colors" title="Lihat Detail">
+                                    </div>
+                                    <div class="text-right flex items-center gap-4">
+                                        <p class="text-sm font-bold text-telkom-red">Rp{{ number_format($pesanan->total_price, 0, ',', '.') }}</p>
+                                        <a href="{{ route('tenant.orders.show', $pesanan->id) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:text-telkom-red hover:bg-red-50 transition-colors">
                                             <i class="ph-bold ph-caret-right"></i>
                                         </a>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="py-12 text-center">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mb-4">
-                                                <i class="ph ph-receipt text-3xl"></i>
-                                            </div>
-                                            <p class="text-sm font-semibold text-gray-900 mb-1">Belum Ada Pesanan</p>
-                                            <p class="text-xs font-medium text-gray-500">Pesanan yang masuk akan otomatis muncul di sini.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="p-12 text-center">
+                                <div class="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mx-auto mb-3">
+                                    <i class="ph ph-receipt text-2xl"></i>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900">Belum Ada Pesanan</p>
+                            </div>
+                        @endforelse
+                    </div>
                 </div>
                 <div class="p-4 border-t border-gray-100 text-center">
                     <a href="#" class="text-[13px] font-bold text-telkom-red hover:text-telkom-maroon inline-flex items-center transition-colors">Lihat Semua Pesanan <i class="ph ph-caret-right ml-1"></i></a>

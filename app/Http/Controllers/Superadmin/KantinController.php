@@ -39,6 +39,13 @@ class KantinController extends Controller
             'lokasi'      => 'required|string|max:255',
             'status'      => 'required|in:aktif,nonaktif',
             'foto'        => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'nama_kantin.required' => 'Nama Kantin wajib diisi.',
+            'lokasi.required'      => 'Lokasi Kantin wajib diisi.',
+            'status.required'      => 'Status wajib dipilih.',
+            'foto.required'        => 'Foto Kantin wajib diunggah.',
+            'foto.image'           => 'File harus berupa gambar.',
+            'foto.max'             => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $fotoPath = null;
@@ -75,6 +82,12 @@ class KantinController extends Controller
             'lokasi'      => 'required|string|max:255',
             'status'      => 'required|in:aktif,nonaktif',
             'foto'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'nama_kantin.required' => 'Nama Kantin wajib diisi.',
+            'lokasi.required'      => 'Lokasi Kantin wajib diisi.',
+            'status.required'      => 'Status wajib dipilih.',
+            'foto.image'           => 'File harus berupa gambar.',
+            'foto.max'             => 'Ukuran foto maksimal 2MB.',
         ]);
 
         if ($request->hasFile('foto')) {

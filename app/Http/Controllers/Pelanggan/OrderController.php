@@ -85,30 +85,25 @@ class OrderController extends Controller
     {
         $order = Order::with('items.menu')->where('user_id', auth()->id())->findOrFail($id);
         
-        $cart = session()->get('cart', []);
+        $cart = \App\Models\Cart::firstOrCreate(['user_id' => auth()->id()]);
         
-        // Cek tenant_id di keranjang. Jika beda tenant, bisa saja kita replace atau tolak, 
-        // tapi sesuai logika sebelumnya (satu kantin), kita abaikan saja pengecekan kompleks untuk demo
-        // atau kita langsung replace keranjang dengan isi pesanan ini.
-        session()->forget('cart');
-        $cart = [];
+        // Hapus isi keranjang sebelumnya
+        $cart->items()->delete();
 
         foreach ($order->items as $item) {
-            $cartKey = $item->menu_id; // Sederhananya, jika ada varian bisa lebih spesifik
-            $cart[$cartKey] = [
+            \App\Models\CartItem::create([
+                'cart_id' => $cart->id,
                 'menu_id' => $item->menu_id,
                 'tenant_id' => $order->tenant_id,
                 'nama_menu' => $item->nama_menu,
                 'harga' => $item->harga,
                 'quantity' => $item->quantity,
                 'foto' => $item->menu ? $item->menu->foto : null,
-                'selected_options' => json_decode($item->selected_options, true),
+                'selected_options' => is_string($item->selected_options) ? json_decode($item->selected_options, true) : $item->selected_options,
                 'catatan' => $item->catatan,
-            ];
+            ]);
         }
         
-        session()->put('cart', $cart);
-
         return redirect()->route('pelanggan.checkout')->with('success', 'Keranjang berhasil diperbarui dari pesanan sebelumnya!');
     }
 }

@@ -30,8 +30,10 @@
             </div>
             <div>
                 <p class="text-[14px] font-semibold text-gray-500 mb-0.5">Total Tenant</p>
-                <h3 class="text-[34px] font-bold text-gray-900 leading-none mb-1">{{ $tenants->count() }}</h3>
-                <p class="text-[13px] font-medium text-gray-400">Tenant</p>
+                <div class="flex items-end">
+                    <h3 class="text-[34px] font-bold text-gray-900 leading-none mr-2">{{ $totalTenant }}</h3>
+                    <span class="text-[13px] font-medium text-gray-400 mb-0.5">Tenant</span>
+                </div>
             </div>
         </div>
 
@@ -42,8 +44,10 @@
             </div>
             <div>
                 <p class="text-[14px] font-semibold text-gray-500 mb-0.5">Tenant Aktif</p>
-                <h3 class="text-[34px] font-bold text-gray-900 leading-none mb-1">{{ $tenants->where('status', 'aktif')->count() }}</h3>
-                <p class="text-[13px] font-medium text-gray-400">Tenant</p>
+                <div class="flex items-end">
+                    <h3 class="text-[34px] font-bold text-gray-900 leading-none mr-2">{{ $totalTenantAktif }}</h3>
+                    <span class="text-[13px] font-medium text-gray-400 mb-0.5">Tenant</span>
+                </div>
             </div>
         </div>
     </div>
@@ -64,24 +68,35 @@
                 <!-- Filter Kantin -->
                 <div class="relative w-full md:w-48">
                     <select name="kantin_id" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
-                        <option value="">Filter Kantin</option>
+                        <option value="">Semua Kantin</option>
                         @foreach($kantins as $kantin)
                             <option value="{{ $kantin->id }}" {{ request('kantin_id') == $kantin->id ? 'selected' : '' }}>{{ $kantin->nama_kantin }}</option>
                         @endforeach
                     </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Filter Kantin</span>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Kantin</span>
                 </div>
 
                 <!-- Filter Status -->
-                <div class="relative w-full md:w-48">
+                <div class="relative w-full md:w-40">
                     <select name="status" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
-                        <option value="">Filter Status</option>
+                        <option value="">Semua Status</option>
                         <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                         <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
                     </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Filter Status</span>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Status</span>
+                </div>
+
+                <!-- Filter Kontrak -->
+                <div class="relative w-full md:w-44">
+                    <select name="contract_status" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
+                        <option value="">Semua Kontrak</option>
+                        <option value="expiring" {{ request('contract_status') == 'expiring' ? 'selected' : '' }}>Segera Habis (30h)</option>
+                        <option value="expired" {{ request('contract_status') == 'expired' ? 'selected' : '' }}>Sudah Habis</option>
+                    </select>
+                    <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Kontrak</span>
                 </div>
 
                 <!-- Refresh Button -->
@@ -96,13 +111,14 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50/50 border-b border-gray-100">
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">No</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Nama Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Nama Kantin</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Jenis Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">No. Telepon</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Status</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Aksi</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Nama Tenant</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Nama Kantin</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Jenis Tenant</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No. Telepon</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Batas Kontrak</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -127,38 +143,45 @@
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->kantin->nama_kantin ?? '-' }}</td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->jenis_makanan }}</td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->no_telepon }}</td>
-                            <td class="py-4 px-6">
-                                @if($tenant->status === 'aktif')
-                                    <span class="inline-flex items-center justify-center w-24 py-1.5 rounded-full text-[12px] font-bold bg-green-50 text-green-600 border border-green-100">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
-                                        Aktif
-                                    </span>
+                            <td class="py-4 px-6 text-[14px]">
+                                @if($tenant->contract_end_date)
+                                    @php
+                                        $isExpired = now()->greaterThan($tenant->contract_end_date->endOfDay());
+                                        $isExpiring = now()->addDays(30)->greaterThanOrEqualTo($tenant->contract_end_date);
+                                    @endphp
+                                    
+                                    @if($isExpired)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            {{ $tenant->contract_end_date->translatedFormat('d M Y') }} (Habis)
+                                        </span>
+                                    @elseif($isExpiring)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            {{ $tenant->contract_end_date->translatedFormat('d M Y') }} (Segera)
+                                        </span>
+                                    @else
+                                        <span class="font-medium text-gray-600">{{ $tenant->contract_end_date->translatedFormat('d M Y') }}</span>
+                                    @endif
                                 @else
-                                    <span class="inline-flex items-center justify-center w-24 py-1.5 rounded-full text-[12px] font-bold bg-gray-50 text-gray-500 border border-gray-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
-                                        Nonaktif
-                                    </span>
+                                    <span class="text-gray-400 font-medium">-</span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 flex items-center space-x-2">
-                                <a href="{{ route('pengelola.tenant.show', $tenant->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 border border-telkom-red text-telkom-red hover:bg-red-50 text-[13px] font-bold rounded-lg transition-colors">
-                                    <i class="ph ph-eye mr-1.5"></i>
-                                    Detail
-                                </a>
-                                <a href="{{ route('pengelola.tenant.edit', $tenant->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg transition-colors" title="Edit Tenant">
-                                    <i class="ph ph-pencil-simple text-sm"></i>
-                                </a>
+                            <td class="py-4 px-6">
+                                <x-status-badge :status="$tenant->status" />
                             </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="py-12 text-center">
-                                <div class="flex flex-col items-center justify-center">
-                                    <i class="ph ph-users text-4xl text-gray-200 mb-3"></i>
-                                    <p class="text-sm font-medium text-gray-400">Belum ada data tenant</p>
+                            <td class="py-4 px-6">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('pengelola.tenant.show', $tenant->id) }}" class="inline-flex items-center justify-center px-4 py-1.5 border border-telkom-red text-telkom-red hover:bg-red-50 text-[13px] font-bold rounded-lg transition-colors">
+                                        <i class="ph ph-eye mr-1.5"></i>
+                                        Detail
+                                    </a>
+                                    <a href="{{ route('pengelola.tenant.edit', $tenant->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-gray-50 hover:bg-gray-100 text-gray-500 hover:text-gray-900 border border-gray-200 rounded-lg transition-colors" title="Edit Tenant">
+                                        <i class="ph ph-pencil-simple text-sm"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
+                    @empty
+                    <x-empty-state icon="ph ph-users" title="Belum ada data tenant" message="Silakan tambah data tenant baru." :colspan="8" />
                     @endforelse
                 </tbody>
             </table>
@@ -171,95 +194,4 @@
 
     </div>
 
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('tenant-container');
-            if (!container) return;
-            
-            // Intercept form submission
-            container.addEventListener('submit', function(e) {
-                if (e.target.tagName === 'FORM') {
-                    e.preventDefault();
-                    const url = new URL(e.target.action);
-                    const formData = new FormData(e.target);
-                    const searchParams = new URLSearchParams(formData);
-                    url.search = searchParams.toString();
-                    fetchData(url.toString());
-                    window.history.pushState({}, '', url.toString());
-                }
-            });
-
-            // Intercept pagination, filter changes, and refresh button clicks
-            container.addEventListener('change', function(e) {
-                if (e.target.tagName === 'SELECT') {
-                    const form = e.target.closest('form');
-                    if (form) {
-                        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-                    }
-                }
-            });
-
-            container.addEventListener('click', function(e) {
-                const link = e.target.closest('a');
-                if (link && link.href && !link.href.includes('#')) {
-                    // Only intercept links for this page (pagination & refresh)
-                    if (link.href.includes('/pengelola/tenant') && !link.href.includes('create') && !link.href.includes('edit') && !link.href.includes('show')) {
-                        e.preventDefault();
-                        fetchData(link.href);
-                        window.history.pushState({}, '', link.href);
-                    }
-                }
-            });
-
-            function fetchData(url) {
-                let loadingTimeout;
-                if (container) {
-                    loadingTimeout = setTimeout(() => {
-                        container.style.transition = 'opacity 0.2s';
-                        container.style.opacity = '0.5';
-                    }, 250);
-                }
-
-                fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    clearTimeout(loadingTimeout);
-                    if (container) {
-                        container.style.transition = 'none';
-                        container.style.opacity = '1';
-                    }
-
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContainer = doc.getElementById('tenant-container');
-                    if (newContainer) {
-                        container.innerHTML = newContainer.innerHTML;
-                        
-                        // Re-attach submit handlers to the new form if needed
-                        const newForm = container.querySelector('form');
-                        if (newForm) {
-                            newForm.onsubmit = function(e) { e.preventDefault(); };
-                        }
-                    }
-                })
-                .catch(error => {
-                    clearTimeout(loadingTimeout);
-                    if (container) {
-                        container.style.transition = 'none';
-                        container.style.opacity = '1';
-                    }
-                });
-            }
-
-            window.addEventListener('popstate', function() {
-                fetchData(window.location.href);
-            });
-        });
-    </script>
-    @endpush
 @endsection

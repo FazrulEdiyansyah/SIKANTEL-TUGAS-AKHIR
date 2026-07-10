@@ -187,12 +187,7 @@
                 </div>
             </template>
 
-            <!-- Pagination -->
-            @if($orders->hasPages())
-            <div class="mt-6 bg-white p-4 rounded-xl border border-gray-100">
-                {{ $orders->links() }}
-            </div>
-            @endif
+
 
         </div>
     </div>
