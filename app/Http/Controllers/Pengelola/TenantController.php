@@ -31,6 +31,17 @@ class TenantController extends Controller
             $q->where('status', $request->status);
         });
 
+        $query->when($request->filled('contract_status'), function ($q) use ($request) {
+            if ($request->contract_status === 'expiring') {
+                $q->whereNotNull('contract_end_date')
+                  ->where('contract_end_date', '>=', now()->startOfDay())
+                  ->where('contract_end_date', '<=', now()->addDays(30)->endOfDay());
+            } elseif ($request->contract_status === 'expired') {
+                $q->whereNotNull('contract_end_date')
+                  ->where('contract_end_date', '<', now()->startOfDay());
+            }
+        });
+
         $tenants = $query->paginate(10)->withQueryString();
         $kantins = Kantin::where('status', 'aktif')->get();
         
@@ -55,6 +66,15 @@ class TenantController extends Controller
             'no_telepon'    => 'required|string|max:20',
             'status'        => 'required|in:aktif,nonaktif',
             'foto'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'contract_start_date' => 'nullable|date',
+            'contract_end_date'   => 'nullable|date|after_or_equal:contract_start_date',
+            'bank_name'           => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:100',
+            'bank_account_name'   => 'nullable|string|max:255',
+            'nik'                 => 'nullable|string|max:50',
+            'address'             => 'nullable|string',
+            'ktp_document'        => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
+            'contract_document'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
         ], [
             'nama_tenant.required'   => 'Nama Tenant wajib diisi.',
             'nama_tenant.unique'     => 'Nama Tenant ini sudah digunakan.',
@@ -63,6 +83,8 @@ class TenantController extends Controller
             'jenis_makanan.in'       => 'Jenis Tenant tidak valid.',
             'no_telepon.required'    => 'Nomor telepon wajib diisi.',
             'foto.image'             => 'File harus berupa gambar.',
+            'ktp_document.max'       => 'Ukuran file dokumen maksimal 2MB.',
+            'contract_document.max'  => 'Ukuran file dokumen maksimal 2MB.',
         ]);
 
         try {
@@ -122,6 +144,17 @@ class TenantController extends Controller
                 $fotoPath = $request->file('foto')->store('tenant', 'public');
             }
 
+            // Upload Dokumen
+            $ktpPath = null;
+            if ($request->hasFile('ktp_document')) {
+                $ktpPath = $request->file('ktp_document')->store('tenant_documents', 'public');
+            }
+
+            $contractPath = null;
+            if ($request->hasFile('contract_document')) {
+                $contractPath = $request->file('contract_document')->store('tenant_documents', 'public');
+            }
+
             // Create Tenant Profile
             Tenant::create([
                 'user_id'       => $user->id,
@@ -131,6 +164,15 @@ class TenantController extends Controller
                 'no_telepon'    => $request->no_telepon,
                 'status'        => $request->status,
                 'foto'          => $fotoPath,
+                'contract_start_date' => $request->contract_start_date,
+                'contract_end_date'   => $request->contract_end_date,
+                'bank_name'           => $request->bank_name,
+                'bank_account_number' => $request->bank_account_number,
+                'bank_account_name'   => $request->bank_account_name,
+                'nik'                 => $request->nik,
+                'address'             => $request->address,
+                'ktp_document'        => $ktpPath,
+                'contract_document'   => $contractPath,
             ]);
 
             DB::commit();
@@ -163,6 +205,15 @@ class TenantController extends Controller
             'no_telepon'    => 'required|string|max:20',
             'status'        => 'required|in:aktif,nonaktif',
             'foto'          => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'contract_start_date' => 'nullable|date',
+            'contract_end_date'   => 'nullable|date|after_or_equal:contract_start_date',
+            'bank_name'           => 'nullable|string|max:100',
+            'bank_account_number' => 'nullable|string|max:100',
+            'bank_account_name'   => 'nullable|string|max:255',
+            'nik'                 => 'nullable|string|max:50',
+            'address'             => 'nullable|string',
+            'ktp_document'        => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
+            'contract_document'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,webp|max:2048',
         ], [
             'nama_tenant.required'   => 'Nama Tenant wajib diisi.',
             'nama_tenant.unique'     => 'Nama Tenant ini sudah digunakan.',
@@ -171,6 +222,8 @@ class TenantController extends Controller
             'jenis_makanan.in'       => 'Jenis Tenant tidak valid.',
             'no_telepon.required'    => 'Nomor telepon wajib diisi.',
             'foto.image'             => 'File harus berupa gambar.',
+            'ktp_document.max'       => 'Ukuran file dokumen maksimal 2MB.',
+            'contract_document.max'  => 'Ukuran file dokumen maksimal 2MB.',
         ]);
 
         try {
@@ -185,11 +238,35 @@ class TenantController extends Controller
                 $tenant->foto = $request->file('foto')->store('tenant', 'public');
             }
 
+            // Upload Dokumen
+            if ($request->hasFile('ktp_document')) {
+                if ($tenant->ktp_document) {
+                    Storage::disk('public')->delete($tenant->ktp_document);
+                }
+                $tenant->ktp_document = $request->file('ktp_document')->store('tenant_documents', 'public');
+            }
+
+            if ($request->hasFile('contract_document')) {
+                if ($tenant->contract_document) {
+                    Storage::disk('public')->delete($tenant->contract_document);
+                }
+                $tenant->contract_document = $request->file('contract_document')->store('tenant_documents', 'public');
+            }
+
             $tenant->kantin_id = $request->kantin_id;
             $tenant->nama_tenant = $request->nama_tenant;
             $tenant->jenis_makanan = $request->jenis_makanan;
             $tenant->no_telepon = $request->no_telepon;
             $tenant->status = $request->status;
+            
+            $tenant->contract_start_date = $request->contract_start_date;
+            $tenant->contract_end_date = $request->contract_end_date;
+            $tenant->bank_name = $request->bank_name;
+            $tenant->bank_account_number = $request->bank_account_number;
+            $tenant->bank_account_name = $request->bank_account_name;
+            $tenant->nik = $request->nik;
+            $tenant->address = $request->address;
+
             $tenant->save();
 
             DB::commit();

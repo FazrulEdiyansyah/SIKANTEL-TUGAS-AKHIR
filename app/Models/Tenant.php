@@ -17,6 +17,20 @@ class Tenant extends Model
         'no_telepon',
         'foto',
         'status',
+        'contract_start_date',
+        'contract_end_date',
+        'bank_name',
+        'bank_account_number',
+        'bank_account_name',
+        'nik',
+        'address',
+        'ktp_document',
+        'contract_document',
+    ];
+
+    protected $casts = [
+        'contract_start_date' => 'date',
+        'contract_end_date' => 'date',
     ];
 
     public function user()

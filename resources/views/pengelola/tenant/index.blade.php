@@ -68,24 +68,35 @@
                 <!-- Filter Kantin -->
                 <div class="relative w-full md:w-48">
                     <select name="kantin_id" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
-                        <option value="">Filter Kantin</option>
+                        <option value="">Semua Kantin</option>
                         @foreach($kantins as $kantin)
                             <option value="{{ $kantin->id }}" {{ request('kantin_id') == $kantin->id ? 'selected' : '' }}>{{ $kantin->nama_kantin }}</option>
                         @endforeach
                     </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Filter Kantin</span>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Kantin</span>
                 </div>
 
                 <!-- Filter Status -->
-                <div class="relative w-full md:w-48">
+                <div class="relative w-full md:w-40">
                     <select name="status" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
-                        <option value="">Filter Status</option>
+                        <option value="">Semua Status</option>
                         <option value="aktif" {{ request('status') == 'aktif' ? 'selected' : '' }}>Aktif</option>
                         <option value="nonaktif" {{ request('status') == 'nonaktif' ? 'selected' : '' }}>Non-Aktif</option>
                     </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Filter Status</span>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Status</span>
+                </div>
+
+                <!-- Filter Kontrak -->
+                <div class="relative w-full md:w-44">
+                    <select name="contract_status" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
+                        <option value="">Semua Kontrak</option>
+                        <option value="expiring" {{ request('contract_status') == 'expiring' ? 'selected' : '' }}>Segera Habis (30h)</option>
+                        <option value="expired" {{ request('contract_status') == 'expired' ? 'selected' : '' }}>Sudah Habis</option>
+                    </select>
+                    <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Kontrak</span>
                 </div>
 
                 <!-- Refresh Button -->
@@ -105,6 +116,7 @@
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Nama Kantin</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Jenis Tenant</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No. Telepon</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Batas Kontrak</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                     </tr>
@@ -131,6 +143,28 @@
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->kantin->nama_kantin ?? '-' }}</td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->jenis_makanan }}</td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $tenant->no_telepon }}</td>
+                            <td class="py-4 px-6 text-[14px]">
+                                @if($tenant->contract_end_date)
+                                    @php
+                                        $isExpired = now()->greaterThan($tenant->contract_end_date->endOfDay());
+                                        $isExpiring = now()->addDays(30)->greaterThanOrEqualTo($tenant->contract_end_date);
+                                    @endphp
+                                    
+                                    @if($isExpired)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                            {{ $tenant->contract_end_date->translatedFormat('d M Y') }} (Habis)
+                                        </span>
+                                    @elseif($isExpiring)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            {{ $tenant->contract_end_date->translatedFormat('d M Y') }} (Segera)
+                                        </span>
+                                    @else
+                                        <span class="font-medium text-gray-600">{{ $tenant->contract_end_date->translatedFormat('d M Y') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400 font-medium">-</span>
+                                @endif
+                            </td>
                             <td class="py-4 px-6">
                                 <x-status-badge :status="$tenant->status" />
                             </td>
@@ -147,7 +181,7 @@
                             </td>
                         </tr>
                     @empty
-                    <x-empty-state icon="ph ph-users" title="Belum ada data tenant" message="Silakan tambah data tenant baru." :colspan="7" />
+                    <x-empty-state icon="ph ph-users" title="Belum ada data tenant" message="Silakan tambah data tenant baru." :colspan="8" />
                     @endforelse
                 </tbody>
             </table>

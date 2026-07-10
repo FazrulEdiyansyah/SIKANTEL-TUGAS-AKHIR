@@ -67,4 +67,56 @@ class SearchController extends Controller
 
         return redirect()->route('pelanggan.search');
     }
+
+    public function autocomplete(Request $request)
+    {
+        $query = $request->input('q');
+        
+        if (!$query || strlen($query) < 2) {
+            return response()->json(['menus' => [], 'tenants' => []]);
+        }
+
+        $menus = Menu::with(['tenant.kantin'])
+            ->whereHas('tenant', function($q) {
+                $q->where('status', 'aktif');
+            })
+            ->where('nama_menu', 'ilike', "%{$query}%")
+            ->orderByRaw("status = 'tersedia' DESC")
+            ->take(5)
+            ->get()
+            ->map(function($menu) {
+                return [
+                    'type' => 'menu',
+                    'id' => $menu->id,
+                    'name' => $menu->nama_menu,
+                    'harga' => $menu->harga,
+                    'tenant_name' => $menu->tenant->nama_tenant ?? '',
+                    'kantin_name' => $menu->tenant->kantin->nama_kantin ?? '',
+                    'foto' => $menu->foto ? asset('storage/' . $menu->foto) : asset('images/no-image.png'),
+                    'url' => route('pelanggan.tenant.show', $menu->tenant_id)
+                ];
+            });
+
+        $tenants = Tenant::with(['kantin'])
+            ->where('status', 'aktif')
+            ->where('nama_tenant', 'ilike', "%{$query}%")
+            ->orderBy('is_open', 'desc')
+            ->take(3)
+            ->get()
+            ->map(function($tenant) {
+                return [
+                    'type' => 'tenant',
+                    'id' => $tenant->id,
+                    'name' => $tenant->nama_tenant,
+                    'kantin_name' => $tenant->kantin->nama_kantin ?? '',
+                    'foto' => $tenant->foto ? asset('storage/' . $tenant->foto) : 'https://ui-avatars.com/api/?name='.urlencode($tenant->nama_tenant).'&background=fee2e2&color=dc2626&bold=true',
+                    'url' => route('pelanggan.tenant.show', $tenant->id)
+                ];
+            });
+
+        return response()->json([
+            'menus' => $menus,
+            'tenants' => $tenants
+        ]);
+    }
 }
