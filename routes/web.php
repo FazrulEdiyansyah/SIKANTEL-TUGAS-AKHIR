@@ -200,6 +200,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     
     // Fitur Baru: Polling Status, Reorder, Review
     Route::get('/pelanggan/orders/{order}/status', [\App\Http\Controllers\Pelanggan\OrderController::class, 'statusAPI'])->name('pelanggan.orders.status-api');
+    Route::post('/pelanggan/orders/{order}/pay', [\App\Http\Controllers\Pelanggan\OrderController::class, 'pay'])->name('pelanggan.orders.pay');
     Route::post('/pelanggan/orders/{order}/reorder', [\App\Http\Controllers\Pelanggan\OrderController::class, 'reorder'])->name('pelanggan.orders.reorder');
     Route::post('/pelanggan/orders/{order}/review', [\App\Http\Controllers\Pelanggan\ReviewController::class, 'store'])->name('pelanggan.orders.review');
     

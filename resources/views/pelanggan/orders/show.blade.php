@@ -109,7 +109,7 @@
                                     $descText = 'Pesanan ini telah selesai.';
                                 }
                             } else {
-                                $statusText = 'Gagal/Kedaluwarsa';
+                                $statusText = 'Gagal / Dibatalkan';
                                 $statusClass = 'bg-red-50 text-red-600';
                                 $statusIcon = 'ph-x-circle';
                                 $descText = 'Pesanan ini tidak dilanjutkan.';
@@ -303,10 +303,19 @@
                         @endif
                     </div>
                     
-                    @if($order->payment_status == 'pending' && $order->snap_token)
-                        <button type="button" onclick="window.snap.pay('{{ $order->snap_token }}')" class="w-full mt-8 py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
-                            Lanjutkan Pembayaran
-                        </button>
+                    @if($order->payment_status == 'pending')
+                        @if($order->snap_token)
+                            <button type="button" onclick="window.snap.pay('{{ $order->snap_token }}')" class="w-full mt-8 py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
+                                Lanjutkan Pembayaran
+                            </button>
+                        @else
+                            <form action="{{ route('pelanggan.orders.pay', $order->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full mt-8 py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg flex items-center justify-center gap-2">
+                                    Lanjutkan Pembayaran
+                                </button>
+                            </form>
+                        @endif
                         
                         <form action="{{ route('pelanggan.orders.cancel', $order->id) }}" method="POST" class="mt-3" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin membatalkan pesanan ini?')">
                             @csrf
@@ -379,4 +388,14 @@
             .catch(err => console.error('Polling error:', err));
     }, 5000);
 </script>
+
+@if(session('auto_trigger_snap'))
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.snap !== 'undefined') {
+            window.snap.pay('{{ session('auto_trigger_snap') }}');
+        }
+    });
+</script>
+@endif
 @endsection
