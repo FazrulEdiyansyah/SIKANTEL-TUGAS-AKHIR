@@ -46,9 +46,6 @@ class OrderController extends Controller
         
         if ($request->has('order_type')) {
             $updateData['order_type'] = $request->order_type;
-            if ($request->order_type == 'takeaway') {
-                $updateData['table_number'] = null;
-            }
         }
 
         $order->update($updateData);

@@ -197,7 +197,7 @@ Route::middleware(['auth', 'role:pelanggan'])->group(function () {
     // Pesanan Saya
     Route::get('/pelanggan/orders', [\App\Http\Controllers\Pelanggan\OrderController::class, 'index'])->name('pelanggan.orders.index');
     Route::get('/pelanggan/orders/{order}', [\App\Http\Controllers\Pelanggan\OrderController::class, 'show'])->name('pelanggan.orders.show');
-    Route::patch('/pelanggan/orders/{order}/table', [\App\Http\Controllers\Pelanggan\OrderController::class, 'updateTable'])->name('pelanggan.orders.update-table');
+
     Route::post('/pelanggan/orders/{order}/cancel', [\App\Http\Controllers\Pelanggan\OrderController::class, 'cancel'])->name('pelanggan.orders.cancel');
     
     // Fitur Baru: Polling Status, Reorder, Review

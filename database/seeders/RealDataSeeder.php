@@ -384,7 +384,7 @@ class RealDataSeeder extends Seeder
                 'payment_type' => $paymentStatus !== 'pending' ? $paymentTypes[array_rand($paymentTypes)] : null,
                 'snap_token' => $paymentStatus === 'success' ? 'tok_' . Str::random(20) : null,
                 'order_type' => $orderType,
-                'table_number' => $orderType === 'dine-in' ? strval(rand(1, 30)) : null,
+
                 'pickup_pin' => ($paymentStatus === 'success' && in_array($orderStatus, ['diproses', 'siap_diambil', 'selesai']))
                     ? str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT) : null,
                 'created_at' => $orderDate,

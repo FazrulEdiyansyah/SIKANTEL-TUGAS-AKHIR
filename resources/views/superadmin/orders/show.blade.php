@@ -33,12 +33,7 @@
                                 <i class="fa-solid {{ $order->order_type == 'dine-in' ? 'fa-chair' : 'fa-bag-shopping' }}"></i>
                                 {{ $order->order_type == 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang' }}
                             </div>
-                            @if($order->order_type == 'dine-in')
-                                <span>•</span>
-                                <div class="flex items-center gap-1.5 font-medium">
-                                    Meja {{ $order->table_number ?? '-' }}
-                                </div>
-                            @endif
+
                         </div>
                     </div>
                 </div>
@@ -55,7 +50,7 @@
                             @if($item->menu && $item->menu->foto)
                                 <img src="{{ asset('storage/' . $item->menu->foto) }}" class="w-full h-full object-cover">
                             @else
-                                <i class="fa-solid fa-image text-gray-300 text-2xl"></i>
+                                <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
                             @endif
                         </div>
                         <div class="flex-1">

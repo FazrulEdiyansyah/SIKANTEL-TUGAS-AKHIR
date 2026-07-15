@@ -21,7 +21,6 @@ class CheckoutController extends Controller
         }
 
         $orderType = $request->order_type ?? 'dine-in';
-        $tableNumber = $request->table_number ?? null;
 
         // Hitung total dan group per tenant
         $totalPrice = 0;
@@ -53,7 +52,6 @@ class CheckoutController extends Controller
                 'payment_status'=> 'pending',
                 'order_status' => 'belum_diproses',
                 'order_type'   => $orderType,
-                'table_number' => $tableNumber,
                 'pickup_pin'   => str_pad(rand(0, 999), 3, '0', STR_PAD_LEFT),
             ]);
 
