@@ -51,13 +51,21 @@
                                     <h3 class="font-bold text-gray-900 text-lg mb-1">Jangan Lupa Isi Nomor Meja</h3>
                                     <p class="text-sm text-gray-600 mb-4">Anda memilih layanan Makan di Tempat namun belum memasukkan nomor meja. Silakan isi jika sudah mendapatkan meja.</p>
                                     
-                                    <form action="{{ route('pelanggan.orders.update-table', $order->id) }}" method="POST" class="flex flex-col sm:flex-row gap-3">
-                                        @csrf
-                                        @method('PATCH')
-                                        <input type="text" name="table_number" placeholder="Contoh: Meja 12" class="flex-1 rounded-xl border border-blue-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-3 px-4 font-medium bg-white" required>
-                                        <button type="submit" name="action" value="update_table" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm">Simpan</button>
-                                        <button type="submit" name="action" value="takeaway" class="bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm formnovalidate">Ambil Sendiri</button>
-                                    </form>
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <form action="{{ route('pelanggan.orders.update-table', $order->id) }}" method="POST" class="flex flex-col sm:flex-row gap-3 flex-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="action" value="update_table">
+                                            <input type="text" name="table_number" placeholder="Contoh: Meja 12" class="flex-1 rounded-xl border border-blue-200 focus:ring-blue-500 focus:border-blue-500 text-sm py-3 px-4 font-medium bg-white" required>
+                                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm">Simpan</button>
+                                        </form>
+                                        <form action="{{ route('pelanggan.orders.update-table', $order->id) }}" method="POST">
+                                            @csrf
+                                            @method('PATCH')
+                                            <input type="hidden" name="action" value="takeaway">
+                                            <button type="submit" class="bg-white border border-blue-200 text-blue-600 hover:bg-blue-100 font-bold px-6 py-3 rounded-xl text-sm transition-colors shadow-sm h-full w-full whitespace-nowrap">Ambil Sendiri</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
