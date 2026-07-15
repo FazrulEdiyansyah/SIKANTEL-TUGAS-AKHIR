@@ -37,6 +37,7 @@ class MenuController extends Controller
                         $cleanCustomizations[] = [
                             'name' => $section['name'],
                             'is_required' => isset($section['is_required']) && $section['is_required'] == 1,
+                            'is_multiple_qty' => isset($section['is_multiple_qty']) && $section['is_multiple_qty'] == 1,
                             'options' => $cleanOptions
                         ];
                     }

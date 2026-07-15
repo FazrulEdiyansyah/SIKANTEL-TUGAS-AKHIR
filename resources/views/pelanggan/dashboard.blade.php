@@ -25,7 +25,7 @@
             </div>
 
             <!-- Floating Search Bar -->
-            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[92%] sm:w-[90%] max-w-[640px] bg-white rounded-2xl shadow-xl border border-gray-100 p-2 sm:p-2.5 z-30 flex items-center">
+            <div class="absolute -bottom-10 left-1/2 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 sm:p-2.5 z-30 flex items-center" style="width: 92%; max-width: 640px; transform: translateX(-50%);">
                 <form id="search-form" action="{{ route('pelanggan.search') }}" method="GET" class="flex w-full items-center">
                     <div class="hidden sm:flex pl-4 items-center shrink-0">
                         <span class="text-gray-800 font-bold text-sm whitespace-nowrap">Mau Makan Apa?</span>
