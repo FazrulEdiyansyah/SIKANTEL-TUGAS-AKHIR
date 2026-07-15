@@ -115,7 +115,7 @@
             <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 flex flex-col">
                 <div class="p-6 border-b border-gray-100 flex items-center justify-between">
                     <h3 class="text-lg font-bold text-gray-900">Pesanan Terbaru</h3>
-                    <a href="#" class="text-[13px] font-bold text-telkom-red hover:text-telkom-maroon flex items-center transition-colors">
+                    <a href="{{ route('tenant.orders.index') }}" class="text-[13px] font-bold text-telkom-red hover:text-telkom-maroon flex items-center transition-colors">
                         Lihat Semua <i class="ph ph-caret-right ml-1"></i>
                     </a>
                 </div>
@@ -155,8 +155,8 @@
                                         </td>
                                         <td class="py-3 px-6">
                                             <p class="text-[12px] font-semibold text-gray-900">{{ count($pesanan->items) }} menu</p>
-                                            <p class="text-[11px] text-gray-500 line-clamp-1 w-32" title="{{ $pesanan->items->pluck('nama_menu')->join(', ') }}">
-                                                {{ $pesanan->items->pluck('nama_menu')->join(', ') }}
+                                            <p class="text-[11px] text-gray-500 line-clamp-1 w-32" title="{{ $pesanan->items->pluck('menu.nama_menu')->join(', ') }}">
+                                                {{ $pesanan->items->pluck('menu.nama_menu')->join(', ') }}
                                             </p>
                                         </td>
                                         <td class="py-3 px-6">
@@ -247,7 +247,7 @@
                     </div>
                 </div>
                 <div class="p-4 border-t border-gray-100 text-center">
-                    <a href="#" class="text-[13px] font-bold text-telkom-red hover:text-telkom-maroon inline-flex items-center transition-colors">Lihat Semua Pesanan <i class="ph ph-caret-right ml-1"></i></a>
+                    <a href="{{ route('tenant.orders.index') }}" class="text-[13px] font-bold text-telkom-red hover:text-telkom-maroon inline-flex items-center transition-colors">Lihat Semua Pesanan <i class="ph ph-caret-right ml-1"></i></a>
                 </div>
             </div>
         </div>
@@ -308,9 +308,9 @@
             <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-6">
                 <div class="flex justify-between items-center mb-5">
                     <h3 class="text-lg font-bold text-gray-900">Ringkasan Penjualan</h3>
-                    <button class="flex items-center gap-1 text-[11px] font-bold text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 hover:bg-gray-100 transition-colors">
-                        Hari Ini <i class="ph ph-caret-down ml-0.5"></i>
-                    </button>
+                    <span class="flex items-center gap-1 text-[11px] font-bold text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1">
+                        Hari Ini
+                    </span>
                 </div>
                 
                 <div class="space-y-4 mb-6">
@@ -340,9 +340,9 @@
                     </div>
                 </div>
 
-                <button class="w-full py-2.5 rounded-xl border border-telkom-red text-telkom-red font-bold text-[13px] hover:bg-red-50 transition-colors">
+                <a href="{{ route('tenant.reports.index') }}" class="w-full flex items-center justify-center py-2.5 rounded-xl border border-telkom-red text-telkom-red font-bold text-[13px] hover:bg-red-50 transition-colors">
                     Lihat Rekap Penjualan
-                </button>
+                </a>
             </div>
         </div>
 

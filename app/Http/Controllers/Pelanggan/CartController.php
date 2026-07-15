@@ -101,7 +101,6 @@ class CartController extends Controller
             }
         }
 
-        // Cari item yang sama (menu, opsi, catatan sama)
         $existingItem = CartItem::where('cart_id', $cart->id)
             ->where('menu_id', $menu->id)
             ->where('catatan', $request->catatan)

@@ -1,6 +1,7 @@
 @extends('layouts.superadmin')
 
 @section('title', 'Buat Laporan Pencairan Dana')
+
 @section('breadcrumb', 'Pencairan Dana / Create')
 
 @push('styles')
@@ -8,175 +9,244 @@
 @endpush
 
 @section('content')
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden max-w-5xl">
-    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-        <div>
-            <h2 class="text-lg font-bold text-gray-800">Buat Laporan Pencairan Dana</h2>
-            <p class="text-sm text-gray-500 mt-1">Lengkapi data laporan pencairan dana tenant berdasarkan periode penjualan.</p>
-        </div>
-        <a href="{{ route('superadmin.pencairan.index') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+    <!-- Header Page -->
+    <div class="mb-6">
+        <a href="{{ route('superadmin.pencairan.index') }}" class="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors mb-4">
+            <i class="ph-bold ph-caret-left mr-2"></i> Kembali ke Laporan Pencairan Dana
         </a>
+        <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Buat Laporan Pencairan Dana</h1>
+        <p class="text-[15px] text-gray-500 font-medium">Lengkapi data laporan pencairan dana tenant berdasarkan periode penjualan.</p>
     </div>
 
-    <form action="{{ route('superadmin.pencairan.store') }}" method="POST" id="disbursementForm" class="p-6">
+    @if($errors->any())
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl font-medium text-sm">
+            <ul class="list-disc pl-5">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <form action="{{ route('superadmin.pencairan.store') }}" method="POST" id="disbursementForm">
         @csrf
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <!-- Periode Laporan -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Periode Laporan <span class="text-red-500">*</span></label>
-                <div class="relative">
-                    <i class="fa-regular fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="date_range" name="date_range" placeholder="Contoh: 01 Jun 2024 - 07 Jun 2024" required class="w-full pl-9 pr-3 py-2 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm border bg-white cursor-pointer transition-all">
+        <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8">
+            <!-- Judul Laporan -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Judul Laporan <span class="text-red-500">*</span></label>
+                <input type="text" name="judul" required placeholder="Contoh: Pencairan Dana Kantin TULT Periode Juni 2026" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Periode Laporan -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-900 mb-2">Periode Laporan <span class="text-red-500">*</span></label>
+                    <div class="flex gap-4">
+                        <div class="relative flex-1">
+                            <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Mulai</span>
+                            <input type="date" id="start_date" name="start_date" value="{{ date('Y-m-01') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer">
+                        </div>
+                        <div class="relative flex-1">
+                            <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Selesai</span>
+                            <input type="date" id="end_date" name="end_date" value="{{ date('Y-m-t') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Pilih Approver -->
+                <div class="flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Approver 1 (Kaur) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select name="approver_1_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
+                                <option value="">Pilih Kaur...</option>
+                                @foreach($approvers->where('role', 'kaur') as $approver)
+                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Approver 2 (Kabag) <span class="text-red-500">*</span></label>
+                        <div class="relative">
+                            <select name="approver_2_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
+                                <option value="">Pilih Kabag...</option>
+                                @foreach($approvers->where('role', 'kabag') as $approver)
+                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tenant -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tenant <span class="text-red-500">*</span></label>
-                <select id="tenant_id" name="tenant_id" required class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-all">
-                    <option value="">-- Pilih Tenant --</option>
-                    @foreach($tenants as $tenant)
-                        <option value="{{ $tenant->id }}" data-kantin="{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}">{{ $tenant->nama_tenant }}</option>
-                    @endforeach
-                </select>
+            <!-- Keterangan Laporan -->
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Keterangan Laporan</label>
+                <textarea name="keterangan" rows="4" placeholder="Masukkan keterangan tambahan jika perlu..." class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"></textarea>
             </div>
 
-            <!-- Kantin -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Kantin</label>
-                <div class="relative">
-                    <input type="text" id="kantin_name" disabled placeholder="Kantin..." class="w-full rounded-md border-gray-300 shadow-sm bg-gray-50 text-gray-500 text-sm py-2 px-3 border cursor-not-allowed">
-                    <i class="fa-solid fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                </div>
-                <p class="text-[11px] text-gray-400 mt-1">Otomatis terisi berdasarkan tenant.</p>
-            </div>
-
-            <!-- Keterangan -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Opsional)</label>
-                <textarea name="keterangan" rows="2" placeholder="Masukkan keterangan..." class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border transition-all"></textarea>
-            </div>
-        </div>
-
-        <!-- Detail Perhitungan -->
-        <div class="mb-8">
-            <h3 class="text-sm font-semibold text-gray-800 mb-3 border-b pb-2">Detail Perhitungan</h3>
-            
-            <div class="border border-gray-200 rounded-md overflow-hidden">
-                <table class="w-full text-left bg-white">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Tenant</th>
-                            <th class="py-3 px-4 text-xs font-semibold text-gray-600 uppercase">Kantin</th>
-                            <th class="py-3 px-4 text-xs font-semibold text-gray-600 uppercase text-right">Total Penjualan</th>
-                            <th class="py-3 px-4 text-xs font-semibold text-gray-600 uppercase text-right">Dana Tenant 70%</th>
-                            <th class="py-3 px-4 text-xs font-semibold text-gray-600 uppercase text-right">Bagian Tel-U 30%</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Loading State -->
-                        <tr id="calcLoading" class="hidden">
-                            <td colspan="5" class="py-8 text-center">
-                                <div class="flex items-center justify-center text-gray-400">
-                                    <i class="fa-solid fa-circle-notch fa-spin text-xl mr-2 text-blue-500"></i>
-                                    <span class="text-sm">Menghitung...</span>
+            <!-- Pilih Tenant -->
+            <div class="mb-8" x-data="{ search: '', selectedKantin: '' }" 
+                 x-init="$watch('search', () => document.getElementById('checkAllTenants').checked = false); $watch('selectedKantin', () => document.getElementById('checkAllTenants').checked = false)">
+                <label class="block text-sm font-bold text-gray-900 mb-2">Pilih Tenant <span class="text-red-500">*</span></label>
+                <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                    
+                    <!-- Search & Select All Header -->
+                    <div class="p-3 border-b border-gray-100 bg-gray-50 flex flex-col gap-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-1">
+                                <!-- Kantin Select -->
+                                <div class="relative w-full sm:max-w-[220px]">
+                                    <select x-model="selectedKantin" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none text-gray-700">
+                                        <option value="">Semua Kantin</option>
+                                        @foreach($kantins as $kantin)
+                                            <option value="{{ $kantin->id }}">{{ $kantin->nama_kantin }}</option>
+                                        @endforeach
+                                    </select>
+                                    <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                                 </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Empty State -->
-                        <tr id="calcEmpty">
-                            <td colspan="5" class="py-8 text-center text-sm text-gray-400">
-                                Pilih Periode Laporan dan Tenant untuk melihat perhitungan.
-                            </td>
-                        </tr>
+                                
+                                <!-- Search Input -->
+                                <div class="relative flex-1">
+                                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                    <input type="text" x-model="search" placeholder="Cari nama tenant..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white">
+                                </div>
+                            </div>
+                            
+                            <!-- Select All -->
+                            <label class="flex items-center space-x-2 text-sm font-bold text-gray-700 cursor-pointer shrink-0 bg-white px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <input type="checkbox" id="checkAllTenants" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span>Pilih Semua yang Tampil</span>
+                            </label>
+                        </div>
+                    </div>
 
-                        <!-- Result State -->
-                        <tr id="calcResult" class="hidden hover:bg-gray-50 transition-colors">
-                            <td class="py-4 px-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex items-center justify-center">
-                                        <img id="res_tenant_foto" src="" class="w-full h-full object-cover hidden">
-                                        <i id="res_tenant_icon" class="fa-solid fa-shop text-gray-400 text-xs"></i>
+                    <!-- Tenant List -->
+                    <div class="max-h-48 overflow-y-auto p-2" id="tenantCheckboxContainer">
+                        @foreach($tenants as $tenant)
+                            <label x-show="(selectedKantin === '' || '{{ $tenant->kantin_id }}' == selectedKantin) && (search === '' || '{{ strtolower($tenant->nama_tenant) }}'.includes(search.toLowerCase()))" 
+                                   class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors tenant-item-wrapper">
+                                <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                <span class="text-sm font-medium text-gray-700">{{ $tenant->nama_tenant }}</span>
+                                <span class="text-xs text-gray-400 ml-auto">{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail Perhitungan -->
+            <div class="mb-8">
+                <h3 class="text-[15px] font-bold text-gray-900 mb-4">Detail Perhitungan</h3>
+                
+                <div class="border border-gray-200 rounded-[20px] overflow-hidden">
+                    <table class="w-full text-left bg-white">
+                        <thead class="bg-gray-50/50">
+                            <tr>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase">No</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase">Nama Tenant</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase">Kantin</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase text-right">Total Penjualan</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase text-right">Dana Tenant 70%</th>
+                                <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase text-right">Bagian Tel-U 30%</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <!-- Loading State -->
+                            <tr id="calcLoading" class="hidden">
+                                <td colspan="6" class="py-8 text-center">
+                                    <div class="flex items-center justify-center text-gray-400">
+                                        <i class="ph ph-spinner animate-spin text-2xl mr-2 text-blue-600"></i>
+                                        <span class="text-sm font-medium">Menghitung data penjualan...</span>
                                     </div>
-                                    <span id="res_tenant_name" class="text-sm font-semibold text-gray-900">-</span>
-                                </div>
-                            </td>
-                            <td class="py-4 px-4 text-sm text-gray-600" id="res_kantin">-</td>
-                            <td class="py-4 px-4 text-sm font-semibold text-gray-900 text-right" id="res_total">-</td>
-                            <td class="py-4 px-4 text-[14px] font-bold text-gray-900 text-right" id="res_dana_tenant">-</td>
-                            <td class="py-4 px-4 text-[14px] font-bold text-gray-900 text-right" id="res_dana_telu">-</td>
-                        </tr>
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                            
+                            <!-- Empty State -->
+                            <tr id="calcEmpty">
+                                <td colspan="6" class="py-8 text-center text-sm font-medium text-gray-400">
+                                    Pilih Periode Laporan dan Tenant untuk melihat detail perhitungan.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-            <a href="{{ route('superadmin.pencairan.index') }}" class="px-5 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                Batal
-            </a>
-            <div class="flex gap-3">
-                <button type="button" id="btnPdf" disabled onclick="downloadPdf()" class="px-5 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-                    <i class="fa-solid fa-file-pdf mr-2 text-red-500"></i> Download PDF
-                </button>
-                <button type="submit" name="action" value="draft" id="btnDraft" disabled class="px-5 py-2 bg-yellow-500 text-white text-sm font-medium rounded-lg hover:bg-yellow-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-                    <i class="fa-solid fa-bookmark mr-2"></i> Simpan Draft
-                </button>
-                <button type="submit" name="action" value="proposed" id="btnProposed" disabled class="px-5 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
-                    <i class="fa-solid fa-paper-plane mr-2"></i> Ajukan Laporan
-                </button>
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-6 border-t border-gray-100">
+                <a href="{{ route('superadmin.pencairan.index') }}" class="px-8 py-3.5 bg-white border border-red-200 text-blue-600 text-sm font-bold rounded-xl hover:bg-red-50 transition-colors">
+                    Batal
+                </a>
+                <div class="flex gap-4">
+                    <button type="submit" name="action" value="draft" id="btnDraft" disabled class="px-8 py-3.5 bg-yellow-500 text-white text-sm font-bold rounded-xl hover:bg-yellow-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-bookmark mr-2"></i> Simpan Draft
+                    </button>
+                    <button type="submit" name="action" value="proposed" id="btnProposed" disabled class="px-8 py-3.5 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Ajukan Laporan (Proposed)
+                    </button>
+                </div>
             </div>
         </div>
     </form>
-</div>
 @endsection
 
-@stack('scripts')
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
-    function downloadPdf() {
-        const tenantId = document.getElementById('tenant_id').value;
-        const dateRange = document.getElementById('date_range').value;
-        if(tenantId && dateRange) {
-            window.open(`{{ route('superadmin.pencairan.preview_pdf') }}?tenant_id=${tenantId}&date_range=${encodeURIComponent(dateRange)}`, '_blank');
-        }
-    }
-
     document.addEventListener("DOMContentLoaded", function() {
-        const fp = flatpickr("#date_range", {
-            mode: "range",
-            dateFormat: "d M Y",
-            onChange: function(selectedDates, dateStr, instance) {
-                if(selectedDates.length === 2) {
-                    calculateSales();
-                }
-            }
-        });
-
-        const tenantSelect = document.getElementById('tenant_id');
-        const kantinInput = document.getElementById('kantin_name');
+        const checkAll = document.getElementById('checkAllTenants');
+        const checkboxes = document.querySelectorAll('.tenant-checkbox');
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
         
-        tenantSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            kantinInput.value = selectedOption.dataset.kantin || '';
+        startDateInput.addEventListener('change', calculateSales);
+        endDateInput.addEventListener('change', calculateSales);
+        
+        checkAll.addEventListener('change', function() {
+            const isChecked = this.checked;
+            checkboxes.forEach(cb => {
+                const label = cb.closest('label');
+                if (label.style.display !== 'none') {
+                    cb.checked = isChecked;
+                }
+            });
             calculateSales();
         });
 
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                checkAll.checked = Array.from(checkboxes).every(c => c.checked);
+                calculateSales();
+            });
+        });
+
         function calculateSales() {
-            const tenantId = tenantSelect.value;
-            const dateRange = document.getElementById('date_range').value;
+            const selectedTenants = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
             
-            if(!tenantId || !dateRange.includes(' - ')) {
+            if(selectedTenants.length === 0) {
                 hideResult();
                 return;
             }
 
-            const dates = dateRange.split(' - ');
-            const startDate = dates[0];
-            const endDate = dates[1];
+            if(!startDate || !endDate) {
+                Swal.fire('Perhatian', "Mohon isi Periode Laporan (Mulai & Selesai) agar sistem dapat menghitung total penjualan tenant.", 'warning');
+                hideResult();
+                return;
+            }
+
+            if(new Date(startDate) > new Date(endDate)) {
+                Swal.fire('Perhatian', "Tanggal 'Selesai' tidak boleh lebih kecil dari tanggal 'Mulai'.", 'warning');
+                hideResult();
+                return;
+            }
 
             showLoading();
 
@@ -187,7 +257,7 @@
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({
-                    tenant_id: tenantId,
+                    tenant_ids: selectedTenants,
                     start_date: startDate,
                     end_date: endDate
                 })
@@ -204,54 +274,112 @@
 
         function showLoading() {
             document.getElementById('calcEmpty').classList.add('hidden');
-            document.getElementById('calcResult').classList.add('hidden');
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             document.getElementById('calcLoading').classList.remove('hidden');
             document.getElementById('btnDraft').disabled = true;
             document.getElementById('btnProposed').disabled = true;
-            document.getElementById('btnPdf').disabled = true;
         }
 
         function hideResult() {
             document.getElementById('calcLoading').classList.add('hidden');
-            document.getElementById('calcResult').classList.add('hidden');
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             document.getElementById('calcEmpty').classList.remove('hidden');
             document.getElementById('btnDraft').disabled = true;
             document.getElementById('btnProposed').disabled = true;
-            document.getElementById('btnPdf').disabled = true;
         }
 
-        function showResult(data) {
+        function showResult(dataArray) {
             document.getElementById('calcLoading').classList.add('hidden');
             document.getElementById('calcEmpty').classList.add('hidden');
             
-            document.getElementById('res_tenant_name').textContent = data.tenant_name;
-            document.getElementById('res_kantin').textContent = data.kantin_name;
-            document.getElementById('res_total').textContent = data.formatted_penjualan;
-            document.getElementById('res_dana_tenant').textContent = data.formatted_dana_tenant;
-            document.getElementById('res_dana_telu').textContent = data.formatted_dana_telu;
+            document.querySelectorAll('.calc-result-row').forEach(el => el.remove());
             
-            const fotoImg = document.getElementById('res_tenant_foto');
-            const iconImg = document.getElementById('res_tenant_icon');
-            if(data.tenant_foto) {
-                fotoImg.src = data.tenant_foto;
-                fotoImg.classList.remove('hidden');
-                iconImg.classList.add('hidden');
-            } else {
-                fotoImg.classList.add('hidden');
-                iconImg.classList.remove('hidden');
-            }
+            const tbody = document.getElementById('resultsBody');
+            let hasSales = false;
 
-            document.getElementById('calcResult').classList.remove('hidden');
+            dataArray.forEach((data, index) => {
+                if(data.total_penjualan > 0) hasSales = true;
+                
+                let imgHtml = '';
+                if(data.tenant_foto) {
+                    imgHtml = `<img src="${data.tenant_foto}" class="w-full h-full object-cover">`;
+                } else {
+                    imgHtml = `<i class="ph-fill ph-storefront text-gray-400 text-xs"></i>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'calc-result-row hover:bg-gray-50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-5 px-6 text-sm font-medium text-gray-600">${index + 1}</td>
+                    <td class="py-5 px-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 overflow-hidden shrink-0 border border-gray-200 flex items-center justify-center">
+                                ${imgHtml}
+                            </div>
+                            <span class="text-sm font-bold text-gray-900">${data.tenant_name}</span>
+                        </div>
+                    </td>
+                    <td class="py-5 px-6 text-sm font-medium text-gray-600">${data.kantin_name}</td>
+                    <td class="py-5 px-6 text-sm font-semibold text-gray-900 text-right">${data.formatted_penjualan}</td>
+                    <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right">${data.formatted_dana_tenant}</td>
+                    <td class="py-5 px-6 text-[15px] font-black text-gray-900 text-right">${data.formatted_dana_telu}</td>
+                `;
+                tbody.appendChild(tr);
+            });
             
-            if(data.total_penjualan > 0) {
+            if(hasSales) {
                 document.getElementById('btnDraft').disabled = false;
                 document.getElementById('btnProposed').disabled = false;
-                document.getElementById('btnPdf').disabled = false;
             } else {
                 document.getElementById('btnDraft').disabled = true;
                 document.getElementById('btnProposed').disabled = true;
-                document.getElementById('btnPdf').disabled = true;
             }
+        }
+
+        // ==========================================
+        // PROTEKSI DOUBLE SUBMIT & LOADING STATE
+        // ==========================================
+        const form = document.getElementById('disbursementForm');
+        const btnDraft = document.getElementById('btnDraft');
+        const btnProposed = document.getElementById('btnProposed');
+
+        btnDraft.addEventListener('click', function(e) {
+            handleFormSubmit(e, 'draft', btnDraft, btnProposed);
+        });
+
+        btnProposed.addEventListener('click', function(e) {
+            handleFormSubmit(e, 'proposed', btnProposed, btnDraft);
+        });
+
+        function handleFormSubmit(e, actionValue, clickedBtn, otherBtn) {
+            if(!form.checkValidity()) {
+                // Biarkan HTML5 validation berjalan jika ada field yg belum diisi
+                return;
+            }
+            
+            // Cegah submit bawaan agar kita bisa disable tombol dulu
+            e.preventDefault();
+
+            // Sisipkan hidden input agar nilai 'action' tetap terkirim ke controller
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'action';
+            hiddenInput.value = actionValue;
+            form.appendChild(hiddenInput);
+
+            // Ubah tampilan tombol yang diklik menjadi loading
+            clickedBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin mr-2"></i> Memproses...';
+            clickedBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            // Nonaktifkan kedua tombol secara mutlak
+            clickedBtn.disabled = true;
+            otherBtn.disabled = true;
+
+            // Lanjutkan pengiriman form
+            form.submit();
         }
     });
 </script>
+@endpush
+
+

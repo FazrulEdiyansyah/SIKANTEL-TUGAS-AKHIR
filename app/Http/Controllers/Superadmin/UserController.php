@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Superadmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
@@ -34,14 +33,14 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(10)->withQueryString();
-        $roles = Role::where('name', '!=', 'superadmin')->get();
+        $roles = ['kaur', 'kabag', 'pengelola', 'tenant', 'pelanggan'];
         
         return view('superadmin.users.index', compact('users', 'roles'));
     }
 
     public function create()
     {
-        $roles = Role::where('name', '!=', 'superadmin')->get();
+        $roles = ['kaur', 'kabag', 'pengelola', 'tenant', 'pelanggan'];
         return view('superadmin.users.create', compact('roles'));
     }
 
@@ -76,7 +75,7 @@ class UserController extends Controller
             return back()->with('error', 'Akun Superadmin tidak dapat diedit');
         }
 
-        $roles = Role::where('name', '!=', 'superadmin')->get();
+        $roles = ['kaur', 'kabag', 'pengelola', 'tenant', 'pelanggan'];
         return view('superadmin.users.edit', compact('user', 'roles'));
     }
 

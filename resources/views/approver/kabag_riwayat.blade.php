@@ -39,11 +39,12 @@
                 <thead>
                     <tr class="bg-gray-50/50 border-b border-gray-100">
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">No</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Periode Laporan</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Judul Laporan</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Batch ID</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Periode</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Keterangan Kantin</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Total Penjualan</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider">Dana Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Jml Tenant</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Status</th>
                         <th class="py-4 px-6 text-[13px] font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
                     </tr>
@@ -52,24 +53,28 @@
                     @forelse($pencairans as $index => $p)
                         <tr class="hover:bg-gray-50/50 transition-colors">
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $pencairans->firstItem() + $index }}</td>
-                            <td class="py-4 px-6 text-[14px] font-semibold text-gray-600">{{ $p->batch_id }}</td>
-                            <td class="py-4 px-6 text-[14px] font-medium text-gray-700">{{ \Carbon\Carbon::parse($p->start_date)->format('d/m/y') }} - {{ \Carbon\Carbon::parse($p->end_date)->format('d/m/y') }}</td>
+                            <td class="py-4 px-6 text-[14px] font-medium text-gray-700">{{ \Carbon\Carbon::parse($p->start_date)->format('d M y') }} - {{ \Carbon\Carbon::parse($p->end_date)->format('d M y') }}</td>
+                            <td class="py-4 px-6"><span class="text-[14px] font-bold text-gray-900">{{ $p->judul ?? '-' }}</span></td>
+                            <td class="py-4 px-6">
+                                <span class="text-[14px] font-bold text-gray-900 block">{{ $p->batch_id }}</span>
+                                <span class="text-[11px] text-gray-500 font-medium">{{ $p->tenant_count }} Tenant</span>
+                            </td>
+                            <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $p->keterangan_kantin }}</td>
                             <td class="py-4 px-6 text-[14px] font-semibold text-gray-900">Rp{{ number_format($p->total_penjualan, 0, ',', '.') }}</td>
                             <td class="py-4 px-6 text-[14px] font-black text-gray-900">Rp{{ number_format($p->dana_tenant, 0, ',', '.') }}</td>
-                            <td class="py-4 px-6 text-[14px] font-bold text-gray-700 text-center">{{ $p->tenant_count }} Tenant</td>
                             <td class="py-4 px-6 text-center">
                                 <x-status-badge :status="$p->status" />
                             </td>
                             <td class="py-4 px-6 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('kabag.pencairan.show', $p->batch_id) }}" class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors inline-flex items-center justify-center">
+                                    <a href="{{ route('kabag.pencairan.show', $p->batch_id) }}?source=riwayat" class="px-3 py-1.5 text-xs font-bold text-telkom-red border border-red-200 rounded-lg hover:bg-red-50 transition-colors inline-flex items-center justify-center">
                                         <i class="ph ph-eye mr-1.5 text-sm"></i> Detail
                                     </a>
                                 </div>
                             </td>
                         </tr>
                     @empty
-                    <x-empty-state icon="ph ph-file-text" title="Belum ada riwayat" message="Tidak ada data riwayat pencairan dana yang ditemukan." :colspan="8" />
+                    <x-empty-state icon="ph ph-file-text" title="Belum ada riwayat" message="Tidak ada data riwayat pencairan dana yang ditemukan." :colspan="9" />
                     @endforelse
                 </tbody>
             </table>

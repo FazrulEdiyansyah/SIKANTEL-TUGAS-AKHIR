@@ -36,6 +36,12 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Nomor Telepon / WhatsApp</label>
+                        <input type="text" name="phone_number" value="{{ old('phone_number', $user->phone_number) }}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telkom-red focus:border-transparent transition-all" placeholder="Contoh: 081234567890" required>
+                        @error('phone_number') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-bold text-gray-900 mb-2">Password Baru <span class="text-xs text-gray-400 font-normal">(Kosongkan jika tidak ingin mengubah)</span></label>
                         <input type="password" name="password" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-telkom-red focus:border-transparent transition-all" placeholder="Masukkan password baru">
                         @error('password') <span class="text-xs text-red-500 mt-1">{{ $message }}</span> @enderror

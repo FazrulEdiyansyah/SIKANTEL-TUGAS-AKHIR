@@ -29,14 +29,14 @@
 <body x-data class="font-primary bg-[#FAFBFC] text-gray-800 antialiased flex flex-col min-h-screen">
 
     <!-- Navbar -->
-    <header class="bg-white border-b border-gray-100 sticky top-0 z-50 h-20 px-6 lg:px-16 flex items-center justify-between">
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50 h-20 px-4 sm:px-6 lg:px-16 flex items-center justify-between">
         <!-- Left: Logo -->
         <a href="{{ route('pelanggan.dashboard') }}" class="flex items-center shrink-0">
             <img src="{{ asset('images/logo-sikantel.png') }}" alt="Logo SIKANTEL" class="h-8 object-contain">
         </a>
 
         <!-- Center: Nav Links -->
-        <nav class="flex items-center space-x-6 lg:space-x-12 h-full">
+        <nav class="flex items-center space-x-3 sm:space-x-6 lg:space-x-12 h-full">
             <a href="{{ route('pelanggan.dashboard') }}" class="h-full flex items-center text-xs lg:text-sm font-bold {{ request()->routeIs('pelanggan.dashboard') ? 'text-telkom-red border-b-2 border-telkom-red' : 'text-gray-500 hover:text-gray-900' }} transition-colors">
                 Beranda
             </a>
@@ -47,7 +47,7 @@
         </nav>
 
         <!-- Right: Actions -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 sm:space-x-4">
             <!-- Global Search Component -->
             <div x-data="globalSearch()" class="relative hidden lg:block" @click.away="close()">
                 <div class="relative">

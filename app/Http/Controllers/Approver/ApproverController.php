@@ -17,12 +17,14 @@ class ApproverController extends Controller
     public function dashboardKaur()
     {
         $pencairans = PencairanDana::with(['pengelola'])
-            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
             ->where('status', 'proposed')
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+            
+        $this->assignKeteranganKantin($pencairans);
             
         return view('approver.kaur_dashboard', compact('pencairans'));
     }
@@ -62,12 +64,14 @@ class ApproverController extends Controller
     public function riwayatKaur()
     {
         $pencairans = PencairanDana::with(['pengelola'])
-            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
             ->whereIn('status', ['approved_kaur', 'approved', 'rejected_kaur', 'rejected_kabag'])
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+            
+        $this->assignKeteranganKantin($pencairans);
             
         return view('approver.kaur_riwayat', compact('pencairans'));
     }
@@ -78,12 +82,14 @@ class ApproverController extends Controller
     public function dashboardKabag()
     {
         $pencairans = PencairanDana::with(['pengelola'])
-            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
             ->where('status', 'approved_kaur')
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+            
+        $this->assignKeteranganKantin($pencairans);
             
         return view('approver.kabag_dashboard', compact('pencairans'));
     }
@@ -123,12 +129,14 @@ class ApproverController extends Controller
     public function riwayatKabag()
     {
         $pencairans = PencairanDana::with(['pengelola'])
-            ->selectRaw('batch_id, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
+            ->selectRaw('batch_id, MAX(judul) as judul, MAX(id) as id, MIN(start_date) as start_date, MAX(end_date) as end_date, SUM(total_penjualan) as total_penjualan, SUM(dana_tenant) as dana_tenant, SUM(dana_telu) as dana_telu, status, COUNT(*) as tenant_count, MAX(created_at) as created_at')
             ->whereIn('status', ['approved', 'rejected_kabag'])
             ->whereNotNull('batch_id')
             ->groupBy('batch_id', 'status')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+            
+        $this->assignKeteranganKantin($pencairans);
             
         return view('approver.kabag_riwayat', compact('pencairans'));
     }
@@ -136,6 +144,27 @@ class ApproverController extends Controller
     // ==========================================
     // SHARED APPROVER METHODS
     // ==========================================
+    private function assignKeteranganKantin($pencairans)
+    {
+        $batchIds = $pencairans->pluck('batch_id')->toArray();
+        if(empty($batchIds)) return;
+        $batchKantins = PencairanDana::whereIn('batch_id', $batchIds)
+            ->join('tenants', 'pencairan_danas.tenant_id', '=', 'tenants.id')
+            ->join('kantins', 'tenants.kantin_id', '=', 'kantins.id')
+            ->select('pencairan_danas.batch_id', 'kantins.nama_kantin')
+            ->distinct()
+            ->get()
+            ->groupBy('batch_id');
+
+        foreach ($pencairans as $pencairan) {
+            $kantins = $batchKantins->get($pencairan->batch_id);
+            if ($kantins && $kantins->count() == 1) {
+                $pencairan->keterangan_kantin = $kantins->first()->nama_kantin;
+            } else {
+                $pencairan->keterangan_kantin = 'Berbagai Kantin';
+            }
+        }
+    }
     public function showPencairan($batch_id)
     {
         $pencairan_danas = PencairanDana::with(['tenant.kantin', 'pengelola'])

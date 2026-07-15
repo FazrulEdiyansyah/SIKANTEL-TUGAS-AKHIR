@@ -11,7 +11,7 @@
     @else
         <!-- Check if coming from riwayat or dashboard -->
         @php
-            $isActiveRiwayat = request()->routeIs('*.riwayat');
+            $isActiveRiwayat = request('source') === 'riwayat';
         @endphp
         <x-sidebar.approver :active="$isActiveRiwayat ? 'riwayat' : 'dashboard'" />
     @endif
@@ -31,7 +31,15 @@
             <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">{{ $batchInfo->judul ?? 'Laporan Pencairan Dana' }}</h1>
             <p class="text-[15px] text-gray-500 font-medium">Referensi: {{ $batchInfo->batch_id }}</p>
         </div>
-        <a href="{{ $role === 'pengelola' ? route('pengelola.pencairan_dana.index') : route($role.'.dashboard') }}" class="inline-flex items-center text-sm font-bold text-telkom-red hover:text-red-700 transition-colors">
+        @php
+            $backRoute = route($role.'.dashboard');
+            if ($role !== 'pengelola' && request('source') === 'riwayat') {
+                $backRoute = route($role.'.riwayat');
+            } elseif ($role === 'pengelola') {
+                $backRoute = route('pengelola.pencairan_dana.index');
+            }
+        @endphp
+        <a href="{{ $backRoute }}" class="inline-flex items-center text-sm font-bold text-telkom-red hover:text-red-700 transition-colors">
             <i class="ph-bold ph-arrow-left mr-2"></i> Kembali
         </a>
     </div>
