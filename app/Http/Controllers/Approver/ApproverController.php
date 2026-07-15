@@ -194,6 +194,25 @@ class ApproverController extends Controller
         return $pdf->download('Laporan-Pencairan-Dana-'.$pencairan->id.'.pdf');
     }
 
+    public function generateBatchPdf($batch_id)
+    {
+        $pencairan_danas = PencairanDana::with(['tenant.kantin'])
+            ->where('batch_id', $batch_id)
+            ->get();
+            
+        if ($pencairan_danas->isEmpty()) {
+            abort(404);
+        }
+
+        $data = [
+            'pencairan_danas' => $pencairan_danas,
+            'batchId' => $batch_id
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pengelola.pencairan-dana.pdf_batch', $data);
+        return $pdf->download('Laporan-Pencairan-Dana-Batch-'.$batch_id.'.pdf');
+    }
+
     // ==========================================
     // READ-ONLY DATA VIEWS
     // ==========================================
@@ -247,7 +266,13 @@ class ApproverController extends Controller
         });
 
         $query->when($request->filled('status') && $request->status !== 'all', function ($q) use ($request) {
-            $q->where('order_status', $request->status);
+            if (in_array($request->status, ['failed', 'dibatalkan'])) {
+                $q->whereIn('payment_status', ['failed', 'expired']);
+            } elseif ($request->status === 'pending') {
+                $q->where('payment_status', 'pending');
+            } else {
+                $q->where('order_status', $request->status)->where('payment_status', 'success');
+            }
         });
 
         $orders = $query->paginate(10)->withQueryString();

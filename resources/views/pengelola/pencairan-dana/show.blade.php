@@ -23,6 +23,9 @@
         $canApprove = false;
         if ($role === 'kaur' && $batchInfo->status === 'proposed') $canApprove = true;
         if ($role === 'kabag' && $batchInfo->status === 'approved_kaur') $canApprove = true;
+        
+        $previewPdfRoute = $role === 'pengelola' ? 'pengelola.pencairan_dana.preview_pdf' : $role . '.pencairan.preview_pdf';
+        $batchPdfRoute = $role === 'pengelola' ? 'pengelola.pencairan_dana.batch_pdf' : $role . '.pencairan.batch_pdf';
     @endphp
 
     <!-- Header Page -->
@@ -95,7 +98,7 @@
             </div>
         </div>
 
-        <h2 class="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">Daftar Tenant (Barang & Jasa)</h2>
+        <h2 class="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">Daftar Tenant</h2>
         <div class="overflow-x-auto rounded-xl border border-gray-200">
             <table class="w-full text-left border-collapse bg-white">
                 <thead class="bg-gray-50/80">
@@ -120,7 +123,7 @@
                             <td class="py-3 px-4 text-sm font-black text-gray-900">Rp{{ number_format($item->dana_tenant, 0, ',', '.') }}</td>
                             <td class="py-3 px-4 text-sm font-bold text-gray-700">Rp{{ number_format($item->dana_telu, 0, ',', '.') }}</td>
                             <td class="py-3 px-4 text-center">
-                                <a href="{{ route('pengelola.pencairan_dana.preview_pdf', $item->id) }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors shadow-sm">
+                                <a href="{{ route($previewPdfRoute, $item->id) }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors shadow-sm">
                                     <i class="ph-bold ph-download-simple mr-2"></i> Download PDF
                                 </a>
                             </td>
@@ -199,7 +202,7 @@
         <!-- Actions -->
         <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end items-center">
             <div class="flex gap-3">
-                <a href="{{ route('pengelola.pencairan_dana.batch_pdf', $batch_id) }}" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm flex items-center">
+                <a href="{{ route($batchPdfRoute, $batch_id) }}" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm flex items-center">
                     <i class="ph-bold ph-file-pdf mr-2 text-red-500 text-lg"></i> Download Semua (Batch)
                 </a>
                 

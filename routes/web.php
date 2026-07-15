@@ -71,7 +71,8 @@ Route::middleware(['auth', 'role:kaur'])->prefix('kaur')->name('kaur.')->group(f
     Route::get('/dashboard', [\App\Http\Controllers\Approver\ApproverController::class, 'dashboardKaur'])->name('dashboard');
     Route::get('/riwayat', [\App\Http\Controllers\Approver\ApproverController::class, 'riwayatKaur'])->name('riwayat');
     Route::get('/pencairan/{batch_id}', [\App\Http\Controllers\Approver\ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{batch_id}/pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::get('/pencairan/preview-pdf/{id}', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.preview_pdf');
+    Route::get('/pencairan/{batch_id}/batch-pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generateBatchPdf'])->name('pencairan.batch_pdf');
     Route::post('/pencairan/{batch_id}/approve', [\App\Http\Controllers\Approver\ApproverController::class, 'approveKaur'])->name('pencairan.approve');
     Route::post('/pencairan/{batch_id}/reject', [\App\Http\Controllers\Approver\ApproverController::class, 'rejectKaur'])->name('pencairan.reject');
     
@@ -89,7 +90,8 @@ Route::middleware(['auth', 'role:kabag'])->prefix('kabag')->name('kabag.')->grou
     Route::get('/dashboard', [\App\Http\Controllers\Approver\ApproverController::class, 'dashboardKabag'])->name('dashboard');
     Route::get('/riwayat', [\App\Http\Controllers\Approver\ApproverController::class, 'riwayatKabag'])->name('riwayat');
     Route::get('/pencairan/{batch_id}', [\App\Http\Controllers\Approver\ApproverController::class, 'showPencairan'])->name('pencairan.show');
-    Route::get('/pencairan/{batch_id}/pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.pdf');
+    Route::get('/pencairan/preview-pdf/{id}', [\App\Http\Controllers\Approver\ApproverController::class, 'generatePdf'])->name('pencairan.preview_pdf');
+    Route::get('/pencairan/{batch_id}/batch-pdf', [\App\Http\Controllers\Approver\ApproverController::class, 'generateBatchPdf'])->name('pencairan.batch_pdf');
     Route::post('/pencairan/{batch_id}/approve', [\App\Http\Controllers\Approver\ApproverController::class, 'approveKabag'])->name('pencairan.approve');
     Route::post('/pencairan/{batch_id}/reject', [\App\Http\Controllers\Approver\ApproverController::class, 'rejectKabag'])->name('pencairan.reject');
 

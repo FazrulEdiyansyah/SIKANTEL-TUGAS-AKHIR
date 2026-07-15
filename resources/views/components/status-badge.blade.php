@@ -89,6 +89,20 @@
             'dot' => 'bg-green-500',
             'label' => $label ?? 'Selesai',
         ],
+        'belum_diproses' => [
+            'bg' => 'bg-orange-50',
+            'text' => 'text-orange-600',
+            'border' => 'border-orange-200',
+            'dot' => 'bg-orange-500',
+            'label' => $label ?? 'Belum Diproses',
+        ],
+        'siap_diambil' => [
+            'bg' => 'bg-teal-50',
+            'text' => 'text-teal-600',
+            'border' => 'border-teal-200',
+            'dot' => 'bg-teal-500',
+            'label' => $label ?? 'Siap Diambil',
+        ],
         'dibatalkan', 'cancelled', 'failed' => [
             'bg' => 'bg-red-50', 
             'text' => 'text-red-600', 
