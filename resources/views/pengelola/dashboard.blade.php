@@ -85,7 +85,21 @@
 
         <!-- Kantin Paling Ramai -->
         <div class="bg-white rounded-[20px] p-6 shadow-sm border border-gray-100 flex flex-col">
-            <h2 class="text-[17px] font-bold text-gray-900 mb-6">Kantin Paling Ramai</h2>
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-[17px] font-bold text-gray-900">Kantin Paling Ramai</h2>
+                <form method="GET" action="{{ route('pengelola.dashboard') }}">
+                    @if(request('kantin_id'))
+                        <input type="hidden" name="kantin_id" value="{{ request('kantin_id') }}">
+                    @endif
+                    @if(request('filter_waktu_tenant'))
+                        <input type="hidden" name="filter_waktu_tenant" value="{{ request('filter_waktu_tenant') }}">
+                    @endif
+                    <select name="filter_waktu_kantin" onchange="this.form.submit()" class="text-[12px] font-semibold bg-gray-50 border border-gray-200 rounded-lg px-2 py-1 outline-none focus:ring-0 cursor-pointer text-gray-700">
+                        <option value="bulan_ini" {{ request('filter_waktu_kantin', 'bulan_ini') == 'bulan_ini' ? 'selected' : '' }}>Bulan Ini</option>
+                        <option value="semua_waktu" {{ request('filter_waktu_kantin') == 'semua_waktu' ? 'selected' : '' }}>Semua Waktu</option>
+                    </select>
+                </form>
+            </div>
             
             <div class="space-y-5 flex-1 flex flex-col items-center justify-center text-center pb-8">
                 @if($kantinTeramai)
@@ -119,13 +133,24 @@
     <div class="bg-white rounded-[20px] p-6 shadow-sm border border-gray-100 mb-8">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-[17px] font-bold text-gray-900">Top 5 Tenant <span class="text-[13px] font-medium text-gray-400 font-normal ml-1">(Berdasarkan Penjualan)</span></h2>
-            <form method="GET" action="{{ route('pengelola.dashboard') }}" class="flex items-center bg-white border border-gray-200 rounded-lg p-1.5 px-3">
-                <select name="kantin_id" onchange="this.form.submit()" class="text-[13px] font-semibold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-gray-700">
-                    <option value="">Semua Kantin</option>
-                    @foreach($allKantins as $k)
-                        <option value="{{ $k->id }}" {{ request('kantin_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kantin }}</option>
-                    @endforeach
-                </select>
+            <form method="GET" action="{{ route('pengelola.dashboard') }}" class="flex items-center gap-2">
+                @if(request('filter_waktu_kantin'))
+                    <input type="hidden" name="filter_waktu_kantin" value="{{ request('filter_waktu_kantin') }}">
+                @endif
+                <div class="flex items-center bg-white border border-gray-200 rounded-lg p-1.5 px-3">
+                    <select name="filter_waktu_tenant" onchange="this.form.submit()" class="text-[13px] font-semibold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-gray-700 py-0 pl-1 pr-6">
+                        <option value="bulan_ini" {{ request('filter_waktu_tenant', 'bulan_ini') == 'bulan_ini' ? 'selected' : '' }}>Bulan Ini</option>
+                        <option value="semua_waktu" {{ request('filter_waktu_tenant') == 'semua_waktu' ? 'selected' : '' }}>Semua Waktu</option>
+                    </select>
+                </div>
+                <div class="flex items-center bg-white border border-gray-200 rounded-lg p-1.5 px-3">
+                    <select name="kantin_id" onchange="this.form.submit()" class="text-[13px] font-semibold bg-transparent border-none outline-none focus:ring-0 cursor-pointer text-gray-700">
+                        <option value="">Semua Kantin</option>
+                        @foreach($allKantins as $k)
+                            <option value="{{ $k->id }}" {{ request('kantin_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kantin }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </form>
         </div>
 
@@ -322,3 +347,4 @@
         }
     </script>
 @endsection
+
