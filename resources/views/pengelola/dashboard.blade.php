@@ -107,6 +107,8 @@
                         @if($kantinTeramai->foto)
                             <img src="{{ asset('storage/' . $kantinTeramai->foto) }}" class="w-full h-full object-cover">
                         @else
+                            <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
+                        @endif
                             <div class="w-full h-full flex items-center justify-center bg-red-50 text-telkom-red">
                                 <i class="ph-bold ph-storefront text-3xl"></i>
                             </div>
@@ -179,6 +181,8 @@
                                         @if($tenantInfo->foto)
                                             <img src="{{ asset('storage/' . $tenantInfo->foto) }}" class="w-full h-full object-cover">
                                         @else
+                                            <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
+                                        @endif
                                             <div class="w-full h-full flex items-center justify-center text-gray-400"><i class="ph-fill ph-storefront"></i></div>
                                         @endif
                                     </div>

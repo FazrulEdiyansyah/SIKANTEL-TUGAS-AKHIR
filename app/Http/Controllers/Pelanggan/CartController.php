@@ -36,15 +36,15 @@ class CartController extends Controller
                     ->whereIn('order_status', ['belum_diproses', 'diproses'])
                     ->count();
                 
-                // Batching: setiap 10 pesanan menambah waktu tunggu 5 menit
-                $batchCount = floor($activeOrders / 10);
-                $estMin = 10 + ($batchCount * 5);
-                $estMax = 15 + ($batchCount * 5);
+                // Batching: setiap 5 pesanan menambah waktu tunggu sekitar 2-3 menit
+                $batchCount = floor($activeOrders / 5);
+                $estMin = 10 + ($batchCount * 2);
+                $estMax = 15 + ($batchCount * 3);
                 
-                // Batas maksimal waktu tunggu (cap)
-                if ($estMax > 45) {
-                    $estMax = 45;
-                    $estMin = 40;
+                // Batas maksimal waktu tunggu (cap) psikologis agar tidak terasa terlalu lama
+                if ($estMax > 30) {
+                    $estMax = 30;
+                    $estMin = 25;
                 }
                 
                 $now = \Carbon\Carbon::now();
@@ -137,14 +137,17 @@ class CartController extends Controller
     {
         $request->validate([
             'menu_id' => 'required|exists:menus,id',
+            'quantity' => 'nullable|integer|min:1',
         ]);
 
         $cart = $this->getCart();
         $item = CartItem::where('cart_id', $cart->id)->where('menu_id', $request->menu_id)->first();
 
+        $qtyToDecrease = $request->quantity ?? 1;
+
         if ($item) {
-            if ($item->quantity > 1) {
-                $item->quantity -= 1;
+            if ($item->quantity > $qtyToDecrease) {
+                $item->quantity -= $qtyToDecrease;
                 $item->save();
             } else {
                 $item->delete();
@@ -162,23 +165,18 @@ class CartController extends Controller
     {
         $request->validate([
             'cart_key' => 'required|integer|exists:cart_items,id',
-            'action' => 'required|in:increase,decrease'
+            'quantity' => 'required|integer|min:0'
         ]);
 
         $cart = $this->getCart();
         $item = CartItem::where('cart_id', $cart->id)->where('id', $request->cart_key)->first();
         
         if ($item) {
-            if ($request->action === 'increase') {
-                $item->quantity += 1;
-                $item->save();
+            if ($request->quantity <= 0) {
+                $item->delete();
             } else {
-                if ($item->quantity > 1) {
-                    $item->quantity -= 1;
-                    $item->save();
-                } else {
-                    $item->delete();
-                }
+                $item->quantity = $request->quantity;
+                $item->save();
             }
         }
 

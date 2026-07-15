@@ -73,10 +73,7 @@
                                     <i class="ph ph-fork-knife text-telkom-red"></i>
                                     <span x-text="order.order_type === 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang'"></span>
                                 </div>
-                                <div class="flex items-center gap-1.5 text-xs text-gray-600" x-show="order.order_type === 'dine-in'">
-                                    <i class="ph ph-armchair text-gray-400"></i>
-                                    <span x-text="'Meja ' + (order.table_number || '-')"></span>
-                                </div>
+
                             </div>
                         </div>
 
@@ -102,7 +99,7 @@
                                     <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
                                           :class="getStatusClass(getUnifiedStatus(order))">
                                         <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
-                                        <span x-text="getStatusText(getUnifiedStatus(order), order.order_type, order.table_number)"></span>
+                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
                                     </span>
                                 </div>
                                 
@@ -209,16 +206,12 @@
                     return order.payment_status;
                 },
 
-                getStatusText(status, orderType, tableNumber) {
+                getStatusText(status) {
                     switch (status) {
                         case 'pending': return 'Menunggu Pembayaran';
                         case 'belum_diproses': return 'Pesanan Diterima';
                         case 'diproses': return 'Sedang Disiapkan';
-                        case 'siap_diambil': 
-                            if (orderType === 'dine-in') {
-                                return tableNumber ? 'Sedang Diantar' : 'Ambil Sendiri';
-                            }
-                            return 'Siap Diambil';
+                        case 'siap_diambil': return 'Siap Diambil';
                         case 'selesai': return 'Selesai';
                         case 'failed': return 'Gagal / Dibatalkan';
                         default: return status;

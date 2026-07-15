@@ -20,7 +20,7 @@
                 @if($tenant->foto)
                     <img src="{{ asset('storage/' . $tenant->foto) }}" alt="{{ $tenant->nama_tenant }}" class="w-full h-full object-cover">
                 @else
-                    <img src="https://ui-avatars.com/api/?name={{ urlencode($tenant->nama_tenant) }}&background=fee2e2&color=dc2626&bold=true" class="w-full h-full object-cover">
+                    <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
                 @endif
             </div>
             <div class="flex-1">

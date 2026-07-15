@@ -135,7 +135,7 @@ class DummySeeder extends Seeder
             'order_status' => 'selesai',
             'payment_type' => 'qris',
             'order_type' => 'dine-in',
-            'table_number' => '12',
+
             'snap_token' => 'dummy',
             'created_at' => Carbon::now()->subDays(2)
         ]);

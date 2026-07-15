@@ -30,9 +30,12 @@
                 <div class="relative w-full md:w-48">
                     <select name="status" onchange="this.form.submit()" class="w-full pl-4 pr-10 py-3 bg-white border border-gray-200 text-sm text-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red appearance-none cursor-pointer transition-all">
                         <option value="all">Semua Status</option>
+                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu Pembayaran</option>
+                        <option value="belum_diproses" {{ request('status') === 'belum_diproses' ? 'selected' : '' }}>Belum Diproses</option>
                         <option value="diproses" {{ request('status') === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                        <option value="siap_diambil" {{ request('status') === 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
                         <option value="selesai" {{ request('status') === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                        <option value="dibatalkan" {{ request('status') === 'dibatalkan' ? 'selected' : '' }}>Dibatalkan</option>
+                        <option value="failed" {{ in_array(request('status'), ['failed', 'dibatalkan']) ? 'selected' : '' }}>Gagal / Dibatalkan</option>
                     </select>
                     <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     <span class="absolute -top-2 left-3 bg-white px-1 text-[11px] font-medium text-gray-400">Filter Status</span>
@@ -68,7 +71,10 @@
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-700">{{ $order->user->name ?? '-' }}</td>
                             <td class="py-4 px-6 text-[14px] font-bold text-gray-900">Rp{{ number_format($order->total_price, 0, ',', '.') }}</td>
                             <td class="py-4 px-6 text-center">
-                                <x-status-badge :status="$order->order_status" />
+                                @php
+                                    $unifiedStatus = $order->payment_status === 'success' ? $order->order_status : (in_array($order->payment_status, ['failed', 'expired']) ? 'failed' : $order->payment_status);
+                                @endphp
+                                <x-status-badge :status="$unifiedStatus" />
                             </td>
                             <td class="py-4 px-6 text-[14px] font-medium text-gray-600 text-center">{{ $order->created_at->format('d M Y H:i') }}</td>
                         </tr>

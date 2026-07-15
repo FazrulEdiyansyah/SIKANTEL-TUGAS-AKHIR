@@ -91,14 +91,14 @@
                                     <p class="text-[11px] text-gray-500 flex items-center gap-1">
                                         <i class="ph-fill ph-storefront"></i>
                                         <span x-text="order.order_type === 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang'"></span>
-                                        <span x-show="order.order_type === 'dine-in'" x-text="'• Meja ' + (order.table_number || '-')"></span>
+
                                     </p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <h4 class="font-bold text-gray-900 text-base" x-text="getTime(order.created_at)"></h4>
                                 <p class="text-[10px] text-gray-400 mb-1" x-text="getDate(order.created_at)"></p>
-                                <span class="text-[10px] font-bold" :class="getStatusColor(order.order_status)" x-text="getStatusText(order.order_status, order.order_type, order.table_number)"></span>
+                                <span class="text-[10px] font-bold" :class="getStatusColor(order.order_status)" x-text="getStatusText(order.order_status)"></span>
                             </div>
                         </div>
 
@@ -153,9 +153,9 @@
                                     <form :action="'/tenant/orders/' + order.id + '/status'" method="POST" class="flex-1">
                                         @csrf
                                         @method('PATCH')
-                                        <input type="hidden" name="order_status" :value="getNextStatus(order.order_status, order.order_type, order.table_number)">
+                                        <input type="hidden" name="order_status" :value="getNextStatus(order.order_status, order.order_type)">
                                         <button type="submit" class="w-full py-2.5 bg-telkom-red hover:bg-red-700 text-white text-sm font-bold rounded-xl transition-colors shadow-sm">
-                                            <span x-text="getProcessButtonText(order.order_status, order.order_type, order.table_number)"></span>
+                                            <span x-text="getProcessButtonText(order.order_status, order.order_type)"></span>
                                         </button>
                                     </form>
                                 </template>
@@ -263,15 +263,11 @@
                     return c;
                 },
 
-                getStatusText(status, orderType, tableNumber) {
+                getStatusText(status) {
                     switch (status) {
                         case 'belum_diproses': return 'Pesanan Masuk';
                         case 'diproses': return 'Sedang Disiapkan';
-                        case 'siap_diambil': 
-                            if (orderType === 'dine-in') {
-                                return tableNumber ? 'Menunggu Diselesaikan' : 'Ambil Sendiri';
-                            }
-                            return 'Siap Diambil';
+                        case 'siap_diambil': return 'Siap Diambil';
                         case 'selesai': return 'Selesai';
                         default: return status;
                     }
@@ -287,29 +283,22 @@
                     }
                 },
                 
-                getNextStatus(currentStatus, orderType, tableNumber) {
+                getNextStatus(currentStatus, orderType) {
                     switch (currentStatus) {
                         case 'belum_diproses': return 'diproses';
                         case 'diproses': 
-                            if (orderType === 'dine-in') {
-                                return tableNumber ? 'selesai' : 'siap_diambil';
-                            }
-                            return 'siap_diambil';
+                            return orderType === 'dine-in' ? 'selesai' : 'siap_diambil';
                         case 'siap_diambil': return 'selesai';
                         default: return 'selesai';
                     }
                 },
                 
-                getProcessButtonText(currentStatus, orderType, tableNumber) {
+                getProcessButtonText(currentStatus, orderType) {
                     switch (currentStatus) {
                         case 'belum_diproses': return 'Proses Pesanan';
                         case 'diproses': 
-                            if (orderType === 'dine-in') {
-                                return tableNumber ? 'Selesaikan Pesanan' : 'Tandai Ambil Sendiri';
-                            }
-                            return 'Pesanan Siap Diambil';
-                        case 'siap_diambil': 
-                            return 'Selesaikan Pesanan';
+                            return orderType === 'dine-in' ? 'Selesaikan Pesanan' : 'Pesanan Siap Diambil';
+                        case 'siap_diambil': return 'Selesaikan Pesanan';
                         default: return 'Selesai';
                     }
                 }

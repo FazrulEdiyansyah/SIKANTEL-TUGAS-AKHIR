@@ -34,12 +34,7 @@
                                         <i class="ph-fill {{ $order->order_type == 'dine-in' ? 'ph-armchair' : 'ph-bag' }}"></i>
                                         {{ $order->order_type == 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang' }}
                                     </div>
-                                    @if($order->order_type == 'dine-in')
-                                        <span>•</span>
-                                        <div class="flex items-center gap-1.5">
-                                            Meja {{ $order->table_number ?? '-' }}
-                                        </div>
-                                    @endif
+
                                 </div>
                             </div>
                         </div>
@@ -56,7 +51,7 @@
                                     @if($item->menu && $item->menu->foto)
                                         <img src="{{ asset('storage/' . $item->menu->foto) }}" class="w-full h-full object-cover">
                                     @else
-                                        <i class="ph ph-image text-gray-400"></i>
+                                        <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60">
                                     @endif
                                 </div>
                                 <div class="flex-1">
@@ -131,8 +126,8 @@
                                     $btnText = 'Proses Pesanan';
                                 } else if ($order->order_status == 'diproses') {
                                     if ($order->order_type == 'dine-in') {
-                                        $nextStatus = !empty($order->table_number) ? 'selesai' : 'siap_diambil';
-                                        $btnText = !empty($order->table_number) ? 'Selesaikan Pesanan' : 'Tandai Ambil Sendiri';
+                                        $nextStatus = 'selesai';
+                                        $btnText = 'Selesaikan Pesanan';
                                     } else {
                                         $nextStatus = 'siap_diambil';
                                         $btnText = 'Tandai Siap Diambil';

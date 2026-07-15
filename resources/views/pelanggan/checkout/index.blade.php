@@ -53,36 +53,6 @@
                     </div>
                 </div>
 
-                <!-- Nomor Meja -->
-                <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 transition-all" x-show="orderType === 'dine-in'" x-transition>
-                    <h3 class="text-lg font-bold text-gray-900 mb-1">Nomor Meja</h3>
-                    <p class="text-sm text-gray-500 mb-4">Isi nomor meja atau tandai jika belum mendapatkan meja.</p>
-                    
-                    <div class="flex flex-col gap-4">
-                        <input type="text" x-model="tableNumber" placeholder="Contoh: Meja 12" 
-                               class="w-full border text-gray-900 text-sm rounded-xl focus:ring-telkom-red focus:border-telkom-red block p-3.5 font-medium transition-colors disabled:opacity-50 disabled:bg-gray-100"
-                               :class="showTableError ? 'border-red-500 bg-red-50 focus:ring-red-500 focus:border-red-500' : 'bg-gray-50 border-gray-200'"
-                               :disabled="noTableYet"
-                               @input="showTableError = false">
-                               
-                        <label class="flex items-center gap-3 cursor-pointer group w-fit">
-                            <div class="relative flex items-center justify-center">
-                                <input type="checkbox" x-model="noTableYet" @change="if(noTableYet) { tableNumber = ''; showTableError = false; }" class="peer sr-only">
-                                <div class="w-5 h-5 border-2 border-gray-300 rounded-md peer-checked:bg-telkom-red peer-checked:border-telkom-red transition-all"></div>
-                                <i class="ph-bold ph-check text-white absolute opacity-0 peer-checked:opacity-100 text-sm"></i>
-                            </div>
-                            <span class="text-sm font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">Saya belum dapat meja</span>
-                        </label>
-                    </div>
-
-                    <div x-show="showTableError" x-transition>
-                        <div class="flex items-center gap-1.5 mt-3 text-sm text-red-500 font-medium">
-                            <i class="ph-fill ph-warning-circle"></i>
-                            <span>Harap isi nomor meja atau centang opsi "belum dapat meja" di atas.</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Ringkasan Pesanan -->
                 <div class="bg-white rounded-[24px] shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-6 border-b border-gray-100">
@@ -233,57 +203,39 @@
                     
                     <div class="flex items-start gap-2 bg-gray-50 border border-gray-100 p-3.5 rounded-xl mb-6">
                         <i class="ph ph-info text-gray-400 mt-0.5"></i>
-                        <p class="text-[11px] text-gray-500 leading-relaxed">Periksa kembali detail pesanan, jenis layanan, dan nomor meja sebelum melanjutkan.</p>
+                        <p class="text-[11px] text-gray-500 leading-relaxed">Periksa kembali detail pesanan dan jenis layanan sebelum melanjutkan.</p>
                     </div>
 
                     @if(count($cart) > 0)
                         @php
-                            $bgClass = 'bg-green-50';
-                            $borderClass = 'border-green-200';
-                            $iconBgClass = 'bg-green-100';
-                            $textClass = 'text-green-600';
-                            $iconClass = 'ph-check-circle text-green-600';
+                            $iconBgClass = 'bg-green-50 text-green-600';
+                            $iconClass = 'ph-check-circle';
                             $estTitle = 'Antrean Sepi';
                             
                             if ($activeOrders > 10 && $activeOrders <= 25) {
-                                $bgClass = 'bg-yellow-50';
-                                $borderClass = 'border-yellow-200';
-                                $iconBgClass = 'bg-yellow-100';
-                                $textClass = 'text-yellow-600';
-                                $iconClass = 'ph-timer text-yellow-600';
+                                $iconBgClass = 'bg-yellow-50 text-yellow-600';
+                                $iconClass = 'ph-timer';
                                 $estTitle = 'Antrean Normal';
                             } else if ($activeOrders > 25) {
-                                $bgClass = 'bg-red-50';
-                                $borderClass = 'border-red-200';
-                                $iconBgClass = 'bg-red-100';
-                                $textClass = 'text-[#E31E24]';
-                                $iconClass = 'ph-warning-circle text-[#E31E24]';
-                                $estTitle = 'Antrean Sangat Padat';
+                                $iconBgClass = 'bg-red-50 text-[#E31E24]';
+                                $iconClass = 'ph-warning-circle';
+                                $estTitle = 'Antrean Padat';
                             }
                         @endphp
                         
-                        <div class="mb-6 rounded-xl border {{ $borderClass }} {{ $bgClass }} p-4 shadow-sm relative overflow-hidden">
-                            <div class="absolute -right-4 -top-4 opacity-10">
-                                <i class="ph-fill ph-clock text-8xl {{ $textClass }}"></i>
+                        <div class="mb-6 rounded-2xl border border-gray-100 bg-white p-4 flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full {{ $iconBgClass }} flex items-center justify-center shrink-0">
+                                    <i class="ph-fill {{ $iconClass }} text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-900">Estimasi Selesai</h4>
+                                    <p class="text-xs text-gray-500 font-medium">{{ $estTitle }}</p>
+                                </div>
                             </div>
-                            
-                            <div class="relative z-10">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-8 h-8 rounded-full {{ $iconBgClass }} flex items-center justify-center shrink-0">
-                                        <i class="ph-fill {{ $iconClass }} text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-sm font-bold text-gray-900">Estimasi Selesai</h4>
-                                        <p class="text-[11px] text-gray-600 font-medium">{{ $estMin }}-{{ $estMax }} Menit <span class="{{ $textClass }} ml-1">({{ $estTitle }})</span></p>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex items-center justify-center bg-white/60 rounded-lg p-3 border border-white/50 text-center">
-                                    <div>
-                                        <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Sekitar Pukul (WIB)</p>
-                                        <p class="text-xl font-black text-gray-900">{{ $estStartStr }} - {{ $estEndStr }}</p>
-                                    </div>
-                                </div>
+                            <div class="text-right">
+                                <span class="text-lg font-black text-gray-900">{{ $estMin }}-{{ $estMax }}</span>
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider block -mt-1">Menit</span>
                             </div>
                         </div>
                     @endif
@@ -305,13 +257,11 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('checkoutPage', () => ({
                 orderType: 'dine-in',
-                tableNumber: '',
-                noTableYet: false,
-                showTableError: false,
                 cartItems: {!! json_encode($cart) !!},
                 isProcessingPayment: false,
                 editingNoteKey: null,
                 editNoteText: '',
+                syncTimers: {},
                 
                 get totalQty() {
                     let total = 0;
@@ -385,32 +335,42 @@
                 },
                 
                 async updateQuantity(cartKey, action) {
-                    const currentQty = this.cartItems[cartKey].quantity;
+                    const currentQty = parseInt(this.cartItems[cartKey].quantity, 10);
                     if (action === 'decrease' && currentQty <= 1) {
                         this.removeItem(cartKey);
                         return;
                     }
                     
                     // Optimistic update
-                    if (action === 'increase') this.cartItems[cartKey].quantity++;
-                    if (action === 'decrease') this.cartItems[cartKey].quantity--;
-                    
-                    try {
-                        const response = await fetch('{{ route("pelanggan.cart.update") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                cart_key: cartKey,
-                                action: action
-                            })
-                        });
-                    } catch (error) {
-                        console.error('Error updating cart:', error);
+                    if (action === 'increase') {
+                        this.cartItems[cartKey].quantity = currentQty + 1;
+                    } else if (action === 'decrease') {
+                        this.cartItems[cartKey].quantity = currentQty - 1;
                     }
+                    
+                    const newQty = this.cartItems[cartKey].quantity;
+
+                    // Debounce fetch request agar tidak berat jika ditekan berkali-kali dengan cepat
+                    if (this.syncTimers[cartKey]) clearTimeout(this.syncTimers[cartKey]);
+                    
+                    this.syncTimers[cartKey] = setTimeout(async () => {
+                        try {
+                            const response = await fetch('{{ route("pelanggan.cart.update") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    cart_key: cartKey,
+                                    quantity: newQty
+                                })
+                            });
+                        } catch (error) {
+                            console.error('Error updating cart:', error);
+                        }
+                    }, 400);
                 },
                 
                 async removeItem(cartKey) {
@@ -453,13 +413,6 @@
                 },
                 
                 async proceedToPayment() {
-                    if (this.orderType === 'dine-in' && !this.noTableYet && !this.tableNumber.trim()) {
-                        this.showTableError = true;
-                        window.scrollTo({top: 0, behavior: 'smooth'});
-                        return;
-                    }
-                    this.showTableError = false;
-
                     this.isProcessingPayment = true;
                     try {
                         const response = await fetch('{{ route("pelanggan.checkout.process") }}', {
@@ -470,8 +423,7 @@
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
                             body: JSON.stringify({
-                                order_type: this.orderType,
-                                table_number: this.tableNumber
+                                order_type: this.orderType
                             })
                         });
                         

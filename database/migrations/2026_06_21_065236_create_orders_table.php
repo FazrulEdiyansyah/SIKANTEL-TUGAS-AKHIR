@@ -21,7 +21,6 @@ return new class extends Migration
             $table->string('payment_type')->nullable();
             $table->string('snap_token')->nullable();
             $table->enum('order_type', ['dine-in', 'takeaway'])->default('dine-in');
-            $table->string('table_number')->nullable();
             $table->timestamps();
         });
     }

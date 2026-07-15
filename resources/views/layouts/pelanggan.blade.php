@@ -233,8 +233,17 @@
                 menuQty: {!! json_encode($globalMenuQtyData) !!},
                 formatPrice(price) {
                     return new Intl.NumberFormat('id-ID').format(price);
+                },
+                async goToCheckout(url) {
+                    // Tunggu antrean selesai secara diam-diam tanpa animasi
+                    if (window.cartRequestQueue && window.isCartSyncing) {
+                        await window.cartRequestQueue;
+                    }
+                    window.location.href = url;
                 }
             });
+            window.cartRequestQueue = Promise.resolve();
+            window.isCartSyncing = false;
         });
     </script>
 
@@ -254,7 +263,7 @@
                     </div>
                     <div class="flex items-center gap-4">
                         <span class="font-bold text-lg">Rp <span x-text="$store.cart.formatPrice($store.cart.totalPrice)"></span></span>
-                        <a href="{{ route('pelanggan.checkout') }}" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
+                        <a href="{{ route('pelanggan.checkout') }}" @click.prevent="$store.cart.goToCheckout('{{ route('pelanggan.checkout') }}')" class="bg-white text-telkom-red font-bold text-sm px-5 py-2 rounded-xl hover:bg-red-50 transition-colors shadow-sm">
                             Keranjang
                         </a>
                     </div>
