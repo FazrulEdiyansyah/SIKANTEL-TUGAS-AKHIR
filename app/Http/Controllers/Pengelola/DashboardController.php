@@ -121,16 +121,27 @@ class DashboardController extends Controller
             ]);
         }
 
+        $filterWaktuTenant = $request->query('filter_waktu_tenant', 'bulan_ini');
+        $filterWaktuKantin = $request->query('filter_waktu_kantin', 'bulan_ini');
+
         // Top 5 Tenants by Sales
         $topTenantsQuery = Tenant::with('kantin')
             ->where('status', 'aktif')
-            ->withSum(['orders' => function ($query) {
+            ->withSum(['orders' => function ($query) use ($filterWaktuTenant, $currentMonth, $currentYear) {
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
+                if ($filterWaktuTenant === 'bulan_ini') {
+                    $query->whereMonth('orders.created_at', $currentMonth)
+                          ->whereYear('orders.created_at', $currentYear);
+                }
             }], 'total_price')
-            ->withCount(['orders' => function ($query) {
+            ->withCount(['orders' => function ($query) use ($filterWaktuTenant, $currentMonth, $currentYear) {
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
+                if ($filterWaktuTenant === 'bulan_ini') {
+                    $query->whereMonth('orders.created_at', $currentMonth)
+                          ->whereYear('orders.created_at', $currentYear);
+                }
             }]);
 
         if ($kantinId) {
@@ -138,17 +149,19 @@ class DashboardController extends Controller
         }
 
         $topTenants = $topTenantsQuery
-            ->orderByDesc('orders_sum_total_price')
+            ->orderByRaw('orders_sum_total_price DESC NULLS LAST')
             ->take(5)
             ->get();
 
-        // Kantin Teramai (by total sales amount instead of order count, filtered by current month)
+        // Kantin Teramai
         $kantinTeramaiQuery = Kantin::where('status', 'aktif')
-            ->withSum(['orders' => function ($query) use ($currentMonth, $currentYear) {
+            ->withSum(['orders' => function ($query) use ($filterWaktuKantin, $currentMonth, $currentYear) {
                 $query->where('orders.payment_status', 'success')
-                      ->where('orders.order_status', 'selesai')
-                      ->whereMonth('orders.created_at', $currentMonth)
-                      ->whereYear('orders.created_at', $currentYear);
+                      ->where('orders.order_status', 'selesai');
+                if ($filterWaktuKantin === 'bulan_ini') {
+                    $query->whereMonth('orders.created_at', $currentMonth)
+                          ->whereYear('orders.created_at', $currentYear);
+                }
             }], 'total_price');
             
         if ($kantinId) {
@@ -156,7 +169,7 @@ class DashboardController extends Controller
         }
 
         $kantinTeramai = $kantinTeramaiQuery
-            ->orderByDesc('orders_sum_total_price')
+            ->orderByRaw('orders_sum_total_price DESC NULLS LAST')
             ->first();
             
         // Get all kantins for the filter dropdown
