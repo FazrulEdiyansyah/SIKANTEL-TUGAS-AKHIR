@@ -111,21 +111,24 @@
                                 <div class="flex items-start gap-2">
                                     <div class="w-1.5 h-1.5 rounded-full bg-telkom-red mt-1.5 shrink-0"></div>
                                     <div>
-                                        <p class="text-sm text-gray-900 leading-snug">
-                                            <span class="font-bold" x-text="item.nama_menu"></span> 
-                                            <span class="font-semibold text-gray-500" x-text="'x' + item.quantity"></span>
+                                        <p class="leading-snug flex items-center justify-between">
+                                            <span class="font-bold text-gray-900 text-[15px]" x-text="item.nama_menu"></span> 
+                                            <span class="font-black text-telkom-red text-base ml-2" x-text="'x' + item.quantity"></span>
                                         </p>
                                         
                                         <!-- Customizations & Notes -->
                                         <template x-if="item.selected_options || item.catatan">
-                                            <div class="mt-1 space-y-0.5">
+                                            <div class="mt-1 space-y-1">
                                                 <template x-if="item.selected_options">
                                                     <template x-for="opt in parseOptions(item.selected_options)">
-                                                        <p class="text-[11px] text-gray-400 italic" x-text="opt.label + ': ' + opt.value"></p>
+                                                        <p class="text-xs font-medium text-gray-600" x-text="opt.label + ': ' + opt.value"></p>
                                                     </template>
                                                 </template>
                                                 <template x-if="item.catatan">
-                                                    <p class="text-[11px] text-gray-400 italic" x-text="'Catatan: ' + item.catatan"></p>
+                                                    <div class="bg-yellow-50 p-2 mt-1.5 rounded-lg border border-yellow-100 flex items-start gap-1.5">
+                                                        <i class="ph-fill ph-warning-circle text-yellow-600 mt-0.5"></i>
+                                                        <p class="text-xs text-yellow-800 font-semibold" x-text="'Catatan: ' + item.catatan"></p>
+                                                    </div>
                                                 </template>
                                             </div>
                                         </template>
@@ -141,7 +144,7 @@
                                     <p class="text-[11px] text-gray-400 mb-0.5">Total</p>
                                     <p class="text-lg font-black text-telkom-red" x-text="'Rp' + formatPrice(order.total_price)"></p>
                                 </div>
-                                <div class="flex items-center gap-1 text-[11px] text-gray-400">
+                                <div x-show="countNotes(order) > 0" class="flex items-center gap-1 text-[11px] text-gray-400">
                                     <i class="ph ph-note-pencil"></i>
                                     <span x-text="countNotes(order) + ' catatan'"></span>
                                 </div>
@@ -250,15 +253,28 @@
                             return [{label: 'Pilihan', value: opts}];
                         }
                     }
-                    if (Array.isArray(opts)) return opts;
+                    if (Array.isArray(opts)) {
+                        let grouped = {};
+                        opts.forEach(o => {
+                            let label = o.label || 'Pilihan';
+                            let val = o.value || '';
+                            if (o.qty && o.qty > 1) {
+                                val += ` (${o.qty}x)`;
+                            }
+                            if (!grouped[label]) grouped[label] = [];
+                            grouped[label].push(val);
+                        });
+                        return Object.keys(grouped).map(label => {
+                            return { label: label, value: grouped[label].join(', ') };
+                        });
+                    }
                     return [];
                 },
 
                 countNotes(order) {
                     let c = 0;
                     order.items.forEach(i => {
-                        if (i.catatan) c++;
-                        if (i.selected_options) c++;
+                        if (i.catatan && i.catatan.toString().trim() !== '') c++;
                     });
                     return c;
                 },

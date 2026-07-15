@@ -56,28 +56,42 @@
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex justify-between items-start mb-1">
-                                        <h4 class="font-bold text-gray-900">{{ $item->nama_menu }}</h4>
-                                        <span class="font-black text-gray-900">x{{ $item->quantity }}</span>
+                                        <h4 class="font-bold text-gray-900 text-[17px]">{{ $item->nama_menu }}</h4>
+                                        <span class="font-black text-telkom-red text-xl">x{{ $item->quantity }}</span>
                                     </div>
-                                    <p class="text-sm text-telkom-red font-bold mb-2">Rp{{ number_format($item->harga, 0, ',', '.') }}</p>
+                                    <p class="text-sm text-gray-500 font-semibold mb-3">Rp{{ number_format($item->harga, 0, ',', '.') }}</p>
                                     
                                     @if($item->selected_options)
                                         @php 
                                             $opts = is_array($item->selected_options) ? $item->selected_options : json_decode($item->selected_options, true);
+                                            $grouped = [];
+                                            if (is_array($opts)) {
+                                                foreach($opts as $o) {
+                                                    $lbl = $o['label'] ?? 'Pilihan';
+                                                    $val = $o['value'] ?? '';
+                                                    if (isset($o['qty']) && $o['qty'] > 1) {
+                                                        $val .= " ({$o['qty']}x)";
+                                                    }
+                                                    $grouped[$lbl][] = $val;
+                                                }
+                                            }
                                         @endphp
-                                        @if(is_array($opts))
-                                            <div class="flex flex-col gap-0.5 mb-2">
-                                                @foreach($opts as $opt)
-                                                    <p class="text-xs text-gray-500"><span class="font-semibold">{{ $opt['label'] ?? '' }}:</span> {{ $opt['value'] ?? '' }}</p>
+                                        @if(!empty($grouped))
+                                            <div class="flex flex-col gap-1.5 mb-3">
+                                                @foreach($grouped as $label => $values)
+                                                    <p class="text-sm text-gray-600 font-medium">
+                                                        <span class="font-bold text-gray-800">{{ $label }}:</span> 
+                                                        {{ implode(', ', $values) }}
+                                                    </p>
                                                 @endforeach
                                             </div>
                                         @endif
                                     @endif
                                     
                                     @if($item->catatan)
-                                        <div class="bg-yellow-50 p-2.5 rounded-lg border border-yellow-100 flex items-start gap-2">
+                                        <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-start gap-2">
                                             <i class="ph-fill ph-warning-circle text-yellow-600 mt-0.5"></i>
-                                            <p class="text-xs text-yellow-800"><span class="font-bold">Catatan:</span> {{ $item->catatan }}</p>
+                                            <p class="text-sm text-yellow-800 font-semibold"><span class="font-black text-yellow-900">Catatan:</span> {{ $item->catatan }}</p>
                                         </div>
                                     @endif
                                 </div>

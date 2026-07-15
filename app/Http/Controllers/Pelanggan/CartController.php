@@ -87,16 +87,38 @@ class CartController extends Controller
         $extraPrice = 0;
 
         if ($request->has('custom_options') && !empty($menu->customizations)) {
-            foreach ($request->custom_options as $sIndex => $oIndex) {
-                if (isset($menu->customizations[$sIndex]['options'][$oIndex])) {
-                    $section = $menu->customizations[$sIndex];
-                    $option = $section['options'][$oIndex];
-                    
-                    $selectedOptions[] = [
-                        'label' => $section['name'],
-                        'value' => $option['name']
-                    ];
-                    $extraPrice += (int) ($option['price_adjustment'] ?? 0);
+            foreach ($request->custom_options as $sIndex => $oData) {
+                if (is_array($oData)) {
+                    // This is a multiple_qty section (array of optionIndex => qty)
+                    foreach ($oData as $oIndex => $qty) {
+                        if ($qty > 0 && isset($menu->customizations[$sIndex]['options'][$oIndex])) {
+                            $section = $menu->customizations[$sIndex];
+                            $option = $section['options'][$oIndex];
+                            
+                            $selectedOptions[] = [
+                                'label' => $section['name'],
+                                'value' => $option['name'],
+                                'qty' => (int)$qty,
+                                'price' => (int)($option['price_adjustment'] ?? 0)
+                            ];
+                            $extraPrice += ((int)($option['price_adjustment'] ?? 0) * (int)$qty);
+                        }
+                    }
+                } else {
+                    // This is a single choice section (radio button)
+                    $oIndex = $oData;
+                    if (isset($menu->customizations[$sIndex]['options'][$oIndex])) {
+                        $section = $menu->customizations[$sIndex];
+                        $option = $section['options'][$oIndex];
+                        
+                        $selectedOptions[] = [
+                            'label' => $section['name'],
+                            'value' => $option['name'],
+                            'qty' => 1,
+                            'price' => (int)($option['price_adjustment'] ?? 0)
+                        ];
+                        $extraPrice += (int) ($option['price_adjustment'] ?? 0);
+                    }
                 }
             }
         }

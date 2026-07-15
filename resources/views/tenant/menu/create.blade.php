@@ -153,6 +153,10 @@
                                                         <option value="0">Opsional</option>
                                                     </select>
                                                 </div>
+                                                <div class="flex items-center self-end mb-2 ml-2">
+                                                    <input type="checkbox" :id="`multi_qty_${sIndex}`" x-model="section.is_multiple_qty" :name="`customizations[${sIndex}][is_multiple_qty]`" value="1" class="text-telkom-red border-gray-300 rounded focus:ring-telkom-red transition-colors cursor-pointer w-4 h-4 mr-2">
+                                                    <label :for="`multi_qty_${sIndex}`" class="text-xs font-bold text-gray-700 cursor-pointer">Bisa Tambah Kuantitas</label>
+                                                </div>
                                                 <button type="button" @click="removeSection(sIndex)" class="mt-6 text-red-500 hover:text-red-700 p-2 bg-red-50 rounded-lg transition-colors" title="Hapus Grup">
                                                     <i class="ph-bold ph-trash"></i>
                                                 </button>
@@ -236,6 +240,7 @@
                     this.customizations.push({
                         name: '',
                         is_required: 1,
+                        is_multiple_qty: 0,
                         options: [
                             { name: '', price_adjustment: 0 }
                         ]

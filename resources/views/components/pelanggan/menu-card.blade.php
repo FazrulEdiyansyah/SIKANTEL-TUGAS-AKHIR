@@ -107,7 +107,21 @@
                 </button>
                 
                 <!-- Form with Alpine Scope for dynamic price -->
-                <form action="{{ route('pelanggan.cart.add') }}" method="POST" data-no-loading class="flex flex-col flex-1 overflow-hidden" @submit.prevent="submitModalForm($event, {{ $menu->id }}, {{ $menu->harga }})" x-data="{ modalQty: 1, basePrice: {{ $menu->harga }} }" x-init="$watch('activeModal', value => { if(value === {{ $menu->id }}) { modalQty = 1; } })">
+                <form action="{{ route('pelanggan.cart.add') }}" method="POST" data-no-loading class="flex flex-col flex-1 overflow-hidden" @submit.prevent="submitModalForm($event, {{ $menu->id }}, {{ $menu->harga }}, extraPrice)" @change="calculateExtra()" x-data="{ 
+                    modalQty: 1, 
+                    basePrice: {{ $menu->harga }},
+                    extraPrice: 0,
+                    calculateExtra() {
+                        let extra = 0;
+                        const radios = $el.querySelectorAll('input[type=radio]:checked');
+                        radios.forEach(r => { extra += parseInt(r.getAttribute('data-price') || 0); });
+                        
+                        const qtys = $el.querySelectorAll('input[type=hidden][data-price]');
+                        qtys.forEach(q => { extra += (parseInt(q.getAttribute('data-price') || 0) * parseInt(q.value || 0)); });
+                        
+                        this.extraPrice = extra;
+                    }
+                }" x-init="$watch('activeModal', value => { if(value === {{ $menu->id }}) { modalQty = 1; setTimeout(() => calculateExtra(), 50); } })">
                     @csrf
                     <input type="hidden" name="menu_id" value="{{ $menu->id }}">
                     
@@ -134,7 +148,9 @@
                                     <div class="flex items-center justify-between mb-4">
                                         <div>
                                             <h4 class="font-bold text-gray-900">{{ $section['name'] }}</h4>
-                                            @if($section['is_required'])
+                                            @if(!empty($section['is_multiple_qty']))
+                                                <p class="text-xs text-gray-400 font-semibold">Pilih sesuai jumlah</p>
+                                            @elseif(!empty($section['is_required']))
                                                 <p class="text-xs text-telkom-red font-semibold">Wajib <span class="text-gray-400 font-normal">Pilih 1</span></p>
                                             @else
                                                 <p class="text-xs text-gray-400 font-semibold">Opsional</p>
@@ -143,15 +159,36 @@
                                     </div>
                                     <div class="space-y-3">
                                         @foreach($section['options'] as $oIndex => $option)
-                                            <label class="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-red-50 hover:border-telkom-red transition-colors group">
-                                                <div>
-                                                    <span class="text-sm font-semibold text-gray-700 group-hover:text-telkom-red">{{ $option['name'] }}</span>
-                                                    @if(isset($option['price_adjustment']) && $option['price_adjustment'] > 0)
-                                                        <span class="ml-2 text-xs text-gray-500 font-medium">+Rp {{ number_format($option['price_adjustment'], 0, ',', '.') }}</span>
-                                                    @endif
+                                            @if(!empty($section['is_multiple_qty']))
+                                                <div class="flex items-center justify-between p-3 border border-gray-200 rounded-xl transition-colors group" x-data="{ optQty: 0 }">
+                                                    <div>
+                                                        <span class="text-sm font-semibold text-gray-700">{{ $option['name'] }}</span>
+                                                        @if(isset($option['price_adjustment']) && $option['price_adjustment'] > 0)
+                                                            <span class="ml-2 text-xs text-gray-500 font-medium">+Rp {{ number_format($option['price_adjustment'], 0, ',', '.') }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex items-center space-x-3">
+                                                        <button type="button" @click="if(optQty > 0) { optQty--; $nextTick(() => calculateExtra()); }" class="w-7 h-7 rounded-full border border-gray-300 text-gray-400 flex items-center justify-center hover:bg-gray-100 transition-colors" :class="optQty > 0 ? 'border-telkom-red text-telkom-red hover:bg-red-50' : ''">
+                                                            <i class="ph-bold ph-minus text-xs"></i>
+                                                        </button>
+                                                        <input type="hidden" name="custom_options[{{$sIndex}}][{{$oIndex}}]" x-model="optQty" data-price="{{ $option['price_adjustment'] ?? 0 }}">
+                                                        <span class="font-medium text-sm text-gray-900 w-4 text-center" x-text="optQty"></span>
+                                                        <button type="button" @click="if(optQty < 20) { optQty++; $nextTick(() => calculateExtra()); }" class="w-7 h-7 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                                                            <i class="ph-bold ph-plus text-xs"></i>
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                                <input type="radio" name="custom_options[{{$sIndex}}]" value="{{ $oIndex }}" {{ $section['is_required'] ? 'required' : '' }} class="w-5 h-5 text-telkom-red focus:ring-telkom-red border-gray-300">
-                                            </label>
+                                            @else
+                                                <label class="flex items-center justify-between p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-red-50 hover:border-telkom-red transition-colors group">
+                                                    <div>
+                                                        <span class="text-sm font-semibold text-gray-700 group-hover:text-telkom-red">{{ $option['name'] }}</span>
+                                                        @if(isset($option['price_adjustment']) && $option['price_adjustment'] > 0)
+                                                            <span class="ml-2 text-xs text-gray-500 font-medium">+Rp {{ number_format($option['price_adjustment'], 0, ',', '.') }}</span>
+                                                        @endif
+                                                    </div>
+                                                    <input type="radio" name="custom_options[{{$sIndex}}]" value="{{ $oIndex }}" data-price="{{ $option['price_adjustment'] ?? 0 }}" {{ !empty($section['is_required']) ? 'required' : '' }} class="w-5 h-5 text-telkom-red focus:ring-telkom-red border-gray-300">
+                                                </label>
+                                            @endif
                                         @endforeach
                                     </div>
                                 </div>
@@ -175,7 +212,7 @@
                             </div>
                         </div>
                         <button type="submit" class="w-full py-3.5 bg-[#E31E24] hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg text-[15px]">
-                            Perbaharui keranjang - <span x-text="formatPrice(basePrice * modalQty)"></span>
+                            Perbaharui keranjang - <span x-text="formatPrice((basePrice + extraPrice) * modalQty)"></span>
                         </button>
                     </div>
                 </form>

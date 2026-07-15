@@ -170,11 +170,25 @@
                                                 @if($item->selected_options)
                                                     @php 
                                                         $opts = is_array($item->selected_options) ? $item->selected_options : json_decode($item->selected_options, true);
+                                                        $grouped = [];
+                                                        if (is_array($opts)) {
+                                                            foreach($opts as $o) {
+                                                                $lbl = $o['label'] ?? 'Pilihan';
+                                                                $val = $o['value'] ?? '';
+                                                                if (isset($o['qty']) && $o['qty'] > 1) {
+                                                                    $val .= " ({$o['qty']}x)";
+                                                                }
+                                                                $grouped[$lbl][] = $val;
+                                                            }
+                                                        }
                                                     @endphp
-                                                    @if(is_array($opts))
+                                                    @if(!empty($grouped))
                                                         <div class="flex flex-col gap-0.5 mb-1">
-                                                            @foreach($opts as $opt)
-                                                                <p class="text-[11px] text-gray-500"><span class="font-semibold">{{ $opt['label'] ?? '' }}</span> {{ $opt['value'] ?? '' }}</p>
+                                                            @foreach($grouped as $label => $values)
+                                                                <p class="text-[11px] text-gray-500">
+                                                                    <span class="font-semibold">{{ $label }}:</span> 
+                                                                    {{ implode(', ', $values) }}
+                                                                </p>
                                                             @endforeach
                                                         </div>
                                                     @endif

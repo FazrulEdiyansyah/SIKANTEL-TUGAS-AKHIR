@@ -285,17 +285,41 @@
                 
                 getFormattedOptions(options) {
                     if (!options) return [];
-                    if (Array.isArray(options)) return options;
-                    if (typeof options === 'string' && options.length > 0) {
-                        return options.split(', ').map(opt => {
-                            const parts = opt.split(': ');
-                            if (parts.length >= 2) {
-                                return { label: parts[0], value: parts.slice(1).join(': ') };
-                            }
-                            return { label: '', value: opt };
-                        });
+                    let parsedOpts = [];
+                    if (Array.isArray(options)) {
+                        parsedOpts = options;
+                    } else if (typeof options === 'string' && options.length > 0) {
+                        try {
+                            parsedOpts = JSON.parse(options);
+                        } catch(e) {
+                            parsedOpts = options.split(', ').map(opt => {
+                                const parts = opt.split(': ');
+                                if (parts.length >= 2) return { label: parts[0], value: parts.slice(1).join(': ') };
+                                return { label: '', value: opt };
+                            });
+                        }
                     }
-                    return [];
+                    
+                    if (!Array.isArray(parsedOpts)) return [];
+                    
+                    let grouped = {};
+                    parsedOpts.forEach(o => {
+                        let label = o.label || 'Pilihan';
+                        let val = o.value || '';
+                        // Note: we don't append qty here because the UI already does it: opt.value + (opt.qty > 1 ? ' (' + opt.qty + 'x)' : '')
+                        // Wait! The UI does it on `opt.qty`. If we group them, `opt.qty` will be lost unless we format the value directly here!
+                        // Let's format the value here instead.
+                        if (o.qty && o.qty > 1) {
+                            val += ` (${o.qty}x)`;
+                        }
+                        if (!grouped[label]) grouped[label] = [];
+                        grouped[label].push(val);
+                    });
+                    
+                    // Since we format it here, we should return objects with NO qty, just label and value
+                    return Object.keys(grouped).map(label => {
+                        return { label: label, value: grouped[label].join(', ') };
+                    });
                 },
                 
                 startEditNote(key) {

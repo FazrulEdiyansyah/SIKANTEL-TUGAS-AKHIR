@@ -193,6 +193,41 @@
                 tenantKantinId: {{ $tenant->kantin_id }},
                 pendingDelta: {},
                 syncTimers: {},
+                init() {
+                    window.addEventListener('cart-checkout-clicked', () => {
+                        let flushPromises = [];
+                        for (let menuId in this.syncTimers) {
+                            if (this.syncTimers[menuId] !== null && this.syncTimers[menuId] !== undefined) {
+                                clearTimeout(this.syncTimers[menuId]);
+                                this.syncTimers[menuId] = null;
+                                
+                                const delta = this.pendingDelta[menuId];
+                                if (delta && delta !== 0) {
+                                    this.pendingDelta[menuId] = 0;
+                                    const endpoint = delta > 0 ? '{{ route("pelanggan.cart.add") }}' : '{{ route("pelanggan.cart.decrease") }}';
+                                    
+                                    let p = fetch(endpoint, {
+                                        method: 'POST',
+                                        keepalive: true,
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json',
+                                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                        },
+                                        body: JSON.stringify({
+                                            menu_id: menuId,
+                                            quantity: Math.abs(delta)
+                                        })
+                                    });
+                                    flushPromises.push(p);
+                                }
+                            }
+                        }
+                        if (flushPromises.length > 0) {
+                            window.flushPromise = Promise.all(flushPromises);
+                        }
+                    });
+                },
                 canAddMenu() {
                     if (this.cart.totalQty > 0 && this.cart.kantinId !== null && this.cart.kantinId !== this.tenantKantinId) {
                         Swal.fire({
@@ -227,6 +262,7 @@
                             
                             const response = await fetch(endpoint, {
                                 method: 'POST',
+                                keepalive: true,
                                 headers: {
                                     'Content-Type': 'application/json',
                                     'Accept': 'application/json',
@@ -310,7 +346,7 @@
                         }, 400);
                     }
                 },
-                async submitModalForm(event, menuId, basePrice) {
+                async submitModalForm(event, menuId, basePrice, extraPrice = 0) {
                     if (!this.canAddMenu()) return;
                     
                     const form = event.target;
@@ -342,7 +378,7 @@
                     document.body.style.overflow = '';
                     
                     this.cart.totalQty += qty;
-                    this.cart.totalPrice += (basePrice * qty);
+                    this.cart.totalPrice += ((basePrice + extraPrice) * qty);
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + qty;
                     
                     this.requestSequence++;
@@ -353,6 +389,7 @@
                         try {
                             const response = await fetch(form.action, {
                                 method: 'POST',
+                                keepalive: true,
                                 headers: {
                                     'Accept': 'application/json',
                                     'X-Requested-With': 'XMLHttpRequest'
@@ -369,7 +406,7 @@
                             } else if (!data.success) {
                                 // Rollback optimistic update
                                 this.cart.totalQty -= qty;
-                                this.cart.totalPrice -= (basePrice * qty);
+                                this.cart.totalPrice -= ((basePrice + extraPrice) * qty);
                                 this.cart.menuQty[menuId] -= qty;
                                 
                                 Swal.fire({
@@ -383,7 +420,7 @@
                             console.error('Error submitting form:', error);
                             // Rollback optimistic update
                             this.cart.totalQty -= qty;
-                            this.cart.totalPrice -= (basePrice * qty);
+                            this.cart.totalPrice -= ((basePrice + extraPrice) * qty);
                             this.cart.menuQty[menuId] -= qty;
                             
                             Swal.fire({
