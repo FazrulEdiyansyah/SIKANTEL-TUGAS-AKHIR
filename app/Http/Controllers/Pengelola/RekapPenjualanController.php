@@ -8,6 +8,7 @@ use App\Models\Kantin;
 use App\Models\Tenant;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PengelolaRekapKantinExport;
+use App\Exports\PengelolaRekapTenantExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 
@@ -146,6 +147,88 @@ class RekapPenjualanController extends Controller
         $pdf->setPaper('A4', 'landscape');
         
         $filename = 'Rekap_Penjualan_' . str_replace(' ', '_', $kantin->nama_kantin) . '_' . date('Ymd') . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function showTenant(Kantin $kantin, Tenant $tenant, Request $request)
+    {
+        list($period, $startDate, $endDate) = $this->resolveDates($request);
+
+        $query = $tenant->orders()
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai');
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        }
+
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            })->orWhere('id', 'like', '%' . $request->search . '%');
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(5)->withQueryString();
+
+        $totalPenjualan = $tenant->orders()
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
+            ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                return $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            })
+            ->sum('total_price');
+
+        $totalPesanan = $tenant->orders()
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai')
+            ->when($startDate && $endDate, function ($q) use ($startDate, $endDate) {
+                return $q->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            })
+            ->count();
+
+        return view('pengelola.rekap-penjualan.show-tenant', compact('kantin', 'tenant', 'orders', 'period', 'startDate', 'endDate', 'totalPenjualan', 'totalPesanan'));
+    }
+
+    public function exportExcelTenant(Kantin $kantin, Tenant $tenant, Request $request)
+    {
+        list($period, $startDate, $endDate) = $this->resolveDates($request);
+        
+        $filename = 'Rekap_Penjualan_' . str_replace(' ', '_', $tenant->nama_tenant) . '_' . date('Ymd') . '.xlsx';
+        return Excel::download(new PengelolaRekapTenantExport($tenant->id, $startDate, $endDate), $filename);
+    }
+
+    public function exportPdfTenant(Kantin $kantin, Tenant $tenant, Request $request)
+    {
+        list($period, $startDate, $endDate) = $this->resolveDates($request);
+
+        $query = $tenant->orders()
+            ->where('payment_status', 'success')
+            ->where('order_status', 'selesai');
+
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        }
+
+        $orders = $query->orderBy('created_at', 'asc')->get();
+
+        $displayStartDate = $startDate;
+        $displayEndDate = $endDate;
+
+        if (!$displayStartDate || !$displayEndDate) {
+            $firstOrder = $tenant->orders()->orderBy('created_at', 'asc')->first();
+            $lastOrder = $tenant->orders()->orderBy('created_at', 'desc')->first();
+            
+            $displayStartDate = $firstOrder ? $firstOrder->created_at->format('Y-m-d') : date('Y-m-d');
+            $displayEndDate = $lastOrder ? $lastOrder->created_at->format('Y-m-d') : date('Y-m-d');
+        }
+
+        $totalPenjualan = $orders->sum('total_price');
+        $totalPesanan = $orders->count();
+
+        $pdf = Pdf::loadView('pengelola.rekap-penjualan.pdf-tenant', compact('kantin', 'tenant', 'orders', 'period', 'displayStartDate', 'displayEndDate', 'totalPenjualan', 'totalPesanan'));
+        $pdf->setPaper('A4', 'portrait');
+        
+        $filename = 'Rekap_Penjualan_' . str_replace(' ', '_', $tenant->nama_tenant) . '_' . date('Ymd') . '.pdf';
         return $pdf->download($filename);
     }
 }

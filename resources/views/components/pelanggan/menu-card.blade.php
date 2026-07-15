@@ -38,7 +38,7 @@
                             <i class="ph-fill ph-note-pencil mr-1 text-lg"></i> Catatan
                         </button>
                         <div class="flex items-center space-x-3">
-                            <button type="button" @click.prevent="decreaseCart({{ $menu->id }})" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
+                            <button type="button" @click.prevent="decreaseCart({{ $menu->id }}, {{ $menu->harga }})" class="w-8 h-8 rounded-full border border-telkom-red text-telkom-red flex items-center justify-center hover:bg-red-50 transition-colors">
                                 <i class="ph-bold ph-minus"></i>
                             </button>
                             
@@ -107,7 +107,7 @@
                 </button>
                 
                 <!-- Form with Alpine Scope for dynamic price -->
-                <form action="{{ route('pelanggan.cart.add') }}" method="POST" class="flex flex-col flex-1 overflow-hidden" @submit.prevent="submitModalForm($event, {{ $menu->id }}, {{ $menu->harga }})" x-data="{ modalQty: 1, basePrice: {{ $menu->harga }} }">
+                <form action="{{ route('pelanggan.cart.add') }}" method="POST" data-no-loading class="flex flex-col flex-1 overflow-hidden" @submit.prevent="submitModalForm($event, {{ $menu->id }}, {{ $menu->harga }})" x-data="{ modalQty: 1, basePrice: {{ $menu->harga }} }" x-init="$watch('activeModal', value => { if(value === {{ $menu->id }}) { modalQty = 1; } })">
                     @csrf
                     <input type="hidden" name="menu_id" value="{{ $menu->id }}">
                     

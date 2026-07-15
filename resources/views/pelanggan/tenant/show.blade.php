@@ -190,6 +190,7 @@
             Alpine.data('tenantMenu', () => ({
                 activeModal: null,
                 requestSequence: 0,
+                requestQueue: Promise.resolve(),
                 tenantKantinId: {{ $tenant->kantin_id }},
                 canAddMenu() {
                     if (this.cart.totalQty > 0 && this.cart.kantinId !== null && this.cart.kantinId !== this.tenantKantinId) {
@@ -224,85 +225,99 @@
                     this.requestSequence++;
                     const currentSeq = this.requestSequence;
                     
-                    try {
-                        const response = await fetch('{{ route("pelanggan.cart.add") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                menu_id: menuId,
-                                quantity: 1
-                            })
-                        });
-                        const data = await response.json();
-                        if (data.success && this.requestSequence === currentSeq) {
-                            this.cart.totalQty = data.totalQty;
-                            this.cart.totalPrice = data.totalPrice;
-                            this.cart.menuQty = data.menuQty;
-                            this.cart.itemNames = data.itemNames;
-                        } else if (!data.success) {
-                            // Rollback optimistic update
+                    this.requestQueue = this.requestQueue.then(async () => {
+                        try {
+                            const response = await fetch('{{ route("pelanggan.cart.add") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    menu_id: menuId,
+                                    quantity: 1
+                                })
+                            });
+                            const data = await response.json();
+                            if (data.success && this.requestSequence === currentSeq) {
+                                this.cart.totalQty = data.totalQty;
+                                this.cart.totalPrice = data.totalPrice;
+                                this.cart.menuQty = data.menuQty;
+                                this.cart.itemNames = data.itemNames;
+                            } else if (!data.success) {
+                                // Rollback optimistic update
+                                this.cart.totalQty--;
+                                this.cart.menuQty[menuId]--;
+                                if(price) this.cart.totalPrice -= price;
+                                
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                    confirmButtonColor: '#E31E24'
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Error adding to cart:', error);
+                            // Rollback optimistic update on error
                             this.cart.totalQty--;
                             this.cart.menuQty[menuId]--;
                             if(price) this.cart.totalPrice -= price;
                             
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Gagal',
-                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                title: 'Kesalahan Jaringan',
+                                text: 'Gagal menghubungi server. Silakan coba lagi.',
                                 confirmButtonColor: '#E31E24'
                             });
                         }
-                    } catch (error) {
-                        console.error('Error adding to cart:', error);
-                        // Rollback optimistic update on error
-                        this.cart.totalQty--;
-                        this.cart.menuQty[menuId]--;
-                        if(price) this.cart.totalPrice -= price;
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Kesalahan Jaringan',
-                            text: 'Gagal menghubungi server. Silakan coba lagi.',
-                            confirmButtonColor: '#E31E24'
-                        });
-                    }
+                    });
                 },
-                async decreaseCart(menuId) {
+                async decreaseCart(menuId, price) {
                     // Optimistic UI Update for instant feedback
                     if (this.cart.menuQty[menuId] > 0) {
                         this.cart.totalQty--;
                         this.cart.menuQty[menuId]--;
+                        if(price) this.cart.totalPrice -= price;
                     }
                     
                     this.requestSequence++;
                     const currentSeq = this.requestSequence;
                     
-                    try {
-                        const response = await fetch('{{ route("pelanggan.cart.decrease") }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                menu_id: menuId
-                            })
-                        });
-                        const data = await response.json();
-                        if (data.success && this.requestSequence === currentSeq) {
-                            this.cart.totalQty = data.totalQty;
-                            this.cart.totalPrice = data.totalPrice;
-                            this.cart.menuQty = data.menuQty;
-                            this.cart.itemNames = data.itemNames;
+                    this.requestQueue = this.requestQueue.then(async () => {
+                        try {
+                            const response = await fetch('{{ route("pelanggan.cart.decrease") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                },
+                                body: JSON.stringify({
+                                    menu_id: menuId
+                                })
+                            });
+                            const data = await response.json();
+                            if (data.success && this.requestSequence === currentSeq) {
+                                this.cart.totalQty = data.totalQty;
+                                this.cart.totalPrice = data.totalPrice;
+                                this.cart.menuQty = data.menuQty;
+                                this.cart.itemNames = data.itemNames;
+                            } else if (!data.success) {
+                                // Rollback optimistic update
+                                this.cart.totalQty++;
+                                this.cart.menuQty[menuId]++;
+                                if(price) this.cart.totalPrice += price;
+                            }
+                        } catch (error) {
+                            console.error('Error decreasing cart:', error);
+                            // Rollback optimistic update
+                            this.cart.totalQty++;
+                            this.cart.menuQty[menuId]++;
+                            if(price) this.cart.totalPrice += price;
                         }
-                    } catch (error) {
-                        console.error('Error decreasing cart:', error);
-                    }
+                    });
                 },
                 async submitModalForm(event, menuId, basePrice) {
                     if (!this.canAddMenu()) return;
@@ -311,6 +326,22 @@
                     const formData = new FormData(form);
                     const qty = parseInt(formData.get('quantity')) || 1;
                     
+                    const catatan = (formData.get('catatan') || '').trim();
+                    let hasCustomOptions = false;
+                    for (let key of formData.keys()) {
+                        if (key.startsWith('custom_options')) {
+                            hasCustomOptions = true;
+                            break;
+                        }
+                    }
+                    
+                    // Short-circuit: jika tidak ada perubahan sama sekali, abaikan pemrosesan
+                    if (qty === 1 && catatan === '' && !hasCustomOptions) {
+                        this.activeModal = null;
+                        document.body.style.overflow = '';
+                        return;
+                    }
+                    
                     if (this.cart.totalQty === 0) {
                         this.cart.kantinId = this.tenantKantinId;
                     }
@@ -318,6 +349,7 @@
                     // Optimistic feedback
                     this.activeModal = null;
                     document.body.style.overflow = '';
+                    
                     this.cart.totalQty += qty;
                     this.cart.totalPrice += (basePrice * qty);
                     this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) + qty;
@@ -325,51 +357,51 @@
                     this.requestSequence++;
                     const currentSeq = this.requestSequence;
                     
-                    try {
-                        const response = await fetch(form.action, {
-                            method: 'POST',
-                            headers: {
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest'
-                            },
-                            body: formData
-                        });
-                        const data = await response.json();
-                        if (data.success && this.requestSequence === currentSeq) {
-                            this.cart.totalQty = data.totalQty;
-                            this.cart.totalPrice = data.totalPrice;
-                            this.cart.menuQty = data.menuQty;
-                            this.cart.itemNames = data.itemNames;
-                            form.reset();
-                        } else if (!data.success) {
+                    this.requestQueue = this.requestQueue.then(async () => {
+                        try {
+                            const response = await fetch(form.action, {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest'
+                                },
+                                body: formData
+                            });
+                            const data = await response.json();
+                            if (data.success && this.requestSequence === currentSeq) {
+                                this.cart.totalQty = data.totalQty;
+                                this.cart.totalPrice = data.totalPrice;
+                                this.cart.menuQty = data.menuQty;
+                                this.cart.itemNames = data.itemNames;
+                                form.reset();
+                            } else if (!data.success) {
+                                // Rollback optimistic update
+                                this.cart.totalQty -= qty;
+                                this.cart.totalPrice -= (basePrice * qty);
+                                this.cart.menuQty[menuId] -= qty;
+                                
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal',
+                                    text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                    confirmButtonColor: '#E31E24'
+                                });
+                            }
+                        } catch (error) {
+                            console.error('Error submitting form:', error);
                             // Rollback optimistic update
                             this.cart.totalQty -= qty;
                             this.cart.totalPrice -= (basePrice * qty);
-                            this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
-                            if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
+                            this.cart.menuQty[menuId] -= qty;
                             
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Gagal',
-                                text: data.message || 'Terjadi kesalahan saat menambahkan ke keranjang.',
+                                title: 'Kesalahan Jaringan',
+                                text: 'Gagal menghubungi server. Silakan coba lagi.',
                                 confirmButtonColor: '#E31E24'
                             });
                         }
-                    } catch (error) {
-                        console.error('Error submitting form:', error);
-                        // Rollback optimistic update
-                        this.cart.totalQty -= qty;
-                        this.cart.totalPrice -= (basePrice * qty);
-                        this.cart.menuQty[menuId] = (this.cart.menuQty[menuId] || 0) - qty;
-                        if (this.cart.menuQty[menuId] < 0) this.cart.menuQty[menuId] = 0;
-                        
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Kesalahan Jaringan',
-                            text: 'Gagal menghubungi server. Silakan coba lagi.',
-                            confirmButtonColor: '#E31E24'
-                        });
-                    }
+                    });
                 }
             }));
         });

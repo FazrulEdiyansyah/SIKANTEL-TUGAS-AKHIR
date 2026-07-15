@@ -48,8 +48,8 @@
                 <select name="role" id="role" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2 px-3 border" required>
                     <option value="">-- Select Role --</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ old('role', $user->role ?? '') == $role->name ? 'selected' : '' }}>
-                            {{ ucfirst($role->name) }}
+                        <option value="{{ $role }}" {{ old('role', $user->role ?? '') == $role ? 'selected' : '' }}>
+                            {{ ucfirst($role) }}
                         </option>
                     @endforeach
                 </select>

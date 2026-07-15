@@ -1,6 +1,6 @@
 @extends('layouts.dashboard')
 
-@section('title', 'Detail Rekap Penjualan - SIKANTEL')
+@section('title', 'Detail Rekap Penjualan Tenant - SIKANTEL')
 
 @section('sidebar_menu')
     <x-sidebar.pengelola active="rekap" />
@@ -8,16 +8,16 @@
 
 @section('content')
     <!-- Back Button -->
-    <a href="{{ route('pengelola.rekap.index') }}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors mb-6">
+    <a href="{{ route('pengelola.rekap.show', $kantin->id) }}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-gray-800 transition-colors mb-6">
         <i class="ph ph-arrow-left text-lg mr-2"></i>
-        Kembali
+        Kembali ke Rekap Kantin
     </a>
 
     <!-- Header Page -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 space-y-4 sm:space-y-0">
         <div>
-            <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Detail Rekap Penjualan – {{ $kantin->nama_kantin }}</h1>
-            <p class="text-[15px] text-gray-500 font-medium">Ringkasan penjualan seluruh tenant pada {{ $kantin->nama_kantin }}.</p>
+            <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">Rekap Penjualan: {{ $tenant->nama_tenant }}</h1>
+            <p class="text-[15px] text-gray-500 font-medium">Detail seluruh transaksi pesanan pada tenant ini.</p>
         </div>
         <!-- Export Dropdown Menu -->
         <div class="relative" x-data="{ openExport: false }" @click.away="openExport = false">
@@ -37,11 +37,11 @@
                  class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden" 
                  style="display: none;">
                 <div class="py-1">
-                    <a href="{{ route('pengelola.rekap.export-pdf', ['kantin' => $kantin->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
+                    <a href="{{ route('pengelola.rekap.export-pdf-tenant', ['kantin' => $kantin->id, 'tenant' => $tenant->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
                         <i class="ph ph-file-pdf text-lg mr-2"></i>
                         Export sebagai PDF
                     </a>
-                    <a href="{{ route('pengelola.rekap.export-excel', ['kantin' => $kantin->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
+                    <a href="{{ route('pengelola.rekap.export-excel-tenant', ['kantin' => $kantin->id, 'tenant' => $tenant->id] + request()->query()) }}" class="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-telkom-red transition-colors">
                         <i class="ph ph-file-xls text-lg mr-2"></i>
                         Export sebagai Excel
                     </a>
@@ -50,18 +50,40 @@
         </div>
     </div>
 
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Total Penjualan</p>
+                <h3 class="text-2xl font-black text-gray-900">Rp{{ number_format($totalPenjualan, 0, ',', '.') }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                <i class="ph-fill ph-wallet text-2xl"></i>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl p-6 border border-gray-100 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Total Pesanan Selesai</p>
+                <h3 class="text-2xl font-black text-gray-900">{{ $totalPesanan }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                <i class="ph-fill ph-receipt text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Content Box (Table Section) -->
     <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         
         <!-- Filter & Search Bar -->
-        <!-- Filter & Search Bar -->
         <div class="p-6 border-b border-gray-100">
-            <form action="{{ route('pengelola.rekap.show', $kantin->id) }}" method="GET" class="flex flex-col xl:flex-row gap-4 w-full items-start xl:items-center justify-between">
+            <form action="{{ route('pengelola.rekap.show-tenant', ['kantin' => $kantin->id, 'tenant' => $tenant->id]) }}" method="GET" class="flex flex-col xl:flex-row gap-4 w-full items-start xl:items-center justify-between">
                 
                 <!-- Left: Search -->
                 <div class="relative flex-1 w-full xl:max-w-xs">
                     <i class="ph ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama tenant..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari ID pesanan atau pelanggan..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red focus:bg-white transition-all">
                 </div>
                 
                 <!-- Right: Filters -->
@@ -90,7 +112,7 @@
                     </button>
                     
                     @if(request('search') || request('period') && request('period') !== 'all')
-                        <a href="{{ route('pengelola.rekap.show', $kantin->id) }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold rounded-xl transition-colors flex items-center justify-center" title="Reset Filter">
+                        <a href="{{ route('pengelola.rekap.show-tenant', ['kantin' => $kantin->id, 'tenant' => $tenant->id]) }}" class="w-full md:w-auto px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-bold rounded-xl transition-colors flex items-center justify-center" title="Reset Filter">
                             <i class="ph-bold ph-arrow-counter-clockwise"></i>
                         </a>
                     @endif
@@ -103,50 +125,51 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-white border-b border-gray-100">
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">No</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Nama Tenant</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Pesanan Selesai</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900">Total Penjualan</th>
-                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 text-center">Aksi</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 whitespace-nowrap">Order ID</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 whitespace-nowrap">Waktu Pemesanan</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 whitespace-nowrap">Nama Pelanggan</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 min-w-[200px]">Item Menu</th>
+                        <th class="py-4 px-6 text-[13px] font-bold text-gray-900 text-right whitespace-nowrap">Total Harga</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    @forelse($tenants as $index => $tenant)
-                        @php
-                            $pesananSelesai = $tenant->pesanan_selesai ?? 0;
-                            $totalPenjualan = $tenant->total_penjualan ?? 0;
-                        @endphp
+                    @forelse($orders as $order)
                         <tr class="hover:bg-gray-50/50 transition-colors">
-                            <td class="py-4 px-6 text-[14px] font-medium text-gray-600">{{ $index + 1 }}</td>
-                            <td class="py-4 px-6">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 rounded-full bg-gray-100 mr-4 overflow-hidden border border-gray-100 shrink-0 flex items-center justify-center">
-                                        @if($tenant->foto)
-                                            <img src="{{ asset('storage/' . $tenant->foto) }}" alt="{{ $tenant->nama_tenant }}" class="w-full h-full object-cover">
-                                        @else
-                                            <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-cover opacity-60" alt="no image">
-                                        @endif
-                                    </div>
-                                    <span class="font-bold text-[14px] text-gray-900">{{ $tenant->nama_tenant }}</span>
+                            <td class="py-4 px-6 text-[14px] font-bold text-telkom-red">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
+                            <td class="py-4 px-6 whitespace-nowrap">
+                                <div class="flex flex-col">
+                                    <span class="text-[14px] font-bold text-gray-900">{{ $order->created_at->format('d M Y') }}</span>
+                                    <span class="text-[13px] text-gray-500 font-medium">{{ $order->created_at->format('H:i') }} WIB</span>
                                 </div>
                             </td>
-                            <td class="py-4 px-6 text-[14px] font-medium text-gray-500">{{ $pesananSelesai }} Pesanan</td>
-                            <td class="py-4 px-6 text-[14px] font-bold text-gray-900">Rp {{ number_format($totalPenjualan, 0, ',', '.') }}</td>
-                            <td class="py-4 px-6 text-center">
-                                <a href="{{ route('pengelola.rekap.show-tenant', ['kantin' => $kantin->id, 'tenant' => $tenant->id]) }}" class="inline-flex items-center justify-center px-4 py-1.5 border border-telkom-red text-telkom-red hover:bg-red-50 text-[13px] font-bold rounded-lg transition-colors">
-                                    <i class="ph ph-eye mr-1.5"></i>
-                                    Detail
-                                </a>
+                            <td class="py-4 px-6 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 rounded-full bg-telkom-red/10 text-telkom-red flex items-center justify-center font-bold text-sm mr-3">
+                                        {{ substr($order->user->name ?? 'P', 0, 1) }}
+                                    </div>
+                                    <span class="font-semibold text-[14px] text-gray-900">{{ $order->user->name ?? 'Pelanggan' }}</span>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6">
+                                <ul class="text-[13px] font-medium text-gray-600 space-y-1">
+                                    @foreach($order->items as $item)
+                                        <li>{{ $item->menu->nama_menu ?? 'Menu Dihapus' }} <span class="font-bold text-gray-400 mx-1">x</span> {{ $item->quantity }}</li>
+                                    @endforeach
+                                </ul>
+                            </td>
+                            <td class="py-4 px-6 text-right whitespace-nowrap">
+                                <span class="text-[14px] font-bold text-gray-900">Rp {{ number_format($order->total_price, 0, ',', '.') }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="5" class="py-12 text-center">
                                 <div class="flex flex-col items-center justify-center">
-                                    <div class="w-24 h-24 mb-4 opacity-60">
-                                        <img src="{{ asset('images/no-image.png') }}" class="w-full h-full object-contain" alt="no image">
+                                    <div class="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center text-gray-300 mb-4">
+                                        <i class="ph ph-receipt text-3xl"></i>
                                     </div>
-                                    <p class="text-sm font-medium text-gray-400">Belum ada data tenant</p>
+                                    <p class="text-sm font-semibold text-gray-900 mb-1">Belum ada pesanan</p>
+                                    <p class="text-xs font-medium text-gray-500">Tenant ini belum memiliki pesanan pada periode ini.</p>
                                 </div>
                             </td>
                         </tr>
@@ -157,7 +180,7 @@
 
         <!-- Pagination -->
         <div class="px-6 py-5 border-t border-gray-100">
-            {{ $tenants->links() }}
+            {{ $orders->links() }}
         </div>
 
     </div>

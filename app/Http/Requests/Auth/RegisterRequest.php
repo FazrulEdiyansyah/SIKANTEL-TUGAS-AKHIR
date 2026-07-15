@@ -24,6 +24,7 @@ class RegisterRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'phone_number' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
@@ -32,10 +33,12 @@ class RegisterRequest extends FormRequest
     {
         return [
             'email.unique' => 'Email ini sudah terdaftar.',
+            'email.email' => 'Format email tidak valid.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'password.min' => 'Password minimal 8 karakter.',
             'name.required' => 'Nama lengkap wajib diisi.',
             'email.required' => 'Email wajib diisi.',
+            'phone_number.required' => 'Nomor telepon wajib diisi.',
             'password.required' => 'Password wajib diisi.',
         ];
     }

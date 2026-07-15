@@ -1,158 +1,274 @@
 @extends('layouts.superadmin')
 
-@section('title', 'Detail Pencairan Dana')
+@section('title', 'Detail Laporan Pencairan Dana')
+
 @section('breadcrumb', 'Pencairan Dana / Detail')
 
 @section('content')
-<div class="mb-6 flex justify-between items-center">
-    <a href="{{ route('superadmin.pencairan.index') }}" class="text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
-        <i class="fa-solid fa-arrow-left mr-2"></i> Kembali ke Riwayat
-    </a>
-</div>
+    @php
+        $role = 'superadmin';
+    @endphp
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left Column: Details -->
-    <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Informasi Laporan</h3>
-                @if($pencairan->status == 'draft')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 uppercase">Draft</span>
-                @elseif($pencairan->status == 'proposed')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 uppercase">Menunggu Kaur</span>
-                @elseif($pencairan->status == 'approved_kaur')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 uppercase">Menunggu Kabag</span>
-                @elseif($pencairan->status == 'approved' || $pencairan->status == 'completed')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 uppercase">Selesai</span>
-                @elseif($pencairan->status == 'rejected_kaur' || $pencairan->status == 'rejected_kabag')
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 uppercase">Ditolak</span>
-                @endif
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-2 gap-y-6 gap-x-4 text-sm">
-                    <div>
-                        <p class="text-gray-500 mb-1">Periode Penjualan</p>
-                        <p class="font-semibold text-gray-900">{{ $pencairan->start_date->translatedFormat('d M Y') }} - {{ $pencairan->end_date->translatedFormat('d M Y') }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 mb-1">Tanggal Dibuat</p>
-                        <p class="font-semibold text-gray-900">{{ $pencairan->created_at->translatedFormat('d M Y, H:i') }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 mb-1">Tenant</p>
-                        <p class="font-semibold text-gray-900">{{ $pencairan->tenant->nama_tenant ?? 'Unknown' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 mb-1">Kantin</p>
-                        <p class="font-semibold text-gray-900">{{ $pencairan->tenant->kantin->nama_kantin ?? '-' }}</p>
-                    </div>
-                    @if($pencairan->keterangan)
-                    <div class="col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                        <p class="text-gray-500 mb-1">Keterangan / Catatan Pengajuan</p>
-                        <p class="text-gray-800">{{ $pencairan->keterangan }}</p>
-                    </div>
-                    @endif
-                    
-                    @if($pencairan->status == 'rejected_kaur' || $pencairan->status == 'rejected_kabag')
-                    <div class="col-span-2 bg-red-50 p-4 rounded-lg border border-red-100 mt-2">
-                        <p class="text-red-700 font-bold mb-1"><i class="fa-solid fa-circle-exclamation mr-1"></i> Alasan Penolakan</p>
-                        <p class="text-red-600">{{ $pencairan->status == 'rejected_kaur' ? $pencairan->catatan_kaur : $pencairan->catatan_kabag }}</p>
-                    </div>
-                    @endif
-                </div>
-            </div>
+    <!-- Header Page -->
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-[26px] font-bold text-gray-900 tracking-tight mb-1">{{ $batchInfo->judul ?? 'Laporan Pencairan Dana' }}</h1>
+            <p class="text-[15px] text-gray-500 font-medium">Referensi: {{ $batchInfo->batch_id }}</p>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800">Rincian Menu Terjual</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                            <th class="px-6 py-4 font-medium border-b border-gray-100">Menu</th>
-                            <th class="px-6 py-4 font-medium border-b border-gray-100 text-center">Jumlah</th>
-                            <th class="px-6 py-4 font-medium border-b border-gray-100 text-right">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-sm divide-y divide-gray-50">
-                        @foreach($pencairan->details as $detail)
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-800">{{ $detail->menu->nama_menu ?? 'Menu Terhapus' }}</td>
-                            <td class="px-6 py-4 text-gray-600 text-center">{{ $detail->qty }}</td>
-                            <td class="px-6 py-4 font-semibold text-gray-900 text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        @php
+            $backRoute = route('superadmin.pencairan.index');
+        @endphp
+        <a href="{{ $backRoute }}" class="inline-flex items-center text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+            <i class="ph-bold ph-arrow-left mr-2"></i> Kembali
+        </a>
     </div>
 
-    <!-- Right Column: Summary & Actions -->
-    <div class="space-y-6">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-sm font-bold text-gray-900 mb-6 border-b pb-2">Ringkasan Dana</h3>
-            
-            <div class="space-y-4 mb-6">
-                <div class="flex justify-between items-center text-sm">
-                    <span class="text-gray-500">Total Penjualan Kotor</span>
-                    <span class="font-bold text-gray-900">Rp {{ number_format($pencairan->total_penjualan, 0, ',', '.') }}</span>
+    @if($batchInfo->status === 'rejected_kaur' && $batchInfo->catatan_kaur)
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start">
+            <i class="ph-fill ph-warning-circle text-red-600 text-xl mr-3 mt-0.5"></i>
+            <div>
+                <h3 class="text-sm font-bold text-red-800">Laporan Ditolak oleh Kaur</h3>
+                <p class="text-sm text-red-700 mt-1 font-medium"><strong>Catatan:</strong> {{ $batchInfo->catatan_kaur }}</p>
+            </div>
+        </div>
+    @endif
+
+    @if($batchInfo->status === 'rejected_kabag' && $batchInfo->catatan_kabag)
+        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start">
+            <i class="ph-fill ph-warning-circle text-red-600 text-xl mr-3 mt-0.5"></i>
+            <div>
+                <h3 class="text-sm font-bold text-red-800">Laporan Ditolak oleh Kabag</h3>
+                <p class="text-sm text-red-700 mt-1 font-medium"><strong>Catatan:</strong> {{ $batchInfo->catatan_kabag }}</p>
+            </div>
+        </div>
+    @endif
+
+    <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 p-8 mb-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-6 pb-2 border-b border-gray-100">Informasi Laporan</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 mb-6">
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Referensi / Batch ID</p>
+                <p class="text-base font-bold text-gray-900">{{ $batch_id }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Periode Laporan</p>
+                <p class="text-base font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($batchInfo->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($batchInfo->end_date)->format('d/m/Y') }}
+                </p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Dibuat Oleh</p>
+                <p class="text-base font-bold text-gray-900">{{ $batchInfo->pengelola->name ?? '-' }}</p>
+            </div>
+
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Status Laporan</p>
+                <div>
+                    <x-status-badge :status="$batchInfo->status" />
                 </div>
-                <div class="flex justify-between items-center text-sm bg-blue-50/50 p-3 rounded-lg border border-blue-50">
-                    <span class="font-semibold text-blue-800">Hak Tenant (70%)</span>
-                    <span class="font-black text-blue-700">Rp {{ number_format($pencairan->dana_tenant, 0, ',', '.') }}</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500 mb-1">Keterangan</p>
+                <p class="text-sm font-medium text-gray-900">{{ $batchInfo->keterangan ?: '-' }}</p>
+            </div>
+        </div>
+
+        <h2 class="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100">Daftar Tenant (Barang & Jasa)</h2>
+        <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="w-full text-left border-collapse bg-white">
+                <thead class="bg-gray-50/80">
+                    <tr class="border-b border-gray-200">
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">No</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">Tenant</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">Total Penjualan</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">Dana Tenant (70%)</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase">Dana Institusi (30%)</th>
+                        <th class="py-3 px-4 text-xs font-bold text-gray-500 uppercase text-center">Download Laporan</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @foreach($pencairan_danas as $index => $item)
+                        <tr class="hover:bg-gray-50/50">
+                            <td class="py-3 px-4 text-sm font-semibold text-gray-600">{{ $index + 1 }}</td>
+                            <td class="py-3 px-4">
+                                <span class="text-sm font-bold text-gray-900 block">{{ $item->tenant->nama_tenant ?? 'Unknown' }}</span>
+                                <span class="text-xs text-gray-500 font-medium">{{ $item->tenant->kantin->nama_kantin ?? '-' }}</span>
+                            </td>
+                            <td class="py-3 px-4 text-sm font-semibold text-gray-900">Rp{{ number_format($item->total_penjualan, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-sm font-black text-gray-900">Rp{{ number_format($item->dana_tenant, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-sm font-bold text-gray-700">Rp{{ number_format($item->dana_telu, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-center">
+                                <a href="{{ route('superadmin.pencairan.preview_pdf', $item->id) }}" class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-xs font-bold rounded hover:bg-red-700 transition-colors shadow-sm">
+                                    <i class="ph-bold ph-download-simple mr-2"></i> Download PDF
+                                </a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+                <tfoot class="bg-gray-50 border-t border-gray-200">
+                    <tr>
+                        <td colspan="2" class="py-3 px-4 text-right text-sm font-bold text-gray-700">Total Keseluruhan:</td>
+                        <td class="py-3 px-4 text-sm font-bold text-gray-900">Rp{{ number_format($pencairan_danas->sum('total_penjualan'), 0, ',', '.') }}</td>
+                        <td class="py-3 px-4 text-sm font-black text-gray-900">Rp{{ number_format($pencairan_danas->sum('dana_tenant'), 0, ',', '.') }}</td>
+                        <td class="py-3 px-4 text-sm font-bold text-gray-900">Rp{{ number_format($pencairan_danas->sum('dana_telu'), 0, ',', '.') }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        @php
+            $parts = explode(' & ', $batchInfo->approver_name ?? '');
+            $kaurName = isset($parts[0]) ? trim(str_replace('(Kaur)', '', $parts[0])) : '-';
+            $kabagName = isset($parts[1]) ? trim(str_replace('(Kabag)', '', $parts[1])) : '-';
+        @endphp
+        
+        <!-- Approval Signatures -->
+        <div class="mt-10 flex flex-wrap gap-8">
+            <!-- Drafter -->
+            <div class="w-64">
+                <div class="text-sm font-semibold text-gray-800 mb-2 h-6 flex items-center">
+                    Drafter
                 </div>
-                <div class="flex justify-between items-center text-sm bg-red-50/50 p-3 rounded-lg border border-red-50">
-                    <span class="font-semibold text-red-800">Potongan Tel-U (30%)</span>
-                    <span class="font-black text-red-700">Rp {{ number_format($pencairan->dana_telu, 0, ',', '.') }}</span>
+                <div class="border border-gray-400 rounded-xl p-4 bg-white">
+                    <div class="text-sm font-bold text-gray-800 min-h-[20px]">{{ $batchInfo->pengelola->name ?? 'Pengelola' }}</div>
+                    <div class="w-full h-px bg-gray-300 my-2"></div>
+                    <div class="text-xs font-semibold text-gray-800">Pengelola</div>
                 </div>
             </div>
 
-            <hr class="border-gray-100 mb-6">
+            <!-- Kaur -->
+            <div class="w-64">
+                <div class="mb-2 h-6 flex items-center">
+                    @if(in_array($batchInfo->status, ['approved_kaur', 'approved']))
+                        <span class="px-3 py-1 bg-[#86EFAC] text-green-900 text-[11px] font-bold rounded-full">Approved</span>
+                    @elseif(in_array($batchInfo->status, ['rejected_kaur', 'rejected_kabag']))
+                        <span class="px-3 py-1 bg-[#FCA5A5] text-red-900 text-[11px] font-bold rounded-full">Rejected</span>
+                    @else
+                        <span class="px-3 py-1 bg-[#FDE047] text-yellow-900 text-[11px] font-bold rounded-full">Pending</span>
+                    @endif
+                </div>
+                <div class="border border-gray-400 rounded-xl p-4 bg-white">
+                    <div class="text-sm font-bold text-gray-800 min-h-[20px]">{{ $kaurName }}</div>
+                    <div class="w-full h-px bg-gray-300 my-2"></div>
+                    <div class="text-xs font-semibold text-gray-800">Kaur</div>
+                </div>
+            </div>
+            
+            <!-- Kabag -->
+            <div class="w-64">
+                <div class="mb-2 h-6 flex items-center">
+                    @if($batchInfo->status == 'approved')
+                        <span class="px-3 py-1 bg-[#86EFAC] text-green-900 text-[11px] font-bold rounded-full">Approved</span>
+                    @elseif($batchInfo->status == 'rejected_kabag')
+                        <span class="px-3 py-1 bg-[#FCA5A5] text-red-900 text-[11px] font-bold rounded-full">Rejected</span>
+                    @else
+                        <span class="px-3 py-1 bg-[#FDE047] text-yellow-900 text-[11px] font-bold rounded-full">Pending</span>
+                    @endif
+                </div>
+                <div class="border border-gray-400 rounded-xl p-4 bg-white">
+                    <div class="text-sm font-bold text-gray-800 min-h-[20px]">{{ $kabagName }}</div>
+                    <div class="w-full h-px bg-gray-300 my-2"></div>
+                    <div class="text-xs font-semibold text-gray-800">Kabag</div>
+                </div>
+            </div>
+        </div>
 
-            <!-- Superadmin Actions -->
-            <h3 class="text-sm font-bold text-gray-900 mb-4">Aksi Superadmin</h3>
-            <div class="space-y-3">
-                @if(in_array($pencairan->status, ['draft', 'rejected_kaur', 'rejected_kabag']))
-                    <form action="{{ route('superadmin.pencairan.propose', $pencairan->id) }}" method="POST">
+        <!-- Actions -->
+        <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end items-center">
+            <div class="flex gap-3">
+                <a href="{{ route('superadmin.pencairan.batch_pdf', $batch_id) }}" class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors shadow-sm flex items-center">
+                    <i class="ph-bold ph-file-pdf mr-2 text-red-500 text-lg"></i> Download Semua (Batch)
+                </a>
+                @if(in_array($batchInfo->status, ['draft', 'rejected_kaur', 'rejected_kabag']))
+                    <form action="{{ route('superadmin.pencairan.propose', $batch_id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm">
+                        <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center" onclick="confirmFormSubmit(event, 'Ajukan laporan ini?')">
                             <i class="fa-solid fa-paper-plane mr-2"></i> Ajukan Laporan
                         </button>
                     </form>
                 @endif
 
-                @if(in_array($pencairan->status, ['proposed', 'approved_kaur']))
-                    <form action="{{ route('superadmin.pencairan.approve', $pencairan->id) }}" method="POST">
+                @if(in_array($batchInfo->status, ['proposed', 'approved_kaur']))
+                    <button type="button" onclick="openRejectModal()" class="px-5 py-2.5 bg-orange-100 hover:bg-orange-200 text-orange-700 text-sm font-bold rounded-lg transition-colors shadow-sm flex items-center">
+                        <i class="fa-solid fa-xmark mr-2"></i> Tolak Laporan
+                    </button>
+                    <form action="{{ route('superadmin.pencairan.approve', $batch_id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg text-sm transition-colors shadow-sm">
+                        <button type="submit" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm flex items-center">
                             <i class="fa-solid fa-check mr-2"></i> Setujui Laporan
-                        </button>
-                    </form>
-
-                    <form action="{{ route('superadmin.pencairan.reject', $pencairan->id) }}" method="POST" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menolak laporan ini?')">
-                        @csrf
-                        <button type="submit" class="w-full bg-orange-100 hover:bg-orange-200 text-orange-700 font-bold py-2.5 rounded-lg text-sm transition-colors">
-                            <i class="fa-solid fa-xmark mr-2"></i> Tolak Laporan
                         </button>
                     </form>
                 @endif
 
-                <form action="{{ route('superadmin.pencairan.destroy', $pencairan->id) }}" method="POST" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus laporan ini? Data yang dihapus tidak dapat dikembalikan.')">
+                <form action="{{ route('superadmin.pencairan.destroy', $batch_id) }}" method="POST" class="inline" onsubmit="confirmFormSubmit(event, 'Apakah Anda yakin ingin menghapus seluruh batch laporan ini? Data yang dihapus tidak dapat dikembalikan.')">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2.5 rounded-lg text-sm transition-colors border border-red-200">
-                        <i class="fa-solid fa-trash mr-2"></i> Hapus Laporan
+                    <button type="submit" class="px-5 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold rounded-lg transition-colors border border-red-200 flex items-center">
+                        <i class="fa-solid fa-trash mr-2"></i> Hapus Batch
                     </button>
                 </form>
             </div>
-            
-            <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500">
-                <i class="fa-solid fa-circle-info mr-1"></i> Sebagai Superadmin, Anda memiliki hak penuh untuk menyetujui, menolak, atau menghapus laporan pada tahap apa pun.
-            </div>
         </div>
     </div>
-</div>
+
+    <!-- Modal Approve -->
+    <div id="approveModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden">
+            <form method="POST" action="{{ route($role.'.pencairan.approve', $batch_id) }}">
+                @csrf
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Konfirmasi Persetujuan</h3>
+                    <p class="text-sm text-gray-500 mt-2">Apakah Anda yakin ingin menyetujui laporan pencairan dana ini?</p>
+                </div>
+                <div class="p-4 bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModals()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700">Ya, Setujui</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Reject -->
+    <div id="rejectModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-lg max-w-md w-full mx-4 overflow-hidden">
+            <form method="POST" action="{{ route($role.'.pencairan.reject', $batch_id) }}">
+                @csrf
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-red-600">Tolak Laporan</h3>
+                    <p class="text-sm text-gray-500 mt-2 mb-4">Silakan berikan alasan mengapa pengajuan ini ditolak.</p>
+                    <div>
+                        <label for="catatan" class="block text-sm font-medium text-gray-700 mb-1">Catatan Penolakan</label>
+                        <textarea name="catatan" id="catatan" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 text-sm py-2 px-3 border" required></textarea>
+                    </div>
+                </div>
+                <div class="p-4 bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModals()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700">Tolak Laporan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        function openApproveModal() {
+            document.getElementById('approveModal').classList.remove('hidden');
+            document.getElementById('approveModal').classList.add('flex');
+        }
+        function openRejectModal() {
+            document.getElementById('rejectModal').classList.remove('hidden');
+            document.getElementById('rejectModal').classList.add('flex');
+        }
+        function closeModals() {
+            document.getElementById('approveModal').classList.add('hidden');
+            document.getElementById('approveModal').classList.remove('flex');
+            document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('rejectModal').classList.remove('flex');
+        }
+    </script>
+    @endpush
 @endsection
+
+

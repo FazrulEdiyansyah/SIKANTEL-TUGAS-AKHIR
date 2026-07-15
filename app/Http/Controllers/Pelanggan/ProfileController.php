@@ -17,11 +17,13 @@ class ProfileController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
             'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         $user = auth()->user();
         $user->name = $request->name;
+        $user->phone_number = $request->phone_number;
         
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);

@@ -17,8 +17,8 @@ class DashboardController extends Controller
     {
         $kantinId = $request->query('kantin_id');
 
-        $totalKantin = Kantin::count();
-        $totalTenant = Tenant::count();
+        $totalKantin = Kantin::where('status', 'aktif')->count();
+        $totalTenant = Tenant::where('status', 'aktif')->count();
         
         $currentMonth = Carbon::now()->month;
         $currentYear = Carbon::now()->year;
@@ -36,35 +36,94 @@ class DashboardController extends Controller
         
         $penjualanBulanIni = $penjualanBulanIniQuery->sum('total_price');
 
-        // Data for Chart (Last 30 days) - Optimized to single query
-        $startDate = Carbon::today()->subDays(29);
-        $endDate = Carbon::today()->endOfDay();
-
-        $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
-            ->where('payment_status', 'success')
-            ->where('order_status', 'selesai');
-
-        if ($kantinId) {
-            $chartQuery->whereHas('tenant', function ($q) use ($kantinId) {
-                $q->where('kantin_id', $kantinId);
-            });
-        }
-
-        $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
-            ->groupBy('date')
-            ->pluck('total', 'date');
+        $timeFilter = $request->query('time_filter', 'bulan');
 
         $labels = [];
         $data = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $dateStr = $date->format('Y-m-d');
-            $labels[] = $date->format('d M');
-            $data[] = $salesData->get($dateStr, 0);
+
+        if ($timeFilter == 'hari') {
+            $startDate = Carbon::today();
+            $endDate = Carbon::today()->endOfDay();
+
+            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai');
+
+            if ($kantinId) {
+                $chartQuery->whereHas('tenant', function ($q) use ($kantinId) {
+                    $q->where('kantin_id', $kantinId);
+                });
+            }
+
+            $salesData = $chartQuery->selectRaw('HOUR(created_at) as hour, SUM(total_price) as total')
+                ->groupBy('hour')
+                ->pluck('total', 'hour');
+
+            for ($i = 6; $i <= 21; $i++) {
+                $labels[] = sprintf('%02d:00', $i);
+                $data[] = $salesData->get($i, 0);
+            }
+        } elseif ($timeFilter == 'minggu') {
+            $startDate = Carbon::now()->startOfWeek(); // Senin
+            $endDate = Carbon::now()->endOfWeek(); // Minggu
+
+            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai');
+
+            if ($kantinId) {
+                $chartQuery->whereHas('tenant', function ($q) use ($kantinId) {
+                    $q->where('kantin_id', $kantinId);
+                });
+            }
+
+            $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
+            for ($i = 0; $i < 7; $i++) {
+                $date = Carbon::now()->startOfWeek()->addDays($i);
+                $dateStr = $date->format('Y-m-d');
+                $labels[] = $date->translatedFormat('l'); // Hari (Senin, Selasa...)
+                $data[] = $salesData->get($dateStr, 0);
+            }
+        } else {
+            $startDate = Carbon::now()->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+
+            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai');
+
+            if ($kantinId) {
+                $chartQuery->whereHas('tenant', function ($q) use ($kantinId) {
+                    $q->where('kantin_id', $kantinId);
+                });
+            }
+
+            $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+                ->groupBy('date')
+                ->pluck('total', 'date');
+
+            $daysInMonth = Carbon::now()->daysInMonth;
+            for ($i = 1; $i <= $daysInMonth; $i++) {
+                $date = Carbon::now()->startOfMonth()->addDays($i - 1);
+                $dateStr = $date->format('Y-m-d');
+                $labels[] = $date->format('d M');
+                $data[] = $salesData->get($dateStr, 0);
+            }
+        }
+
+        if ($request->ajax() && $request->has('fetch_chart')) {
+            return response()->json([
+                'labels' => $labels,
+                'data' => $data,
+            ]);
         }
 
         // Top 5 Tenants by Sales
         $topTenantsQuery = Tenant::with('kantin')
+            ->where('status', 'aktif')
             ->withSum(['orders' => function ($query) {
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
@@ -79,14 +138,17 @@ class DashboardController extends Controller
         }
 
         $topTenants = $topTenantsQuery
-            ->orderByRaw('"orders_sum_total_price" DESC NULLS LAST')
+            ->orderByDesc('orders_sum_total_price')
             ->take(5)
             ->get();
 
-        // Kantin Teramai (by total sales amount instead of order count)
-        $kantinTeramaiQuery = Kantin::withSum(['orders' => function ($query) {
+        // Kantin Teramai (by total sales amount instead of order count, filtered by current month)
+        $kantinTeramaiQuery = Kantin::where('status', 'aktif')
+            ->withSum(['orders' => function ($query) use ($currentMonth, $currentYear) {
                 $query->where('orders.payment_status', 'success')
-                      ->where('orders.order_status', 'selesai');
+                      ->where('orders.order_status', 'selesai')
+                      ->whereMonth('orders.created_at', $currentMonth)
+                      ->whereYear('orders.created_at', $currentYear);
             }], 'total_price');
             
         if ($kantinId) {
@@ -94,7 +156,7 @@ class DashboardController extends Controller
         }
 
         $kantinTeramai = $kantinTeramaiQuery
-            ->orderByRaw('"orders_sum_total_price" DESC NULLS LAST')
+            ->orderByDesc('orders_sum_total_price')
             ->first();
             
         // Get all kantins for the filter dropdown

@@ -57,11 +57,12 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::post('/calculate', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'calculateSales'])->name('calculate');
         Route::get('/preview-pdf', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'generatePdf'])->name('preview_pdf');
         
-        Route::get('/{id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'show'])->name('show');
-        Route::post('/{id}/propose', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'propose'])->name('propose');
-        Route::post('/{id}/approve', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'approve'])->name('approve');
-        Route::post('/{id}/reject', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'reject'])->name('reject');
-        Route::delete('/{id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'destroy'])->name('destroy');
+        Route::get('/{batch_id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'show'])->name('show');
+        Route::get('/{batch_id}/batch-pdf', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'generateBatchPdf'])->name('batch_pdf');
+        Route::post('/{batch_id}/propose', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'propose'])->name('propose');
+        Route::post('/{batch_id}/approve', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'approve'])->name('approve');
+        Route::post('/{batch_id}/reject', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'reject'])->name('reject');
+        Route::delete('/{batch_id}', [\App\Http\Controllers\Superadmin\PencairanDanaController::class, 'destroy'])->name('destroy');
     });
 });
 
@@ -136,6 +137,9 @@ Route::middleware(['auth', 'role:pengelola'])->group(function () {
     Route::get('/pengelola/rekap-penjualan/{kantin}', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'show'])->name('pengelola.rekap.show');
     Route::get('/pengelola/rekap-penjualan/{kantin}/export/excel', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportExcel'])->name('pengelola.rekap.export-excel');
     Route::get('/pengelola/rekap-penjualan/{kantin}/export/pdf', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportPdf'])->name('pengelola.rekap.export-pdf');
+    Route::get('/pengelola/rekap-penjualan/{kantin}/tenant/{tenant}', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'showTenant'])->name('pengelola.rekap.show-tenant');
+    Route::get('/pengelola/rekap-penjualan/{kantin}/tenant/{tenant}/export/excel', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportExcelTenant'])->name('pengelola.rekap.export-excel-tenant');
+    Route::get('/pengelola/rekap-penjualan/{kantin}/tenant/{tenant}/export/pdf', [\App\Http\Controllers\Pengelola\RekapPenjualanController::class, 'exportPdfTenant'])->name('pengelola.rekap.export-pdf-tenant');
     
     // Profil
     Route::get('/pengelola/profile', [\App\Http\Controllers\Pengelola\ProfileController::class, 'index'])->name('pengelola.profile.index');

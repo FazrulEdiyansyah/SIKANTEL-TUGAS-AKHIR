@@ -75,6 +75,17 @@
                     @enderror
                 </div>
 
+                <!-- Phone Number Input -->
+                <div class="space-y-2">
+                    <label for="phone_number" class="block text-sm font-bold text-gray-800">Nomor Telepon</label>
+                    <input type="text" id="phone_number" name="phone_number" value="{{ old('phone_number') }}"
+                        class="w-full px-5 py-3 rounded-xl border {{ $errors->has('phone_number') ? 'border-red-500 focus:ring-red-500/10 focus:border-red-500' : 'border-gray-300 focus:ring-telkom-red/10 focus:border-telkom-red' }} outline-none transition-all placeholder:text-gray-400 font-medium text-sm"
+                        placeholder="Masukkan nomor telepon Anda" required>
+                    @error('phone_number')
+                        <p class="text-red-500 text-xs mt-1 font-medium">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Password Input -->
                 <div class="space-y-2 relative">
                     <label for="password" class="block text-sm font-bold text-gray-800">Password</label>

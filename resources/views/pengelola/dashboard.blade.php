@@ -60,19 +60,19 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 space-y-4 sm:space-y-0">
                 <h2 class="text-[17px] font-bold text-gray-900">Grafik Penjualan</h2>
                 <div class="flex items-center space-x-3">
-                    <form method="GET" action="{{ route('pengelola.dashboard') }}" class="flex items-center bg-gray-50 rounded-lg p-1">
+                    <div class="flex items-center bg-gray-50 rounded-lg p-1">
                         <span class="text-xs font-medium text-gray-500 px-3 py-1.5">Pilih Kantin</span>
-                        <select name="kantin_id" onchange="this.form.submit()" class="text-xs font-semibold bg-white border border-gray-200 rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-telkom-red/20 cursor-pointer">
+                        <select id="chartKantinSelect" onchange="fetchChartData(this.value)" class="text-xs font-semibold bg-white border border-gray-200 rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-telkom-red/20 cursor-pointer">
                             <option value="">Semua Kantin</option>
                             @foreach($allKantins as $k)
                                 <option value="{{ $k->id }}" {{ request('kantin_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kantin }}</option>
                             @endforeach
                         </select>
-                    </form>
-                    <div class="flex bg-gray-50 rounded-lg p-1">
-                        <button class="text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Hari Ini</button>
-                        <button class="text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Minggu Ini</button>
-                        <button class="text-[13px] font-bold text-white bg-telkom-red px-4 py-1.5 rounded-md shadow-sm">Bulan Ini</button>
+                    </div>
+                    <div class="flex bg-gray-50 rounded-lg p-1" id="timeFilterButtons">
+                        <button onclick="changeTimeFilter('hari', this)" class="time-btn text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Hari Ini</button>
+                        <button onclick="changeTimeFilter('minggu', this)" class="time-btn text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors">Minggu Ini</button>
+                        <button onclick="changeTimeFilter('bulan', this)" class="time-btn text-[13px] font-bold text-white bg-telkom-red px-4 py-1.5 rounded-md shadow-sm active-time-btn">Bulan Ini</button>
                     </div>
                 </div>
             </div>
@@ -184,9 +184,9 @@
             </table>
             
             <div class="w-full pt-6 mt-2 flex justify-center">
-                <button class="text-sm font-bold text-telkom-red hover:text-telkom-maroon transition-colors">
+                <a href="{{ route('pengelola.tenant.index') }}" class="text-sm font-bold text-telkom-red hover:text-telkom-maroon transition-colors">
                     Lihat Semua Tenant
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -208,7 +208,7 @@
             const dataLabels = {!! json_encode($labels ?? []) !!};
             const dataValues = {!! json_encode($data ?? []) !!};
 
-            new Chart(context, {
+            window.pengelolaChart = new Chart(context, {
                 type: 'line',
                 data: {
                     labels: dataLabels,
@@ -272,5 +272,53 @@
                 }
             });
         });
+
+        let currentKantinId = '{{ request("kantin_id") }}';
+        let currentTimeFilter = 'bulan';
+
+        async function fetchChartData(kantinId) {
+            currentKantinId = kantinId;
+            updateChart();
+        }
+        
+        function changeTimeFilter(time, btnElement) {
+            currentTimeFilter = time;
+            
+            // Update button styles
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.className = 'time-btn text-[13px] font-medium text-gray-500 px-4 py-1.5 rounded-md hover:text-gray-900 transition-colors';
+            });
+            btnElement.className = 'time-btn text-[13px] font-bold text-white bg-telkom-red px-4 py-1.5 rounded-md shadow-sm active-time-btn';
+            
+            updateChart();
+        }
+
+        async function updateChart() {
+            try {
+                // Add loading indicator to select
+                const select = document.getElementById('chartKantinSelect');
+                const originalCursor = select.style.cursor;
+                select.style.cursor = 'wait';
+                
+                const response = await fetch(`{{ route('pengelola.dashboard') }}?fetch_chart=1&kantin_id=${currentKantinId}&time_filter=${currentTimeFilter}`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (window.pengelolaChart) {
+                        window.pengelolaChart.data.labels = result.labels;
+                        window.pengelolaChart.data.datasets[0].data = result.data;
+                        window.pengelolaChart.update();
+                    }
+                }
+                
+                select.style.cursor = originalCursor;
+            } catch (error) {
+                console.error("Error fetching chart data:", error);
+            }
+        }
     </script>
 @endsection
