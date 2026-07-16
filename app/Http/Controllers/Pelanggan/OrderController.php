@@ -87,30 +87,32 @@ class OrderController extends Controller
 
     public function reorder($orderId)
     {
-        $orders = Order::with('items.menu')->where('user_id', auth()->id())->where('order_id', $orderId)->get();
+        $orders = Order::with('items.menu.tenant')->where('user_id', auth()->id())->where('order_id', $orderId)->get();
         
         if ($orders->isEmpty()) abort(404);
 
-        $cart = \App\Models\Cart::firstOrCreate(['user_id' => auth()->id()]);
-        
-        // Hapus isi keranjang sebelumnya
-        $cart->items()->delete();
+        $newCart = [];
 
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
-                \App\Models\CartItem::create([
-                    'cart_id' => $cart->id,
-                    'menu_id' => $item->menu_id,
-                    'tenant_id' => $order->tenant_id,
-                    'nama_menu' => $item->nama_menu,
-                    'harga' => $item->harga,
-                    'quantity' => $item->quantity,
-                    'foto' => $item->menu ? $item->menu->foto : null,
+                $newKey = uniqid();
+                $newCart[$newKey] = [
+                    'id'               => $newKey,
+                    'menu_id'          => $item->menu_id,
+                    'tenant_id'        => $order->tenant_id,
+                    'kantin_id'        => $item->menu && $item->menu->tenant ? $item->menu->tenant->kantin_id : null,
+                    'nama_menu'        => $item->nama_menu,
+                    'harga'            => $item->harga,
+                    'quantity'         => $item->quantity,
+                    'foto'             => $item->menu ? $item->menu->foto : null,
                     'selected_options' => is_string($item->selected_options) ? json_decode($item->selected_options, true) : $item->selected_options,
-                    'catatan' => $item->catatan,
-                ]);
+                    'catatan'          => $item->catatan,
+                ];
             }
         }
+        
+        // Simpan ke session cart (replace cart lama)
+        session(['cart' => $newCart]);
         
         return redirect()->route('pelanggan.checkout')->with('success', 'Keranjang berhasil diperbarui dari pesanan sebelumnya!');
     }
