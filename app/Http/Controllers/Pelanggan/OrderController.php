@@ -10,7 +10,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['tenant', 'items'])
+        $orders = Order::with(['tenant', 'items.menu'])
             ->where('user_id', auth()->id())
             ->orderBy('created_at', 'desc')
             ->get();
@@ -18,22 +18,30 @@ class OrderController extends Controller
         return view('pelanggan.orders.index', compact('orders'));
     }
 
-    public function show($id)
+    public function show($orderId)
     {
-        $order = Order::with(['tenant', 'items'])
+        $orders = Order::with(['tenant', 'items.menu', 'review'])
             ->where('user_id', auth()->id())
-            ->findOrFail($id);
+            ->where('order_id', $orderId)
+            ->get();
 
-        return view('pelanggan.orders.show', compact('order'));
+        if ($orders->isEmpty()) {
+            abort(404);
+        }
+
+        return view('pelanggan.orders.show', compact('orders', 'orderId'));
     }
 
-
-
-    public function cancel($id)
+    public function cancel($orderId)
     {
-        $order = Order::where('user_id', auth()->id())
+        $orders = Order::where('user_id', auth()->id())
             ->where('payment_status', 'pending')
-            ->findOrFail($id);
+            ->where('order_id', $orderId)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            abort(404);
+        }
 
         // Setup Midtrans
         \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
@@ -41,61 +49,85 @@ class OrderController extends Controller
 
         try {
             // Cancel transaction in Midtrans
-            \Midtrans\Transaction::cancel($order->order_id);
+            \Midtrans\Transaction::cancel($orderId);
         } catch (\Exception $e) {
             // It might already be expired/cancelled on Midtrans side, ignore error
             \Illuminate\Support\Facades\Log::error('Midtrans cancel error: ' . $e->getMessage());
         }
 
         // Cancel ALL orders that share this transaction ID
-        Order::where('order_id', $order->order_id)->update(['payment_status' => 'failed']);
+        Order::where('order_id', $orderId)->update(['payment_status' => 'failed']);
 
         return redirect()->route('pelanggan.orders.index')->with('success', 'Pesanan berhasil dibatalkan.');
     }
 
-    public function statusAPI($id)
+    public function statusAPI($orderId)
     {
-        $order = Order::where('user_id', auth()->id())->findOrFail($id);
+        $orders = Order::where('user_id', auth()->id())
+            ->where('order_id', $orderId)
+            ->get();
+            
+        if ($orders->isEmpty()) {
+            return response()->json(['error' => 'Not found'], 404);
+        }
+
+        $statuses = [];
+        foreach ($orders as $order) {
+            $statuses[$order->id] = [
+                'order_status' => $order->order_status,
+                'payment_status' => $order->payment_status
+            ];
+        }
+
         return response()->json([
-            'order_status' => $order->order_status,
-            'payment_status' => $order->payment_status
+            'payment_status' => $orders->first()->payment_status,
+            'tenant_statuses' => $statuses
         ]);
     }
 
-    public function reorder($id)
+    public function reorder($orderId)
     {
-        $order = Order::with('items.menu')->where('user_id', auth()->id())->findOrFail($id);
+        $orders = Order::with('items.menu')->where('user_id', auth()->id())->where('order_id', $orderId)->get();
         
+        if ($orders->isEmpty()) abort(404);
+
         $cart = \App\Models\Cart::firstOrCreate(['user_id' => auth()->id()]);
         
         // Hapus isi keranjang sebelumnya
         $cart->items()->delete();
 
-        foreach ($order->items as $item) {
-            \App\Models\CartItem::create([
-                'cart_id' => $cart->id,
-                'menu_id' => $item->menu_id,
-                'tenant_id' => $order->tenant_id,
-                'nama_menu' => $item->nama_menu,
-                'harga' => $item->harga,
-                'quantity' => $item->quantity,
-                'foto' => $item->menu ? $item->menu->foto : null,
-                'selected_options' => is_string($item->selected_options) ? json_decode($item->selected_options, true) : $item->selected_options,
-                'catatan' => $item->catatan,
-            ]);
+        foreach ($orders as $order) {
+            foreach ($order->items as $item) {
+                \App\Models\CartItem::create([
+                    'cart_id' => $cart->id,
+                    'menu_id' => $item->menu_id,
+                    'tenant_id' => $order->tenant_id,
+                    'nama_menu' => $item->nama_menu,
+                    'harga' => $item->harga,
+                    'quantity' => $item->quantity,
+                    'foto' => $item->menu ? $item->menu->foto : null,
+                    'selected_options' => is_string($item->selected_options) ? json_decode($item->selected_options, true) : $item->selected_options,
+                    'catatan' => $item->catatan,
+                ]);
+            }
         }
         
         return redirect()->route('pelanggan.checkout')->with('success', 'Keranjang berhasil diperbarui dari pesanan sebelumnya!');
     }
 
-    public function pay($id)
+    public function pay($orderId)
     {
-        $order = Order::where('user_id', auth()->id())
+        $orders = Order::where('user_id', auth()->id())
             ->where('payment_status', 'pending')
-            ->findOrFail($id);
+            ->where('order_id', $orderId)
+            ->get();
 
-        if ($order->snap_token) {
-            return back()->with('auto_trigger_snap', $order->snap_token);
+        if ($orders->isEmpty()) abort(404);
+
+        $firstOrder = $orders->first();
+
+        if ($firstOrder->snap_token) {
+            return back()->with('auto_trigger_snap', $firstOrder->snap_token);
         }
 
         // Setup Midtrans
@@ -104,11 +136,11 @@ class OrderController extends Controller
         \Midtrans\Config::$isSanitized = true;
         \Midtrans\Config::$is3ds = true;
 
-        $totalPrice = Order::where('order_id', $order->order_id)->sum('total_price');
+        $totalPrice = $orders->sum('total_price');
 
         $params = array(
             'transaction_details' => array(
-                'order_id' => $order->order_id,
+                'order_id' => $orderId,
                 'gross_amount' => $totalPrice,
             ),
             'customer_details' => array(
@@ -119,12 +151,12 @@ class OrderController extends Controller
 
         try {
             $snapToken = \Midtrans\Snap::getSnapToken($params);
-            Order::where('order_id', $order->order_id)->update(['snap_token' => $snapToken]);
+            Order::where('order_id', $orderId)->update(['snap_token' => $snapToken]);
             return back()->with('auto_trigger_snap', $snapToken);
         } catch (\Exception $e) {
             // Jika Midtrans menolak order_id karena duplikat atau alasan lain, buat order_id baru
             $newOrderId = 'ORD-' . time() . '-' . rand(1000, 9999);
-            Order::where('order_id', $order->order_id)->update(['order_id' => $newOrderId]);
+            Order::where('order_id', $orderId)->update(['order_id' => $newOrderId]);
             
             $params['transaction_details']['order_id'] = $newOrderId;
             try {

@@ -29,59 +29,94 @@ class ReportController extends Controller
         
         if ($filter == 'hari_ini') {
             $startDate = Carbon::today();
-            // Chart by hour for today (0-23)
-            for ($i = 0; $i < 24; $i++) {
+            $endDate = Carbon::today()->endOfDay();
+            
+            $orders = Order::where('tenant_id', $tenant->id)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai')
+                ->select('updated_at', 'total_price')
+                ->get();
+                
+            $salesData = [];
+            foreach ($orders as $order) {
+                $hour = (int) $order->updated_at->format('H');
+                $salesData[$hour] = ($salesData[$hour] ?? 0) + $order->total_price;
+            }
+            
+            for ($i = 0; $i <= 23; $i++) {
                 $labels[] = sprintf('%02d:00', $i);
-                $hourlyTotal = Order::where('tenant_id', $tenant->id)
-                    ->whereDate('created_at', $startDate)
-                    ->whereRaw('HOUR(created_at) = ?', [$i])
-                    ->where('payment_status', 'success')
-                    ->where('order_status', 'selesai')
-                    ->sum('total_price');
-                $data[] = $hourlyTotal;
+                $data[] = $salesData[$i] ?? 0;
             }
         } elseif ($filter == 'minggu_ini') {
             $startDate = Carbon::today()->subDays(6); // last 7 days
+            $endDate = Carbon::now();
+            
+            $orders = Order::where('tenant_id', $tenant->id)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai')
+                ->select('updated_at', 'total_price')
+                ->get();
+                
+            $salesData = [];
+            foreach ($orders as $order) {
+                $dateStr = $order->updated_at->format('Y-m-d');
+                $salesData[$dateStr] = ($salesData[$dateStr] ?? 0) + $order->total_price;
+            }
+            
             for ($i = 6; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i);
+                $dateStr = $date->format('Y-m-d');
                 $labels[] = $date->format('d M');
-                
-                $dailyTotal = Order::where('tenant_id', $tenant->id)
-                    ->whereDate('created_at', $date)
-                    ->where('payment_status', 'success')
-                    ->where('order_status', 'selesai')
-                    ->sum('total_price');
-                $data[] = $dailyTotal;
+                $data[] = $salesData[$dateStr] ?? 0;
             }
         } elseif ($filter == 'semua') {
             $startDate = Carbon::parse('2000-01-01'); // Long time ago
-            // Chart by month for the last 12 months
+            $endDate = Carbon::now();
+            
+            $orders = Order::where('tenant_id', $tenant->id)
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai')
+                ->select('updated_at', 'total_price')
+                ->get();
+                
+            $salesData = [];
+            foreach ($orders as $order) {
+                $dateLabel = $order->updated_at->format('M Y');
+                $salesData[$dateLabel] = ($salesData[$dateLabel] ?? 0) + $order->total_price;
+            }
+            
             for ($i = 11; $i >= 0; $i--) {
                 $date = Carbon::today()->startOfMonth()->subMonths($i);
-                $labels[] = $date->format('M Y');
-                
-                $monthlyTotal = Order::where('tenant_id', $tenant->id)
-                    ->whereYear('created_at', $date->year)
-                    ->whereMonth('created_at', $date->month)
-                    ->where('payment_status', 'success')
-                    ->where('order_status', 'selesai')
-                    ->sum('total_price');
-                $data[] = $monthlyTotal;
+                $dateLabel = $date->format('M Y');
+                $labels[] = $dateLabel;
+                $data[] = $salesData[$dateLabel] ?? 0;
             }
         } else {
             // bulan_ini (last 30 days)
             $filter = 'bulan_ini';
             $startDate = Carbon::today()->subDays(29);
+            $endDate = Carbon::now();
+            
+            $orders = Order::where('tenant_id', $tenant->id)
+                ->whereBetween('updated_at', [$startDate, $endDate])
+                ->where('payment_status', 'success')
+                ->where('order_status', 'selesai')
+                ->select('updated_at', 'total_price')
+                ->get();
+                
+            $salesData = [];
+            foreach ($orders as $order) {
+                $dateStr = $order->updated_at->format('Y-m-d');
+                $salesData[$dateStr] = ($salesData[$dateStr] ?? 0) + $order->total_price;
+            }
+            
             for ($i = 29; $i >= 0; $i--) {
                 $date = Carbon::today()->subDays($i);
+                $dateStr = $date->format('Y-m-d');
                 $labels[] = $date->format('d M');
-                
-                $dailyTotal = Order::where('tenant_id', $tenant->id)
-                    ->whereDate('created_at', $date)
-                    ->where('payment_status', 'success')
-                    ->where('order_status', 'selesai')
-                    ->sum('total_price');
-                $data[] = $dailyTotal;
+                $data[] = $salesData[$dateStr] ?? 0;
             }
         }
 
