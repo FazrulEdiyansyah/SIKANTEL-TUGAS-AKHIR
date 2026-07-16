@@ -83,7 +83,7 @@ class MenuController extends Controller
 
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'deskripsi' => 'nullable|string|max:255',
+            'deskripsi' => 'nullable|string|max:100',
             'harga'     => 'required|numeric|min:0',
             'foto'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'status'    => 'required|in:tersedia,habis',
@@ -128,7 +128,7 @@ class MenuController extends Controller
 
         $request->validate([
             'nama_menu' => 'required|string|max:100',
-            'deskripsi' => 'nullable|string|max:255',
+            'deskripsi' => 'nullable|string|max:100',
             'harga'     => 'required|numeric|min:0',
             'foto'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'status'    => 'required|in:tersedia,habis',

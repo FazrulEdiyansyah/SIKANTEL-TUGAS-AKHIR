@@ -13,8 +13,14 @@
     
     <!-- Content -->
     <div class="p-3 sm:p-5 flex-1 flex flex-col justify-center sm:justify-start">
-        <h3 class="text-[14px] sm:text-[15px] font-bold text-gray-900 leading-tight mb-1 sm:mb-2 line-clamp-2">{{ $menu->nama_menu }}</h3>
-        <p class="text-[13px] sm:text-[14px] text-gray-700 font-semibold mb-2 sm:mb-4 flex-1">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
+        <div class="flex-1">
+            <h3 class="text-[14px] sm:text-[15px] font-bold text-gray-900 leading-tight mb-1 sm:mb-1.5 line-clamp-2">{{ $menu->nama_menu }}</h3>
+            @if($menu->deskripsi)
+                <p class="text-[11px] sm:text-[12px] text-gray-500 mb-1.5 sm:mb-2 line-clamp-2 leading-snug">{{ $menu->deskripsi }}</p>
+            @endif
+        </div>
+        
+        <p class="text-[13px] sm:text-[14px] text-gray-700 font-semibold mb-2 sm:mb-4">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
         
         <!-- Status Label -->
         @if($menu->status === 'tersedia')

@@ -164,8 +164,7 @@
 
     <!-- Global Cart State & Banner -->
     @php
-        $cartModel = \App\Models\Cart::with('items')->where('user_id', auth()->id())->first();
-        $cartItems = $cartModel ? $cartModel->items : collect();
+        $cartItems = session('cart', []);
         
         $globalTotalQty = 0;
         $globalTotalPrice = 0;
@@ -173,22 +172,18 @@
         $globalMenuQtyData = [];
         $globalKantinId = null;
 
-        if ($cartItems->count() > 0) {
-            $firstCartItem = $cartItems->first();
-            $globalTenantId = $firstCartItem->tenant_id ?? null;
-            if ($globalTenantId) {
-                $existingTenant = \App\Models\Tenant::find($globalTenantId);
-                $globalKantinId = $existingTenant ? $existingTenant->kantin_id : null;
-            }
+        if (count($cartItems) > 0) {
+            $firstCartItem = reset($cartItems);
+            $globalKantinId = $firstCartItem['kantin_id'] ?? null;
         }
 
         foreach($cartItems as $item) {
-            $globalTotalQty += $item->quantity;
-            $globalTotalPrice += ($item->quantity * $item->harga);
-            $globalItemNames[] = $item->nama_menu;
+            $globalTotalQty += $item['quantity'];
+            $globalTotalPrice += ($item['quantity'] * $item['harga']);
+            $globalItemNames[] = $item['nama_menu'];
             
-            if(!isset($globalMenuQtyData[$item->menu_id])) $globalMenuQtyData[$item->menu_id] = 0;
-            $globalMenuQtyData[$item->menu_id] += $item->quantity;
+            if(!isset($globalMenuQtyData[$item['menu_id']])) $globalMenuQtyData[$item['menu_id']] = 0;
+            $globalMenuQtyData[$item['menu_id']] += $item['quantity'];
         }
         $globalItemNamesStr = implode(', ', array_unique($globalItemNames));
     @endphp
@@ -236,7 +231,7 @@
                 },
                 async goToCheckout(url, btn) {
                     if (btn) {
-                        btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i>';
+                        btn.innerHTML = 'Memproses...';
                         btn.classList.add('opacity-75', 'cursor-not-allowed', 'pointer-events-none');
                     }
                     
