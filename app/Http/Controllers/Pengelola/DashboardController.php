@@ -25,8 +25,8 @@ class DashboardController extends Controller
 
         $penjualanBulanIniQuery = Order::where('payment_status', 'success')
             ->where('order_status', 'selesai')
-            ->whereMonth('created_at', $currentMonth)
-            ->whereYear('created_at', $currentYear);
+            ->whereMonth('updated_at', $currentMonth)
+            ->whereYear('updated_at', $currentYear);
             
         if ($kantinId) {
             $penjualanBulanIniQuery->whereHas('tenant', function ($q) use ($kantinId) {
@@ -45,7 +45,7 @@ class DashboardController extends Controller
             $startDate = Carbon::today();
             $endDate = Carbon::today()->endOfDay();
 
-            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+            $chartQuery = Order::whereBetween('updated_at', [$startDate, $endDate])
                 ->where('payment_status', 'success')
                 ->where('order_status', 'selesai');
 
@@ -55,19 +55,22 @@ class DashboardController extends Controller
                 });
             }
 
-            $salesData = $chartQuery->selectRaw('HOUR(created_at) as hour, SUM(total_price) as total')
-                ->groupBy('hour')
-                ->pluck('total', 'hour');
+            $orders = $chartQuery->select('updated_at', 'total_price')->get();
+            $salesData = [];
+            foreach ($orders as $order) {
+                $hour = (int) $order->updated_at->format('H');
+                $salesData[$hour] = ($salesData[$hour] ?? 0) + $order->total_price;
+            }
 
-            for ($i = 6; $i <= 21; $i++) {
+            for ($i = 0; $i <= 23; $i++) {
                 $labels[] = sprintf('%02d:00', $i);
-                $data[] = $salesData->get($i, 0);
+                $data[] = $salesData[$i] ?? 0;
             }
         } elseif ($timeFilter == 'minggu') {
             $startDate = Carbon::now()->startOfWeek(); // Senin
             $endDate = Carbon::now()->endOfWeek(); // Minggu
 
-            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+            $chartQuery = Order::whereBetween('updated_at', [$startDate, $endDate])
                 ->where('payment_status', 'success')
                 ->where('order_status', 'selesai');
 
@@ -77,21 +80,24 @@ class DashboardController extends Controller
                 });
             }
 
-            $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
-                ->groupBy('date')
-                ->pluck('total', 'date');
+            $orders = $chartQuery->select('updated_at', 'total_price')->get();
+            $salesData = [];
+            foreach ($orders as $order) {
+                $dateStr = $order->updated_at->format('Y-m-d');
+                $salesData[$dateStr] = ($salesData[$dateStr] ?? 0) + $order->total_price;
+            }
 
             for ($i = 0; $i < 7; $i++) {
                 $date = Carbon::now()->startOfWeek()->addDays($i);
                 $dateStr = $date->format('Y-m-d');
                 $labels[] = $date->translatedFormat('l'); // Hari (Senin, Selasa...)
-                $data[] = $salesData->get($dateStr, 0);
+                $data[] = $salesData[$dateStr] ?? 0;
             }
         } else {
             $startDate = Carbon::now()->startOfMonth();
             $endDate = Carbon::now()->endOfMonth();
 
-            $chartQuery = Order::whereBetween('created_at', [$startDate, $endDate])
+            $chartQuery = Order::whereBetween('updated_at', [$startDate, $endDate])
                 ->where('payment_status', 'success')
                 ->where('order_status', 'selesai');
 
@@ -101,16 +107,19 @@ class DashboardController extends Controller
                 });
             }
 
-            $salesData = $chartQuery->selectRaw('DATE(created_at) as date, SUM(total_price) as total')
-                ->groupBy('date')
-                ->pluck('total', 'date');
+            $orders = $chartQuery->select('updated_at', 'total_price')->get();
+            $salesData = [];
+            foreach ($orders as $order) {
+                $dateStr = $order->updated_at->format('Y-m-d');
+                $salesData[$dateStr] = ($salesData[$dateStr] ?? 0) + $order->total_price;
+            }
 
             $daysInMonth = Carbon::now()->daysInMonth;
             for ($i = 1; $i <= $daysInMonth; $i++) {
                 $date = Carbon::now()->startOfMonth()->addDays($i - 1);
                 $dateStr = $date->format('Y-m-d');
                 $labels[] = $date->format('d M');
-                $data[] = $salesData->get($dateStr, 0);
+                $data[] = $salesData[$dateStr] ?? 0;
             }
         }
 
@@ -131,16 +140,16 @@ class DashboardController extends Controller
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
                 if ($filterWaktuTenant === 'bulan_ini') {
-                    $query->whereMonth('orders.created_at', $currentMonth)
-                          ->whereYear('orders.created_at', $currentYear);
+                    $query->whereMonth('orders.updated_at', $currentMonth)
+                          ->whereYear('orders.updated_at', $currentYear);
                 }
             }], 'total_price')
             ->withCount(['orders' => function ($query) use ($filterWaktuTenant, $currentMonth, $currentYear) {
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
                 if ($filterWaktuTenant === 'bulan_ini') {
-                    $query->whereMonth('orders.created_at', $currentMonth)
-                          ->whereYear('orders.created_at', $currentYear);
+                    $query->whereMonth('orders.updated_at', $currentMonth)
+                          ->whereYear('orders.updated_at', $currentYear);
                 }
             }]);
 
@@ -159,8 +168,8 @@ class DashboardController extends Controller
                 $query->where('orders.payment_status', 'success')
                       ->where('orders.order_status', 'selesai');
                 if ($filterWaktuKantin === 'bulan_ini') {
-                    $query->whereMonth('orders.created_at', $currentMonth)
-                          ->whereYear('orders.created_at', $currentYear);
+                    $query->whereMonth('orders.updated_at', $currentMonth)
+                          ->whereYear('orders.updated_at', $currentYear);
                 }
             }], 'total_price');
             

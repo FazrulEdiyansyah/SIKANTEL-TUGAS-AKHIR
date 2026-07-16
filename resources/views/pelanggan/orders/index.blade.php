@@ -50,71 +50,80 @@
         </div>
 
         <!-- Orders List -->
-        <div class="space-y-4">
-            <template x-for="order in filteredOrders" :key="order.id">
-                <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
-                    <div class="flex flex-col md:flex-row gap-6">
-                        
-                        <!-- Tenant Info -->
-                        <div class="flex gap-4 md:w-[300px] shrink-0">
-                            <div class="w-16 h-16 rounded-full bg-gray-100 border border-gray-50 flex items-center justify-center overflow-hidden shrink-0">
-                                <template x-if="order.tenant && order.tenant.foto">
-                                    <img :src="'/storage/' + order.tenant.foto" class="w-full h-full object-cover">
-                                </template>
-                                <template x-if="!order.tenant || !order.tenant.foto">
-                                    <i class="ph ph-storefront text-2xl text-gray-400"></i>
-                                </template>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-gray-900 mb-1" x-text="order.tenant ? order.tenant.nama_tenant : 'Tenant Tidak Diketahui'"></h3>
-                                <p class="text-xs text-gray-500 mb-3" x-text="order.tenant ? order.tenant.lokasi : '-'"></p>
-                                
-                                <div class="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
-                                    <i class="ph ph-fork-knife text-telkom-red"></i>
-                                    <span x-text="order.order_type === 'dine-in' ? 'Makan di Tempat' : 'Bawa Pulang'"></span>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- Order Info -->
-                        <div class="flex-1 flex flex-col justify-between">
-                            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                <div>
-                                    <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
-                                        <i class="ph ph-calendar-blank"></i>
-                                        <span x-text="formatDate(order.created_at)"></span>
+        <div class="space-y-8">
+            <template x-for="dateGroup in ordersByDate" :key="dateGroup.date">
+                <div>
+                    <!-- Date Header -->
+                    <h2 class="text-lg font-bold text-gray-900 mb-4 px-2" x-text="dateGroup.label"></h2>
+                    
+                    <div class="space-y-4">
+                        <template x-for="group in dateGroup.groups" :key="group.order_id">
+                            <div class="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                                <div class="flex flex-col md:flex-row gap-6">
+                                    
+                                    <!-- Tenant Info List -->
+                                    <div class="flex flex-col gap-4 md:w-[300px] shrink-0">
+                                        <template x-for="order in group.tenant_orders" :key="order.id">
+                                            <div class="flex gap-4 items-center">
+                                                <div class="w-12 h-12 rounded-full bg-gray-100 border border-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                                                    <template x-if="order.tenant && order.tenant.foto">
+                                                        <img :src="'/storage/' + order.tenant.foto" class="w-full h-full object-cover">
+                                                    </template>
+                                                    <template x-if="!order.tenant || !order.tenant.foto">
+                                                        <i class="ph ph-storefront text-xl text-gray-400"></i>
+                                                    </template>
+                                                </div>
+                                                <div class="flex-1">
+                                                    <h3 class="font-bold text-gray-900 text-sm mb-1 line-clamp-1" x-text="order.tenant ? order.tenant.nama_tenant : 'Tenant Tidak Diketahui'"></h3>
+                                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
+                                                        :class="getStatusClass(getUnifiedStatus(order))">
+                                                        <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
+                                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
-                                    <p class="text-sm font-bold text-gray-900 mb-0.5" x-text="order.items.length + ' menu'"></p>
-                                    <p class="text-sm text-gray-500 line-clamp-1" x-text="getItemNames(order.items)"></p>
-                                </div>
-                                <div class="text-left sm:text-right">
-                                    <p class="text-xs text-gray-500 mb-0.5">Total</p>
-                                    <p class="text-base font-bold text-telkom-red" x-text="'Rp' + formatPrice(order.total_price)"></p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
-                                <div>
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
-                                          :class="getStatusClass(getUnifiedStatus(order))">
-                                        <i class="ph-bold" :class="getStatusIcon(getUnifiedStatus(order))"></i>
-                                        <span x-text="getStatusText(getUnifiedStatus(order))"></span>
-                                    </span>
-                                </div>
-                                
-                                <a :href="'/pelanggan/orders/' + order.id" class="px-5 py-2 border border-telkom-red text-telkom-red hover:bg-red-50 text-sm font-bold rounded-xl transition-colors">
-                                    Lihat Detail &gt;
-                                </a>
-                            </div>
-                        </div>
 
+                                    <!-- Order Info -->
+                                    <div class="flex-1 flex flex-col justify-between border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6">
+                                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                            <div>
+                                                <div class="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+                                                    <i class="ph ph-clock"></i>
+                                                    <span x-text="formatTimeOnly(group.created_at)"></span>
+                                                </div>
+                                                <p class="text-sm font-bold text-gray-900 mb-0.5" x-text="getTotalItems(group) + ' menu'"></p>
+                                                <p class="text-sm text-gray-500 line-clamp-2" x-text="getAllItemNames(group)"></p>
+                                            </div>
+                                            <div class="text-left sm:text-right shrink-0">
+                                                <p class="text-xs text-gray-500 mb-0.5">Total Transaksi</p>
+                                                <p class="text-base font-bold text-telkom-red" x-text="'Rp' + formatPrice(group.total_price)"></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between sm:justify-end mt-6 pt-4 border-t border-gray-50">
+                                            <div class="sm:hidden">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
+                                                      :class="getGroupStatusClass(group)">
+                                                    <span x-text="getGroupStatusText(group)"></span>
+                                                </span>
+                                            </div>
+                                            <a :href="'/pelanggan/orders/' + group.order_id" class="px-5 py-2 border border-telkom-red text-telkom-red hover:bg-red-50 text-sm font-bold rounded-xl transition-colors">
+                                                Lihat Detail &gt;
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </template>
             
             <!-- Empty State -->
-            <template x-if="filteredOrders.length === 0">
+            <template x-if="ordersByDate.length === 0">
                 <div class="bg-white rounded-2xl p-12 text-center border border-gray-100">
                     <i class="ph flex justify-center text-4xl text-gray-300 mb-4" :class="activeTab === 'aktif' ? 'ph-cooking-pot' : 'ph-receipt'"></i>
                     <h3 class="text-lg font-bold text-gray-900 mb-2">Belum ada pesanan</h3>
@@ -134,7 +143,7 @@
                 activeTab: 'aktif',
                 searchQuery: '',
                 statusFilter: 'all',
-                orders: {!! json_encode($orders) !!},
+                rawOrders: {!! json_encode($orders) !!},
 
                 get availableStatuses() {
                     if (this.activeTab === 'aktif') {
@@ -152,51 +161,147 @@
                     }
                 },
 
-                get filteredOrders() {
-                    return this.orders.filter(order => {
-                        // Filter Tab
-                        let unified = this.getUnifiedStatus(order);
+                get groupedOrders() {
+                    let transactionGroups = {};
+                    this.rawOrders.forEach(order => {
+                        if (!transactionGroups[order.order_id]) {
+                            transactionGroups[order.order_id] = {
+                                order_id: order.order_id,
+                                created_at: order.created_at,
+                                payment_status: order.payment_status,
+                                snap_token: order.snap_token,
+                                total_price: 0,
+                                tenant_orders: []
+                            };
+                        }
+                        transactionGroups[order.order_id].total_price += parseInt(order.total_price);
+                        transactionGroups[order.order_id].tenant_orders.push(order);
+                    });
+
+                    let grouped = Object.values(transactionGroups);
+
+                    return grouped.filter(group => {
                         let isTabMatch = false;
+                        let isStatusMatch = false;
+
+                        let hasActive = group.tenant_orders.some(o => {
+                            let stat = this.getUnifiedStatus(o);
+                            return ['pending', 'belum_diproses', 'diproses', 'siap_diambil'].includes(stat);
+                        });
+
                         if (this.activeTab === 'aktif') {
-                            isTabMatch = ['pending', 'belum_diproses', 'diproses', 'siap_diambil'].includes(unified);
+                            isTabMatch = hasActive;
                         } else {
-                            isTabMatch = !['pending', 'belum_diproses', 'diproses', 'siap_diambil'].includes(unified);
+                            isTabMatch = !hasActive;
                         }
                         
-                        // Dropdown Status Filter
-                        let isStatusMatch = this.statusFilter === 'all' || unified === this.statusFilter;
+                        if (this.statusFilter === 'all') {
+                            isStatusMatch = true;
+                        } else {
+                            isStatusMatch = group.tenant_orders.some(o => this.getUnifiedStatus(o) === this.statusFilter);
+                        }
 
-                        // Search Filter (by tenant name or item names)
                         let searchLower = this.searchQuery.toLowerCase();
                         let isSearchMatch = true;
                         if (searchLower) {
-                            let tenantMatch = order.tenant && order.tenant.nama_tenant.toLowerCase().includes(searchLower);
-                            let itemMatch = order.items.some(item => item.nama_menu.toLowerCase().includes(searchLower));
-                            isSearchMatch = tenantMatch || itemMatch;
+                            isSearchMatch = group.tenant_orders.some(o => {
+                                let tenantMatch = o.tenant && o.tenant.nama_tenant.toLowerCase().includes(searchLower);
+                                let itemMatch = o.items.some(item => item.nama_menu.toLowerCase().includes(searchLower));
+                                return tenantMatch || itemMatch;
+                            });
                         }
 
                         return isTabMatch && isStatusMatch && isSearchMatch;
                     });
                 },
 
-                formatDate(dateString) {
+                get ordersByDate() {
+                    let byDate = {};
+                    this.groupedOrders.forEach(group => {
+                        let dateStr = this.formatDateOnly(group.created_at);
+                        if (!byDate[dateStr]) byDate[dateStr] = [];
+                        byDate[dateStr].push(group);
+                    });
+                    
+                    return Object.keys(byDate).sort((a,b) => new Date(b) - new Date(a)).map(date => {
+                        return {
+                            date: date,
+                            label: this.formatDateLabel(date),
+                            groups: byDate[date].sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+                        };
+                    });
+                },
+
+                formatDateOnly(dateString) {
                     const date = new Date(dateString);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`; // ISO format for easy sorting/parsing
+                },
+
+                formatDateLabel(dateString) {
+                    const date = new Date(dateString);
+                    const today = new Date();
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    if (date.toDateString() === today.toDateString()) {
+                        return 'Hari Ini';
+                    } else if (date.toDateString() === yesterday.toDateString()) {
+                        return 'Kemarin';
+                    }
+
                     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
                     const day = date.getDate();
                     const month = months[date.getMonth()];
                     const year = date.getFullYear();
+                    return `${day} ${month} ${year}`;
+                },
+
+                formatTimeOnly(dateString) {
+                    const date = new Date(dateString);
                     const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
-                    return `${day} ${month} ${year}, ${hours}:${minutes}`;
+                    return `${hours}:${minutes}`;
                 },
 
                 formatPrice(price) {
                     return new Intl.NumberFormat('id-ID').format(price);
                 },
 
-                getItemNames(items) {
-                    if (!items || items.length === 0) return '';
-                    return items.map(i => i.nama_menu).join(', ');
+                getTotalItems(group) {
+                    let total = 0;
+                    group.tenant_orders.forEach(o => {
+                        total += o.items.length;
+                    });
+                    return total;
+                },
+
+                getAllItemNames(group) {
+                    let names = [];
+                    group.tenant_orders.forEach(o => {
+                        o.items.forEach(i => {
+                            names.push(i.nama_menu);
+                        });
+                    });
+                    return names.join(', ');
+                },
+
+                getGroupStatusText(group) {
+                    if (group.payment_status === 'pending') return 'Menunggu Pembayaran';
+                    if (group.payment_status === 'failed') return 'Dibatalkan';
+                    let allFinished = group.tenant_orders.every(o => o.order_status === 'selesai');
+                    if (allFinished) return 'Selesai';
+                    return 'Diproses';
+                },
+
+                getGroupStatusClass(group) {
+                    if (group.payment_status === 'pending') return 'bg-orange-50 text-orange-600';
+                    if (group.payment_status === 'failed') return 'bg-red-50 text-red-600';
+                    let allFinished = group.tenant_orders.every(o => o.order_status === 'selesai');
+                    if (allFinished) return 'bg-green-50 text-green-600';
+                    return 'bg-blue-50 text-blue-600';
                 },
 
                 getUnifiedStatus(order) {
@@ -213,7 +318,7 @@
                         case 'diproses': return 'Sedang Disiapkan';
                         case 'siap_diambil': return 'Siap Diambil';
                         case 'selesai': return 'Selesai';
-                        case 'failed': return 'Gagal / Dibatalkan';
+                        case 'failed': return 'Dibatalkan';
                         default: return status;
                     }
                 },
