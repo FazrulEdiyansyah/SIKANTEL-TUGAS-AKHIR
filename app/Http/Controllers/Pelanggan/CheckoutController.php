@@ -6,17 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Cart;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
     public function process(Request $request)
     {
-        $cartModel = Cart::with('items')->where('user_id', auth()->id())->first();
-        $cartItems = $cartModel ? $cartModel->items : collect();
+        $cartItems = session('cart', []);
         
-        if ($cartItems->isEmpty()) {
+        if (empty($cartItems)) {
             return response()->json(['success' => false, 'message' => 'Keranjang kosong']);
         }
 
@@ -27,16 +25,16 @@ class CheckoutController extends Controller
         $tenantOrders = [];
         
         foreach ($cartItems as $item) {
-            $tenantId = $item->tenant_id;
+            $tenantId = $item['tenant_id'];
             if (!isset($tenantOrders[$tenantId])) {
                 $tenantOrders[$tenantId] = [
                     'total_price' => 0,
                     'items' => []
                 ];
             }
-            $tenantOrders[$tenantId]['total_price'] += ($item->quantity * $item->harga);
+            $tenantOrders[$tenantId]['total_price'] += ($item['quantity'] * $item['harga']);
             $tenantOrders[$tenantId]['items'][] = $item;
-            $totalPrice += ($item->quantity * $item->harga);
+            $totalPrice += ($item['quantity'] * $item['harga']);
         }
 
         // Generate Order ID (Satu ID transaksi Midtrans untuk semua tenant ini)
@@ -59,12 +57,12 @@ class CheckoutController extends Controller
             foreach ($tData['items'] as $item) {
                 OrderItem::create([
                     'order_id'         => $order->id,
-                    'menu_id'          => $item->menu_id,
-                    'nama_menu'        => $item->nama_menu,
-                    'quantity'         => $item->quantity,
-                    'harga'            => $item->harga,
-                    'selected_options' => is_array($item->selected_options) ? json_encode($item->selected_options) : $item->selected_options,
-                    'catatan'          => $item->catatan,
+                    'menu_id'          => $item['menu_id'],
+                    'nama_menu'        => $item['nama_menu'],
+                    'quantity'         => $item['quantity'],
+                    'harga'            => $item['harga'],
+                    'selected_options' => is_array($item['selected_options']) ? json_encode($item['selected_options']) : $item['selected_options'],
+                    'catatan'          => $item['catatan'] ?? null,
                 ]);
             }
         }
@@ -93,8 +91,8 @@ class CheckoutController extends Controller
             // Save snap token to all created orders
             Order::where('order_id', $orderId)->update(['snap_token' => $snapToken]);
 
-            // Clear Cart from Database
-            $cartModel->items()->delete();
+            // Clear Cart from Session
+            session()->forget('cart');
 
             return response()->json([
                 'success' => true,

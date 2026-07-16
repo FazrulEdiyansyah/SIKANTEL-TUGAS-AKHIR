@@ -103,10 +103,10 @@
                         <!-- Deskripsi -->
                         <div>
                             <label for="deskripsi" class="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Menu <span class="text-telkom-red">*</span></label>
-                            <textarea name="deskripsi" id="deskripsi" x-model="deskripsi" required rows="4" maxlength="255" placeholder="Contoh: Nasi ayam geprek dengan sambal original..." class="w-full px-4 py-3 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all resize-none"></textarea>
+                            <textarea name="deskripsi" id="deskripsi" x-model="deskripsi" required rows="4" maxlength="100" placeholder="Contoh: Nasi ayam geprek dengan sambal original..." class="w-full px-4 py-3 bg-white border border-gray-200 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-telkom-red/20 focus:border-telkom-red transition-all resize-none"></textarea>
                             <div class="flex justify-between mt-2">
                                 <p class="text-[11px] text-gray-400">Jelaskan menu secara singkat.</p>
-                                <p class="text-[11px] text-gray-400"><span x-text="deskripsi.length"></span> / 255</p>
+                                <p class="text-[11px] text-gray-400"><span x-text="deskripsi.length"></span> / 100</p>
                             </div>
                             @error('deskripsi')
                                 <p class="text-telkom-red text-xs mt-1">{{ $message }}</p>
