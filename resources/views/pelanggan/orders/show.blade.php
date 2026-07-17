@@ -110,7 +110,7 @@
                                 <span>{{ $statusText }}</span>
                             </div>
                             
-                            @if($order->order_status == 'siap_diambil')
+                            @if($order->order_status == 'siap_diambil' && $order->order_type != 'dine-in')
                             <div class="mt-2 text-xs font-bold text-gray-500">
                                 PIN: <span class="text-base text-[#E31E24] tracking-widest ml-1">{{ $order->pickup_pin ?? '---' }}</span>
                             </div>
@@ -210,9 +210,7 @@
                                         <option value="1">⭐ Sangat Kurang</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <textarea name="comment" rows="3" placeholder="Bagaimana rasa dan pelayanannya?" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-telkom-red resize-none"></textarea>
-                                </div>
+
                                 <button type="submit" class="w-full py-3 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl transition-colors shadow-md">
                                     Kirim Ulasan
                                 </button>
@@ -226,7 +224,7 @@
                                     <i class="{{ $i <= $order->review->rating ? 'ph-fill' : 'ph' }} ph-star text-lg"></i>
                                 @endfor
                             </div>
-                            <p class="text-sm text-gray-600 italic bg-gray-50 p-4 rounded-xl">"{{ $order->review->comment ?? 'Tidak ada komentar.' }}"</p>
+
                         </div>
                         @endif
                     @endif
