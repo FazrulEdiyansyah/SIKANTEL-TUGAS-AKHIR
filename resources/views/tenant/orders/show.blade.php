@@ -122,7 +122,7 @@
                             <span class="text-xl font-black text-telkom-red">Rp{{ number_format($order->total_price, 0, ',', '.') }}</span>
                         </div>
 
-                        @if($order->order_status == 'siap_diambil' || $order->order_status == 'selesai')
+                        @if(($order->order_status == 'siap_diambil' || $order->order_status == 'selesai') && $order->order_type != 'dine-in')
                         <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl text-center">
                             <p class="text-xs text-gray-500 mb-1 font-bold">PIN PENGAMBILAN PELANGGAN</p>
                             <p class="text-4xl font-black text-gray-900 tracking-[0.2em]">{{ $order->pickup_pin ?? '---' }}</p>
