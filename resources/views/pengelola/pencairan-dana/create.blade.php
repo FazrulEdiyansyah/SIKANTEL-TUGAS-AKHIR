@@ -36,7 +36,7 @@
             <!-- Judul Laporan -->
             <div class="mb-6">
                 <label class="block text-sm font-bold text-gray-900 mb-2">Judul Laporan <span class="text-red-500">*</span></label>
-                <input type="text" name="judul" required placeholder="Contoh: Pencairan Dana Kantin TULT Periode Juni 2026" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all">
+                <input type="text" name="judul" value="{{ old('judul', $duplicateData['judul'] ?? '') }}" required placeholder="Contoh: Pencairan Dana Kantin TULT Periode Juni 2026" class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all">
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -46,11 +46,11 @@
                     <div class="flex gap-4">
                         <div class="relative flex-1">
                             <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Mulai</span>
-                            <input type="date" id="start_date" name="start_date" value="{{ date('Y-m-01') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                            <input type="date" id="start_date" name="start_date" value="{{ old('start_date', $duplicateData['start_date'] ?? date('Y-m-01')) }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
                         </div>
                         <div class="relative flex-1">
                             <span class="absolute -top-2.5 left-3 px-1 bg-white text-[11px] font-bold text-gray-500">Selesai</span>
-                            <input type="date" id="end_date" name="end_date" value="{{ date('Y-m-t') }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
+                            <input type="date" id="end_date" name="end_date" value="{{ old('end_date', $duplicateData['end_date'] ?? date('Y-m-t')) }}" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all cursor-pointer">
                         </div>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                             <select name="approver_1_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
                                 <option value="">Pilih Kaur...</option>
                                 @foreach($approvers->where('role', 'kaur') as $approver)
-                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                    <option value="{{ $approver->name }}" {{ old('approver_1_name', $duplicateData['approver_1'] ?? '') == $approver->name ? 'selected' : '' }}>{{ $approver->name }}</option>
                                 @endforeach
                             </select>
                             <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
@@ -77,7 +77,7 @@
                             <select name="approver_2_name" required class="w-full px-4 py-3.5 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all appearance-none cursor-pointer text-gray-700">
                                 <option value="">Pilih Kabag...</option>
                                 @foreach($approvers->where('role', 'kabag') as $approver)
-                                    <option value="{{ $approver->name }}">{{ $approver->name }}</option>
+                                    <option value="{{ $approver->name }}" {{ old('approver_2_name', $duplicateData['approver_2'] ?? '') == $approver->name ? 'selected' : '' }}>{{ $approver->name }}</option>
                                 @endforeach
                             </select>
                             <i class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
@@ -89,7 +89,7 @@
             <!-- Keterangan Laporan -->
             <div class="mb-8">
                 <label class="block text-sm font-bold text-gray-900 mb-2">Keterangan Laporan</label>
-                <textarea name="keterangan" rows="4" placeholder="Masukkan keterangan tambahan jika perlu..." class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all"></textarea>
+                <textarea name="keterangan" rows="4" placeholder="Masukkan keterangan tambahan jika perlu..." class="w-full p-4 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-telkom-red/20 outline-none transition-all">{{ old('keterangan', $duplicateData['keterangan'] ?? '') }}</textarea>
             </div>
 
             <!-- Pilih Tenant -->
@@ -133,7 +133,7 @@
                         @foreach($tenants as $tenant)
                             <label x-show="(selectedKantin === '' || '{{ $tenant->kantin_id }}' == selectedKantin) && (search === '' || '{{ strtolower($tenant->nama_tenant) }}'.includes(search.toLowerCase()))" 
                                    class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors tenant-item-wrapper">
-                                <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-telkom-red focus:ring-telkom-red">
+                                <input type="checkbox" name="tenant_ids[]" value="{{ $tenant->id }}" class="tenant-checkbox rounded border-gray-300 text-telkom-red focus:ring-telkom-red" {{ in_array($tenant->id, old('tenant_ids', $duplicateData['tenant_ids'] ?? [])) ? 'checked' : '' }}>
                                 <span class="text-sm font-medium text-gray-700">{{ $tenant->nama_tenant }}</span>
                                 <span class="text-xs text-gray-400 ml-auto">{{ $tenant->kantin ? $tenant->kantin->nama_kantin : '-' }}</span>
                             </label>
@@ -380,6 +380,14 @@
             // Lanjutkan pengiriman form
             form.submit();
         }
+
+        @if(isset($duplicateData))
+            // Auto trigger calculate sales if it's a duplication
+            setTimeout(() => {
+                checkAll.checked = Array.from(checkboxes).every(c => c.checked);
+                calculateSales();
+            }, 500);
+        @endif
     });
 </script>
 @endpush

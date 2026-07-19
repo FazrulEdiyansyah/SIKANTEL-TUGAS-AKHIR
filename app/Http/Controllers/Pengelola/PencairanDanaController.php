@@ -78,12 +78,38 @@ class PencairanDanaController extends Controller
         return view('pengelola.pencairan-dana.index', compact('pencairan_danas', 'status', 'statusCounts'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $tenants = Tenant::with('kantin')->where('status', 'aktif')->get();
         $kantins = \App\Models\Kantin::all();
         $approvers = \App\Models\User::whereIn('role', ['kaur', 'kabag'])->get();
-        return view('pengelola.pencairan-dana.create', compact('tenants', 'kantins', 'approvers'));
+        
+        $duplicateData = null;
+        if ($request->has('duplicate_from')) {
+            $oldRecords = PencairanDana::where('batch_id', $request->duplicate_from)->get();
+            if ($oldRecords->isNotEmpty()) {
+                $first = $oldRecords->first();
+                $approversArray = explode(' & ', $first->approver_name);
+                $app1 = $approversArray[0] ?? '';
+                $app2 = $approversArray[1] ?? '';
+                
+                // Remove "(Kaur)" and "(Kabag)" if present
+                $app1 = trim(str_replace('(Kaur)', '', $app1));
+                $app2 = trim(str_replace('(Kabag)', '', $app2));
+
+                $duplicateData = [
+                    'judul' => $first->judul,
+                    'start_date' => $first->start_date ? $first->start_date->format('Y-m-d') : date('Y-m-01'),
+                    'end_date' => $first->end_date ? $first->end_date->format('Y-m-d') : date('Y-m-t'),
+                    'keterangan' => $first->keterangan,
+                    'tenant_ids' => $oldRecords->pluck('tenant_id')->toArray(),
+                    'approver_1' => $app1,
+                    'approver_2' => $app2,
+                ];
+            }
+        }
+
+        return view('pengelola.pencairan-dana.create', compact('tenants', 'kantins', 'approvers', 'duplicateData'));
     }
 
     public function calculateSales(Request $request)
