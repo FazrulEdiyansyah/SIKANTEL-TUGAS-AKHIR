@@ -216,12 +216,9 @@
                 @endif
                 
                 @if($role === 'pengelola' && in_array($batchInfo->status, ['rejected_kaur', 'rejected_kabag']))
-                    <form action="{{ route('pengelola.pencairan_dana.duplicate', $batch_id) }}" method="POST" class="inline">
-                        @csrf
-                        <button type="submit" class="px-5 py-2.5 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm flex items-center" onclick="confirmFormSubmit(event, 'Tindakan ini akan menyalin seluruh data laporan ini menjadi Draft baru. Anda yakin ingin melanjutkan?')">
-                            <i class="ph-bold ph-copy mr-2 text-lg"></i> Buat Ulang Laporan (Draft Baru)
-                        </button>
-                    </form>
+                    <a href="{{ route('pengelola.pencairan_dana.create', ['duplicate_from' => $batch_id]) }}" class="px-5 py-2.5 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-sm flex items-center">
+                        <i class="ph-bold ph-copy mr-2 text-lg"></i> Buat Ulang Laporan (Draft Baru)
+                    </a>
                 @endif
                 
                 @if($canApprove)
